@@ -358,6 +358,10 @@ h3 {
   color: var(--accent);
 }
 
+.hero__f1 {
+  margin-left: 0.14em;
+}
+
 .hero__lead {
   margin-top: 24px;
   max-width: 620px;
