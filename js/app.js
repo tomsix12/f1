@@ -6,16 +6,12 @@
 (() => {
   "use strict";
 
-  const DATA = window.F1_SEASON;
-  if (!DATA || !Array.isArray(DATA.meetings) || !DATA.meetings.length) {
-    const card = document.getElementById("next-card");
-    if (card) card.textContent = "The 2026 schedule could not be loaded.";
-    return;
-  }
-
   const TZ_KEY = "tomsix.f1.timezone";
+  const THEME_KEY = "tomsix.f1.theme";
+  const LANG_KEY = "tomsix.f1.lang";
   const LIVE_KEY = "tomsix.f1.live.v3";
   const LIVE_TTL = 6 * 60 * 60 * 1000;
+
   const FALLBACK_ZONES = [
     "Europe/Prague", "Europe/London", "Europe/Berlin", "Europe/Paris", "Europe/Madrid",
     "Europe/Rome", "Europe/Amsterdam", "Europe/Vienna", "Europe/Warsaw", "Europe/Budapest",
@@ -46,6 +42,177 @@
     }
   };
 
+  /* ------------------------------------------------------------------------
+     Translations
+     ------------------------------------------------------------------------ */
+
+  const OPENF1_LINK = '<a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a>';
+  const JOLPICA_LINK = '<a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica</a>';
+
+  const I18N = {
+    cs: {
+      "meta.title": "F1 připomínky · každá session ve tvém čase — tomsix.xyz",
+      "meta.desc": "Kompletní kalendář formule 1 pro rok 2026 s časy tréninků, kvalifikací, sprintů a závodů ve tvém časovém pásmu. Připomínky do kalendáře na jeden klik.",
+      "skip": "Přejít na obsah",
+      "nav.next": "Další závod",
+      "nav.calendar": "Kalendář",
+      "nav.main": "Hlavní navigace",
+      "settings.theme": "Motiv",
+      "settings.light": "Světlý motiv",
+      "settings.dark": "Tmavý motiv",
+      "settings.language": "Jazyk",
+      "settings.timezone": "Časové pásmo",
+      "hero.eyebrow": "Sezóna {year}",
+      "hero.title": "Celá sezóna.<br><em>Ve tvém čase.</em>",
+      "hero.lead": "Tréninky, kvalifikace, sprinty i start závodu — převedené do tvého časového pásma, s připomínkou v kalendáři na jeden klik.",
+      "loading": "Načítám rozvrh…",
+      "next.live": "Právě teď",
+      "next.up": "Další v pořadí",
+      "next.over": "Sezóna je u konce",
+      "next.overSub": "Ročník {year} máme za sebou. Uvidíme se příští rok.",
+      "next.round": "Kolo {round} z {total}",
+      "next.show": "Zobrazit všechny závody",
+      "next.hide": "Skrýt seznam závodů",
+      "next.calendar": "Přidat do kalendáře",
+      "next.ends": "Session právě běží — končí v {time}.",
+      "next.starts": "{session} začíná {date} v {time}.",
+      "next.note": "Časy v {tz} ({abbr}) · přizpůsobené tvému pásmu",
+      "countdown.d": "Dny",
+      "countdown.h": "Hod",
+      "countdown.m": "Min",
+      "countdown.s": "Sek",
+      "season.title": "Kalendář {year}",
+      "season.sub": "Všechny session v tvém pásmu. Klikni na závod a rozbal celý rozvrh víkendu.",
+      "group.upcoming": "Nadcházející závody",
+      "group.past": "Proběhlé závody",
+      "race.live": "Probíhá",
+      "race.next": "Další",
+      "race.sessions": "{n} session",
+      "race.open": "Zobrazit rozvrh",
+      "race.close": "Skrýt rozvrh",
+      "sched.timezone": "Časy v {tz} ({abbr})",
+      "sched.weekend": "Přidat celý víkend",
+      "sched.add": "Přidat do kalendáře",
+      "sched.next": "Další",
+      "sched.live": "Živě",
+      "sched.done": "Hotovo",
+      "sess.practice": "Trénink {n}",
+      "sess.sprintQualifying": "Sprintová kvalifikace",
+      "sess.qualifying": "Kvalifikace",
+      "sess.sprint": "Sprint",
+      "sess.race": "Závod",
+      "badge.sprint": "Sprint",
+      "sync.live": "Živě · {time}",
+      "sync.cached": "Z mezipaměti · {time}",
+      "sync.snapshot": "Přibalená data · {date}",
+      "sync.offline": "Offline data",
+      "footer.note": `Neoficiální fanouškový projekt. Není spojený s Formula 1, FIA ani žádným týmem. Časy ze ${OPENF1_LINK}, data z ${JOLPICA_LINK}. Vždy zkontroluj oficiální harmonogram.`,
+      "noscript": "Pro převod časů do tvého pásma je potřeba JavaScript.",
+      "ics.round": "Kolo {round} z {total} · sezóna {year}",
+      "ics.circuit": "Okruh: {place}",
+      "ics.session": "Session: {date} {time} ({tz})",
+      "ics.duration": "Délka: {duration}",
+      "ics.schedule": "Rozvrh: https://tomsix.xyz",
+      "data.error": "Rozvrh 2026 se nepodařilo načíst."
+    },
+    en: {
+      "meta.title": "F1 reminders · every session in your time — tomsix.xyz",
+      "meta.desc": "The full 2026 Formula 1 calendar with practice, qualifying, sprint and race times converted to your timezone. One-click calendar reminders for every session.",
+      "skip": "Skip to content",
+      "nav.next": "Next race",
+      "nav.calendar": "Calendar",
+      "nav.main": "Main navigation",
+      "settings.theme": "Theme",
+      "settings.light": "Light theme",
+      "settings.dark": "Dark theme",
+      "settings.language": "Language",
+      "settings.timezone": "Timezone",
+      "hero.eyebrow": "Season {year}",
+      "hero.title": "The whole season.<br><em>In your time.</em>",
+      "hero.lead": "Practice, qualifying, sprints and lights out — converted to your timezone, with one-click calendar reminders.",
+      "loading": "Loading the schedule…",
+      "next.live": "Live now",
+      "next.up": "Up next",
+      "next.over": "Season complete",
+      "next.overSub": "The {year} season is in the books. See you next year.",
+      "next.round": "Round {round} of {total}",
+      "next.show": "Show all races",
+      "next.hide": "Hide race list",
+      "next.calendar": "Add to calendar",
+      "next.ends": "Session in progress — it ends at {time}.",
+      "next.starts": "{session} starts {date} at {time}.",
+      "next.note": "Times in {tz} ({abbr}) · matched to your timezone",
+      "countdown.d": "Days",
+      "countdown.h": "Hours",
+      "countdown.m": "Mins",
+      "countdown.s": "Secs",
+      "season.title": "{year} calendar",
+      "season.sub": "Every session in your zone. Click a race to unfold the full weekend schedule.",
+      "group.upcoming": "Upcoming races",
+      "group.past": "Completed races",
+      "race.live": "Live",
+      "race.next": "Next",
+      "race.sessions": "{n} sessions",
+      "race.open": "Show schedule",
+      "race.close": "Hide schedule",
+      "sched.timezone": "Times in {tz} ({abbr})",
+      "sched.weekend": "Add whole weekend",
+      "sched.add": "Add to calendar",
+      "sched.next": "Next",
+      "sched.live": "Live",
+      "sched.done": "Done",
+      "sess.practice": "Practice {n}",
+      "sess.sprintQualifying": "Sprint qualifying",
+      "sess.qualifying": "Qualifying",
+      "sess.sprint": "Sprint",
+      "sess.race": "Race",
+      "badge.sprint": "Sprint",
+      "sync.live": "Live · {time}",
+      "sync.cached": "Cached · {time}",
+      "sync.snapshot": "Bundled data · {date}",
+      "sync.offline": "Offline data",
+      "footer.note": `Unofficial fan project. Not affiliated with Formula 1, the FIA or any team. Times from ${OPENF1_LINK}, race data from ${JOLPICA_LINK}. Always double-check the official schedule.`,
+      "noscript": "This page needs JavaScript to convert session times to your timezone.",
+      "ics.round": "Round {round} of {total} · {year} F1 season",
+      "ics.circuit": "Circuit: {place}",
+      "ics.session": "Session: {date} {time} ({tz})",
+      "ics.duration": "Duration: {duration}",
+      "ics.schedule": "Schedule: https://tomsix.xyz",
+      "data.error": "The 2026 schedule could not be loaded."
+    }
+  };
+
+  const state = {
+    lang: document.documentElement.lang === "en" ? "en" : "cs",
+    theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+    tz: validZone(store.get(TZ_KEY) || browserZone()),
+    now: Date.now(),
+    expanded: new Set(),
+    calendarOpen: false
+  };
+
+  function t(key, vars) {
+    const dict = I18N[state.lang] || I18N.cs;
+    let text = dict[key] ?? I18N.cs[key] ?? key;
+    if (vars) {
+      for (const name of Object.keys(vars)) {
+        text = text.split(`{${name}}`).join(String(vars[name]));
+      }
+    }
+    return text;
+  }
+
+  const DATA = window.F1_SEASON;
+  if (!DATA || !Array.isArray(DATA.meetings) || !DATA.meetings.length) {
+    const banner = document.getElementById("next");
+    if (banner) banner.innerHTML = `<div class="next__loading">${esc(t("data.error"))}</div>`;
+    return;
+  }
+
+  /* ------------------------------------------------------------------------
+     Time helpers
+     ------------------------------------------------------------------------ */
+
   function browserZone() {
     try {
       return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
@@ -64,27 +231,21 @@
     }
   }
 
+  function locale() {
+    return state.lang === "cs" ? "cs-CZ" : "en-GB";
+  }
+
+  /* ------------------------------------------------------------------------
+     Data preparation
+     ------------------------------------------------------------------------ */
+
   const season = {
     year: Number(DATA.season) || new Date().getFullYear(),
     generated: DATA.generated || null,
     meetings: []
   };
 
-  const state = {
-    tz: validZone(store.get(TZ_KEY) || browserZone()),
-    filter: "all",
-    expanded: new Set(),
-    now: Date.now()
-  };
-
-  let lastKey = "";
-  let lastFetch = 0;
-  let fetching = false;
   const formatterCache = new Map();
-
-  /* ------------------------------------------------------------------------
-     Data preparation
-     ------------------------------------------------------------------------ */
 
   function prepareSession(raw, meeting, index) {
     const startDate = new Date(raw.start);
@@ -128,17 +289,15 @@
     .filter((meeting) => meeting.sessions.length)
     .sort((a, b) => a.round - b.round);
 
-  const totalSessions = season.meetings.reduce((sum, meeting) => sum + meeting.sessions.length, 0);
-
   /* ------------------------------------------------------------------------
-     Time helpers
+     Formatting
      ------------------------------------------------------------------------ */
 
   function fmt(date, options) {
-    const key = `${state.tz}|${JSON.stringify(options)}`;
+    const key = `${state.tz}|${locale()}|${JSON.stringify(options)}`;
     let formatter = formatterCache.get(key);
     if (!formatter) {
-      formatter = new Intl.DateTimeFormat("en-GB", { ...options, timeZone: state.tz });
+      formatter = new Intl.DateTimeFormat(locale(), { ...options, timeZone: state.tz });
       formatterCache.set(key, formatter);
     }
     return formatter.format(date);
@@ -150,10 +309,6 @@
 
   function dateStr(date) {
     return fmt(date, { weekday: "short", day: "numeric", month: "short" }).replace(/,/g, "");
-  }
-
-  function monthYear(date) {
-    return fmt(date, { month: "long", year: "numeric" });
   }
 
   function zoneAbbr(date = new Date()) {
@@ -195,15 +350,11 @@
     const dayB = fmt(b, { day: "numeric" });
     const monthA = fmt(a, { month: "short" });
     const monthB = fmt(b, { month: "short" });
-    const yearB = fmt(b, { year: "numeric" });
-    let out;
-
-    if (monthA === monthB) {
-      out = `${dayA}–${dayB} ${monthB}`;
-    } else {
-      out = `${dayA} ${monthA} – ${dayB} ${monthB}`;
-    }
-    return withYear ? `${out} ${yearB}` : out;
+    let out = monthA === monthB
+      ? `${dayA}–${dayB} ${monthB}`
+      : `${dayA} ${monthA} – ${dayB} ${monthB}`;
+    if (withYear) out += ` ${fmt(b, { year: "numeric" })}`;
+    return out;
   }
 
   function durationStr(session) {
@@ -213,6 +364,22 @@
     const rest = minutes % 60;
     return rest ? `${hours} h ${rest} min` : `${hours} h`;
   }
+
+  function sessionLabel(session) {
+    const name = String(session.name || "");
+    const practice = /practice\s*(\d+)/i.exec(name);
+    if (practice) return t("sess.practice", { n: practice[1] });
+    if (/sprint\s*(qualifying|shootout)/i.test(name)) return t("sess.sprintQualifying");
+    if (/^sprint\s*$/i.test(name.trim())) return t("sess.sprint");
+    if (/qualifying/i.test(name)) return t("sess.qualifying");
+    if (/race/i.test(name)) return t("sess.race");
+    if (/sprint/i.test(name)) return t("sess.sprint");
+    return name;
+  }
+
+  /* ------------------------------------------------------------------------
+     State helpers
+     ------------------------------------------------------------------------ */
 
   function sessionState(session, now = state.now) {
     if (now >= +session.endDate) return "done";
@@ -234,10 +401,10 @@
   function getNextRace(now = state.now) {
     let next = null;
     for (const meeting of season.meetings) {
-      for (const session of meeting.sessions) {
-        if (session.name === "Race" && +session.endDate > now) return session;
-        if (session.name === "Race") next = session;
-      }
+      const race = meeting.sessions.find((session) => /race/i.test(session.name) && !/sprint/i.test(session.name));
+      if (!race) continue;
+      if (+race.endDate > now) return race;
+      next = race;
     }
     return next;
   }
@@ -263,286 +430,230 @@
     return `img/flags/${String(code).toLowerCase()}.svg`;
   }
 
-  function flagImg(code, className = "flag-img") {
+  function flagImg(code) {
     const src = flagSrc(code);
     if (!src) return "";
-    return `<img class="${className}" src="${src}" alt="" width="34" height="23" decoding="async">`;
+    return `<img src="${src}" alt="" width="34" height="23" decoding="async">`;
   }
 
   /* ------------------------------------------------------------------------
      Rendering
      ------------------------------------------------------------------------ */
 
-  function renderStats() {
-    $("#stat-races").textContent = String(season.meetings.length);
-    $("#stat-sprints").textContent = String(season.meetings.filter((m) => m.sprint).length);
-    $("#stat-sessions").textContent = String(totalSessions);
-    const tz = $("#stat-tz");
-    tz.textContent = state.tz;
-    tz.title = state.tz;
-    $("#hero-eyebrow").textContent = `${season.year} Formula 1 season`;
+  let lastKey = "";
+  let lastFetch = 0;
+  let fetching = false;
+
+  const syncState = {
+    mode: "snapshot",
+    at: season.generated ? new Date(season.generated) : new Date()
+  };
+
+  function renderSync() {
+    const text = $("#sync-text");
+    const status = $("#sync-status");
+    if (!text || !status) return;
+
+    if (syncState.mode === "live") text.textContent = t("sync.live", { time: timeStr(syncState.at) });
+    else if (syncState.mode === "cached") text.textContent = t("sync.cached", { time: timeStr(syncState.at) });
+    else if (syncState.mode === "offline") text.textContent = t("sync.offline");
+    else text.textContent = t("sync.snapshot", { date: fmt(syncState.at, { day: "numeric", month: "short", year: "numeric" }) });
+
+    status.classList.toggle("is-live", syncState.mode === "live" || syncState.mode === "cached");
   }
 
   function countdownMarkup(target) {
     const diff = Math.max(0, target - state.now);
     const seconds = Math.floor(diff / 1000);
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    const pad = (value) => String(value).padStart(2, "0");
-    const units = [
-      ["d", days, "Days"],
-      ["h", hours, "Hours"],
-      ["m", minutes, "Mins"],
-      ["s", secs, "Secs"]
-    ];
-    return units.map(([unit, value, label]) => `
+    const values = {
+      d: Math.floor(seconds / 86400),
+      h: Math.floor((seconds % 86400) / 3600),
+      m: Math.floor((seconds % 3600) / 60),
+      s: seconds % 60
+    };
+    return Object.entries(values).map(([unit, value]) => `
       <div class="countdown__unit">
-        <span class="countdown__value" data-unit="${unit}">${pad(value)}</span>
-        <span class="countdown__label">${label}</span>
+        <span class="countdown__value" data-unit="${unit}">${String(value).padStart(2, "0")}</span>
+        <span class="countdown__label">${esc(t(`countdown.${unit}`))}</span>
       </div>`).join("");
   }
 
-  function renderHero() {
-    const card = $("#next-card");
+  function calendarButtonMarkup() {
+    const label = state.calendarOpen ? t("next.hide") : t("next.show");
+    return `<button class="btn btn--primary" type="button" data-action="toggle-calendar">
+      ${esc(label)}
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"${state.calendarOpen ? ' transform="rotate(180 12 12)"' : ""}/></svg>
+    </button>`;
+  }
+
+  function renderBanner() {
+    const el = $("#next");
+    if (!el) return;
     const snap = snapshot();
-    renderStats();
+    const note = $("#hero-note");
 
     if (!snap.session) {
-      card.innerHTML = `
-        <div class="next-card__head">
-          <span class="pill"><span class="pill__dot"></span>Season complete</span>
-          <span class="next-card__round">${season.year} · ${season.meetings.length} rounds</span>
-        </div>
-        <div class="next-card__race">
-          <span class="next-card__flag next-card__flag--plain" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 21V4m0 0h11l-1.8 4L16 12H5"/></svg>
-          </span>
-          <div>
-            <h2 class="next-card__gp">That's a wrap</h2>
-            <p class="next-card__circuit">The ${season.year} season is in the books. See you next year.</p>
+      const focus = focusMeeting();
+      el.classList.add("next--over");
+      el.innerHTML = `
+        <span class="next__flag">${flagImg(focus?.countryCode)}</span>
+        <div class="next__info">
+          <div class="next__top">
+            <span class="chip"><span class="chip__dot"></span>${esc(t("next.over"))}</span>
+            <span class="next__round">${esc(t("next.round", { round: season.meetings.length, total: season.meetings.length }))}</span>
           </div>
+          <div class="next__gp" id="next-title">${esc(focus?.name || "")}</div>
+          <div class="next__session">${esc(t("next.overSub", { year: season.year }))}</div>
         </div>
-        <div class="next-card__foot">
-          <span class="next-card__tz"><strong>${esc(state.tz)}</strong>${esc(zoneAbbr())}</span>
-          <a class="btn btn--primary btn--sm" href="#calendar">Browse calendar</a>
-        </div>`;
-      const heroIcs = $("#hero-ics");
-      heroIcs.disabled = true;
-      heroIcs.dataset.round = "";
+        <div class="next__actions">${calendarButtonMarkup()}</div>`;
+      if (note) note.textContent = "";
       return;
     }
 
+    el.classList.remove("next--over");
     const meeting = snap.meeting;
     const session = snap.session;
     const live = snap.phase === "live";
-    const nextRace = getNextRace();
-    const heroTarget = nextRace ? nextRace.meeting : meeting;
 
-    card.innerHTML = `
-      <div class="next-card__head">
-        <span class="pill${live ? " pill--live" : ""}">
-          <span class="pill__dot" aria-hidden="true"></span>${live ? "Live now" : "Up next"}
-        </span>
-        <span class="next-card__round">Round ${meeting.round} of ${season.meetings.length}</span>
-      </div>
-
-      <div class="next-card__race">
-        <span class="next-card__flag">${flagImg(meeting.countryCode, "flag-img flag-img--lg")}</span>
-        <div>
-          <h2 class="next-card__gp">${esc(meeting.name)}</h2>
-          <p class="next-card__circuit">${esc(placeStr(meeting))}</p>
+    el.innerHTML = `
+      <span class="next__flag">${flagImg(meeting.countryCode)}</span>
+      <div class="next__info">
+        <div class="next__top">
+          <span class="chip${live ? " chip--live" : ""}"><span class="chip__dot"></span>${esc(live ? t("next.live") : t("next.up"))}</span>
+          <span class="next__round">${esc(t("next.round", { round: meeting.round, total: season.meetings.length }))}</span>
+          ${meeting.sprint ? `<span class="badge">${esc(t("badge.sprint"))}</span>` : ""}
+        </div>
+        <div class="next__gp" id="next-title">${esc(meeting.name)}</div>
+        <div class="next__session">
+          <strong>${esc(sessionLabel(session))}</strong>
+          · ${esc(dateStr(session.startDate))}
+          · ${esc(timeStr(session.startDate))}
+          <span class="zone">${esc(zoneAbbr(session.startDate))}</span>
         </div>
       </div>
 
-      <div class="next-card__session">
-        <span class="next-card__session-name">${esc(session.name)}</span>
-        <span class="next-card__session-time">${dateStr(session.startDate)} · ${timeStr(session.startDate)} ${esc(zoneAbbr(session.startDate))}</span>
-      </div>
-
-      <div class="countdown" id="countdown" role="timer" aria-label="${live ? "Time until the session ends" : "Time until the session starts"}">
+      <div class="countdown" id="countdown" role="timer" aria-label="${esc(live ? t("next.ends", { time: timeStr(session.endDate) }) : t("next.starts", { session: sessionLabel(session), date: dateStr(session.startDate), time: timeStr(session.startDate) }))}">
         ${countdownMarkup(snap.target)}
       </div>
 
-      <p class="next-card__hint">
-        ${live
-          ? `Session in progress — it ends at ${timeStr(session.endDate)}.`
-          : `${esc(session.name)} starts ${dateStr(session.startDate)} at ${timeStr(session.startDate)}.`}
-      </p>
-
-      <div class="next-card__foot">
-        <span class="next-card__tz">
-          <strong>${esc(state.tz)}</strong>
-          ${esc(zoneAbbr())} · all times local
-        </span>
-        <button class="btn btn--primary btn--sm" type="button" data-action="ics-weekend" data-round="${heroTarget.round}">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-          Add to calendar
+      <div class="next__actions">
+        ${calendarButtonMarkup()}
+        <button class="icon-btn" type="button" data-action="ics-weekend" data-round="${meeting.round}" title="${esc(t("next.calendar"))}" aria-label="${esc(t("next.calendar"))}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
         </button>
       </div>`;
 
-    const heroIcs = $("#hero-ics");
-    heroIcs.disabled = false;
-    heroIcs.dataset.round = String(heroTarget.round);
+    if (note) {
+      note.textContent = t("next.note", { tz: state.tz, abbr: zoneAbbr() });
+    }
   }
 
-  function stateChip(sessionStateValue, isActive) {
-    if (sessionStateValue === "live") return '<span class="state state--live">Live</span>';
-    if (sessionStateValue === "done") return '<span class="state state--done">Done</span>';
-    if (isActive) return '<span class="state state--next">Next</span>';
-    return "";
-  }
+  function scheduleMarkup(meeting) {
+    const active = getActiveSession();
+    const rows = meeting.sessions.map((session) => {
+      const status = sessionState(session);
+      const isActive = active && active.id === session.id;
+      const rowClass = status === "live" ? "is-live" : status === "done" ? "is-done" : isActive ? "is-next" : "";
+      const stateText = status === "live" ? t("sched.live") : status === "done" ? t("sched.done") : isActive ? t("sched.next") : "";
+      const ics = status === "done"
+        ? '<span class="icon-btn icon-btn--sm" aria-hidden="true"></span>'
+        : `<button class="icon-btn icon-btn--sm" type="button" data-action="ics-session" data-round="${meeting.round}" data-session="${esc(session.id)}" title="${esc(t("sched.add"))}" aria-label="${esc(`${meeting.name} — ${sessionLabel(session)} · ${t("sched.add")}`)}">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
+          </button>`;
 
-  function sprintBadge(session) {
-    if (!/sprint/i.test(session.name)) return "";
-    return '<span class="badge badge--sprint">Sprint</span>';
-  }
-
-  function sessionRow(session, active) {
-    const status = sessionState(session);
-    const isActive = active && active.id === session.id;
-    const live = status === "live";
-    const rowClass = live ? "session--live" : isActive ? "session--next" : status === "done" ? "session--done" : "";
-    const chip = stateChip(status, isActive);
-    const ics = status === "done"
-      ? '<span class="icon-btn icon-btn--ghost" aria-hidden="true"></span>'
-      : `<button class="icon-btn" type="button" data-action="ics-session" data-round="${session.meeting.round}" data-session="${esc(session.id)}" title="Add ${esc(session.name)} to calendar" aria-label="Add ${esc(session.meeting.name)} ${esc(session.name)} to calendar">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-        </button>`;
+      return `
+        <li class="sched__row ${rowClass}">
+          <span class="sched__dot" aria-hidden="true"></span>
+          <span class="sched__main">
+            <span class="sched__name">${esc(sessionLabel(session))}</span>
+            <span class="sched__meta">
+              <span>${esc(dateStr(session.startDate))}</span>
+              <span class="dur-sep">·</span>
+              <span class="dur">${esc(durationStr(session))}</span>
+            </span>
+          </span>
+          <span class="sched__time">${esc(timeStr(session.startDate))}</span>
+          <span class="sched__state">${esc(stateText)}</span>
+          ${ics}
+        </li>`;
+    }).join("");
 
     return `
-      <li class="session ${rowClass}">
-        <span class="session__dot" aria-hidden="true"></span>
-        <div class="session__main">
-          <span class="session__name">${esc(session.name)}${sprintBadge(session)}</span>
-          <span class="session__meta">
-            <span>${dateStr(session.startDate)}</span>
-            <span class="dot-sep">·</span>
-            <span>${durationStr(session)}</span>
-            ${chip}
+      <ul class="sched" aria-label="${esc(meeting.name)}">${rows}</ul>
+      <div class="race__foot">
+        <p>${esc(t("sched.timezone", { tz: state.tz, abbr: zoneAbbr(meeting.startDate) }))}</p>
+        <button class="btn btn--quiet" type="button" data-action="ics-weekend" data-round="${meeting.round}">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
+          ${esc(t("sched.weekend"))}
+        </button>
+      </div>`;
+  }
+
+  function raceMarkup(meeting, focus) {
+    const open = state.expanded.has(meeting.round);
+    const done = +meeting.endDate < state.now;
+    const isFocus = focus === meeting;
+    const live = meeting.sessions.some((session) => sessionState(session) === "live");
+    const stateLabel = live ? t("race.live") : isFocus ? t("race.next") : "";
+    const classes = ["race", open ? "is-open" : "", done ? "is-done" : "", isFocus ? "is-focus" : ""]
+      .filter(Boolean)
+      .join(" ");
+
+    return `
+      <li class="${classes}" data-round="${meeting.round}">
+        <button class="race__head" type="button" data-action="toggle-round" data-round="${meeting.round}" aria-expanded="${open}" aria-controls="race-body-${meeting.round}" title="${esc(open ? t("race.close") : t("race.open"))}">
+          <span class="race__round">${String(meeting.round).padStart(2, "0")}</span>
+          <span class="race__flag">${flagImg(meeting.countryCode)}</span>
+          <span class="race__main">
+            <span class="race__name">
+              ${esc(meeting.name)}
+              ${meeting.sprint ? `<span class="badge">${esc(t("badge.sprint"))}</span>` : ""}
+            </span>
+            <span class="race__meta">
+              <span>${esc(rangeStr(meeting))}</span>
+              <span>·</span>
+              <span class="place">${esc(placeStr(meeting))}</span>
+              <span class="place">·</span>
+              <span>${esc(t("race.sessions", { n: meeting.sessions.length }))}</span>
+            </span>
           </span>
+          <span class="race__state">${esc(stateLabel)}</span>
+          <svg class="race__chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="race__body" id="race-body-${meeting.round}"${open ? "" : " hidden"}>
+          ${scheduleMarkup(meeting)}
         </div>
-        <span class="session__time">${timeStr(session.startDate)}</span>
-        ${ics}
       </li>`;
   }
 
-  function weekendKicker(meeting) {
-    if (meeting.sessions.some((session) => sessionState(session) === "live")) return "Live this weekend";
-    if (state.now < +meeting.startDate) return "Next race weekend";
-    if (state.now <= +meeting.endDate) return "This race weekend";
-    return "Latest race weekend";
-  }
-
-  function renderWeekend() {
-    const meeting = focusMeeting();
-    if (!meeting) return;
-    const active = getActiveSession();
-
-    $("#weekend-kicker").textContent = weekendKicker(meeting);
-    $("#weekend-title").textContent = meeting.name;
-    $("#weekend-meta").textContent = placeStr(meeting);
-    $("#weekend-dates").innerHTML = `${rangeStr(meeting, true)}<span class="weekend-panel__count"> · ${meeting.sessions.length} sessions</span>`;
-    $("#weekend-sessions").innerHTML = meeting.sessions.map((session) => sessionRow(session, active)).join("");
-    $("#weekend-foot").textContent = [
-      `All times in ${state.tz} (${zoneAbbr()})`,
-      `Round ${meeting.round} of ${season.meetings.length}`,
-      meeting.sprint ? "Sprint weekend" : null
-    ].filter(Boolean).join(" · ");
-
-    const button = $("#weekend-ics");
-    button.disabled = false;
-    button.dataset.round = String(meeting.round);
-  }
-
-  function roundBadges(meeting, isFocus) {
-    const badges = [];
-    if (meeting.sprint) badges.push('<span class="badge badge--sprint">Sprint</span>');
-    if (isFocus) {
-      const live = meeting.sessions.some((session) => sessionState(session) === "live");
-      badges.push(`<span class="badge badge--next">${live ? "Live" : "Up next"}</span>`);
-    }
-    return badges.join(" ");
-  }
-
-  function roundMarkup(meeting, isFocus) {
-    const open = state.expanded.has(meeting.round);
-    const done = state.now > +meeting.endDate;
-    const active = getActiveSession();
-    const classes = [
-      "round-card",
-      isFocus ? "is-next" : "",
-      done ? "is-done" : "",
-      open ? "is-open" : ""
-    ].filter(Boolean).join(" ");
-    const meta = [
-      `<span>${rangeStr(meeting)}</span>`,
-      `<span class="dot-sep">·</span>`,
-      `<span>${esc(placeStr(meeting))}</span>`
-    ].join("");
-
-    return `
-      <article class="${classes}" data-round="${meeting.round}">
-        <button class="round-card__head" type="button" data-action="toggle-round" data-round="${meeting.round}" aria-expanded="${open}" aria-controls="round-body-${meeting.round}">
-          <span class="round-card__index">${String(meeting.round).padStart(2, "0")}</span>
-          <span class="round-card__flag">${flagImg(meeting.countryCode, "flag-img flag-img--sm")}</span>
-          <span class="round-card__main">
-            <span class="round-card__name">${esc(meeting.name)} ${roundBadges(meeting, isFocus)}</span>
-            <span class="round-card__meta">${meta}</span>
-          </span>
-          <svg class="round-card__chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
-        <div class="round-card__body" id="round-body-${meeting.round}"${open ? "" : " hidden"}>
-          <ul class="session-list" aria-label="${esc(meeting.name)} sessions">
-            ${meeting.sessions.map((session) => sessionRow(session, active)).join("")}
-          </ul>
-          <div class="round-card__actions">
-            <p>Times in ${esc(state.tz)} (${esc(zoneAbbr(meeting.startDate))})</p>
-            <button class="btn btn--ghost btn--xs" type="button" data-action="ics-weekend" data-round="${meeting.round}">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-              Add weekend
-            </button>
-          </div>
-        </div>
-      </article>`;
-  }
-
-  function matchesFilter(meeting) {
-    if (state.filter === "upcoming") return +meeting.endDate >= state.now;
-    if (state.filter === "sprint") return meeting.sprint;
-    return true;
-  }
-
   function renderCalendar() {
-    const focus = focusMeeting();
+    const host = $("#race-groups");
+    if (!host) return;
+
     const snap = snapshot();
-    const isSeasonOver = !snap.session;
-    const filtered = season.meetings.filter(matchesFilter);
+    const focus = snap.session ? focusMeeting() : null;
+    const upcoming = [];
+    const past = [];
 
-    const groups = new Map();
-    for (const meeting of filtered) {
-      const key = monthYear(meeting.startDate);
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(meeting);
+    for (const meeting of season.meetings) {
+      if (+meeting.endDate >= state.now) upcoming.push(meeting);
+      else past.push(meeting);
     }
+    past.sort((a, b) => b.round - a.round);
 
-    let html = "";
-    for (const [month, meetings] of groups) {
-      html += `<div class="month">
-        <div class="month__head"><h3>${esc(month)}</h3><span>${meetings.length} ${meetings.length === 1 ? "round" : "rounds"}</span></div>
-        ${meetings.map((meeting) => roundMarkup(meeting, !isSeasonOver && meeting === focus)).join("")}
-      </div>`;
-    }
+    const group = (title, list) => {
+      if (!list.length) return "";
+      return `
+        <section class="group">
+          <div class="group__head">
+            <h3 class="group__title">${esc(title)}</h3>
+            <span class="group__count">${list.length}</span>
+          </div>
+          <ul class="race-list">${list.map((meeting) => raceMarkup(meeting, focus)).join("")}</ul>
+        </section>`;
+    };
 
-    $("#calendar-list").innerHTML = html;
-    $("#calendar-empty").hidden = filtered.length > 0;
-
-    const upcoming = season.meetings.filter((meeting) => +meeting.endDate >= state.now).length;
-    const sprints = season.meetings.filter((meeting) => meeting.sprint).length;
-    $("#count-all").textContent = String(season.meetings.length);
-    $("#count-upcoming").textContent = String(upcoming);
-    $("#count-sprint").textContent = String(sprints);
+    host.innerHTML = group(t("group.upcoming"), upcoming) + group(t("group.past"), past);
   }
 
   function updateCountdown(target) {
@@ -561,45 +672,22 @@
     }
   }
 
-  function updateClock() {
-    const time = $("#clock-time");
-    const zone = $("#clock-zone");
-    const key = `clock|${state.tz}`;
-    let formatter = formatterCache.get(key);
-    if (!formatter) {
-      formatter = new Intl.DateTimeFormat("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hourCycle: "h23",
-        timeZone: state.tz
-      });
-      formatterCache.set(key, formatter);
-    }
-    time.textContent = formatter.format(new Date());
-    zone.textContent = zoneAbbr();
-  }
-
   function renderFooter() {
-    const year = $("#year");
-    if (year) year.textContent = String(new Date().getFullYear());
     const tz = $("#footer-tz");
     if (tz) tz.textContent = `${state.tz} · ${zoneAbbr()}`;
   }
 
   function renderAll() {
     state.now = Date.now();
-    renderHero();
-    renderWeekend();
+    renderBanner();
     renderCalendar();
-    updateClock();
+    renderSync();
     renderFooter();
     lastKey = snapshot().key;
   }
 
   function tick() {
     state.now = Date.now();
-    updateClock();
     const snap = snapshot(state.now);
     if (snap.key !== lastKey) {
       renderAll();
@@ -609,15 +697,81 @@
   }
 
   /* ------------------------------------------------------------------------
-     Live schedule refresh
+     Theme & language
      ------------------------------------------------------------------------ */
 
-  function setSync(text, live) {
-    const textNode = $("#sync-text");
-    const status = $("#sync-status");
-    if (textNode) textNode.textContent = text;
-    if (status) status.classList.toggle("is-live", Boolean(live));
+  function syncSettingsUi() {
+    $$("[data-theme-set]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.themeSet === state.theme));
+    });
+    $$("[data-lang-set]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.langSet === state.lang));
+    });
+    const meta = $('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", state.theme === "dark" ? "#0e0f11" : "#f7f8fa");
   }
+
+  function applyStaticText() {
+    document.documentElement.lang = state.lang;
+    document.title = t("meta.title");
+    $('meta[name="description"]')?.setAttribute("content", t("meta.desc"));
+
+    $$("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    $$("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+    $$("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+    $$("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+
+    const seasonLabel = $("#season-label");
+    if (seasonLabel) seasonLabel.textContent = t("hero.eyebrow", { year: season.year });
+
+    const seasonTitle = $("#season-title");
+    if (seasonTitle) seasonTitle.textContent = t("season.title", { year: season.year });
+
+    $("#tz-select")?.setAttribute("aria-label", t("settings.timezone"));
+    $(".topnav")?.setAttribute("aria-label", t("nav.main"));
+  }
+
+  function setTheme(theme) {
+    state.theme = theme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.theme = state.theme;
+    store.set(THEME_KEY, state.theme);
+    syncSettingsUi();
+  }
+
+  function setLang(lang) {
+    state.lang = lang === "en" ? "en" : "cs";
+    store.set(LANG_KEY, state.lang);
+    formatterCache.clear();
+    applyStaticText();
+    syncSettingsUi();
+    renderAll();
+  }
+
+  function setCalendarOpen(open) {
+    state.calendarOpen = Boolean(open);
+    const section = $("#calendar");
+    if (!section) return;
+
+    section.hidden = !state.calendarOpen;
+    const banner = $("#next");
+    if (banner) banner.setAttribute("aria-expanded", String(state.calendarOpen));
+
+    if (state.calendarOpen) {
+      if (!state.expanded.size) {
+        const focus = focusMeeting();
+        if (focus) state.expanded.add(focus.round);
+      }
+      renderCalendar();
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.hidden;
+      section.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+
+    renderBanner();
+  }
+
+  /* ------------------------------------------------------------------------
+     Live schedule refresh
+     ------------------------------------------------------------------------ */
 
   function applyUpdates(updates) {
     let changed = false;
@@ -728,8 +882,9 @@
     if (cached) {
       applyUpdates(cached.updates);
       if (Date.now() - cached.savedAt < LIVE_TTL) {
-        const when = new Date(cached.savedAt);
-        setSync(`Cached · ${timeStr(when)}`, true);
+        syncState.mode = "cached";
+        syncState.at = new Date(cached.savedAt);
+        renderSync();
         fetching = false;
         return;
       }
@@ -742,9 +897,12 @@
       const payload = { savedAt: Date.now(), updates };
       store.set(LIVE_KEY, JSON.stringify(payload));
       lastFetch = Date.now();
-      setSync(`Live · ${timeStr(new Date())}`, true);
+      syncState.mode = "live";
+      syncState.at = new Date();
+      renderSync();
     } catch {
-      setSync("Offline snapshot", false);
+      syncState.mode = "offline";
+      renderSync();
     } finally {
       fetching = false;
     }
@@ -788,14 +946,15 @@
   }
 
   function makeEvent(meeting, session) {
-    const title = `F1 · ${meeting.name} — ${session.name}`;
+    const label = sessionLabel(session);
+    const title = `F1 · ${meeting.name} — ${label}`;
     const description = [
-      `${session.name} · ${meeting.name}`,
-      `Round ${meeting.round} of ${season.meetings.length} · ${season.year} F1 season`,
-      `Circuit: ${placeStr(meeting)}`,
-      `Session: ${dateStr(session.startDate)} ${timeStr(session.startDate)} (${state.tz})`,
-      `Duration: ${durationStr(session)}`,
-      "Schedule: https://tomsix.xyz"
+      `${label} · ${meeting.name}`,
+      t("ics.round", { round: meeting.round, total: season.meetings.length, year: season.year }),
+      t("ics.circuit", { place: placeStr(meeting) }),
+      t("ics.session", { date: dateStr(session.startDate), time: timeStr(session.startDate), tz: state.tz }),
+      t("ics.duration", { duration: durationStr(session) }),
+      t("ics.schedule")
     ].join("\n");
 
     return {
@@ -885,47 +1044,26 @@
 
   function toggleRound(button) {
     const round = Number(button.dataset.round);
-    const card = button.closest(".round-card");
-    const body = document.getElementById(`round-body-${round}`);
+    const card = button.closest(".race");
+    const body = document.getElementById(`race-body-${round}`);
     if (!card || !body) return;
+
     const open = state.expanded.has(round);
     if (open) state.expanded.delete(round);
     else state.expanded.add(round);
+
     button.setAttribute("aria-expanded", String(!open));
+    button.title = open ? t("race.open") : t("race.close");
     body.hidden = open;
     card.classList.toggle("is-open", !open);
   }
 
-  function jumpToNext() {
-    const meeting = focusMeeting();
-    if (!meeting) return;
-    state.filter = "all";
-    updateFilterButtons();
-    state.expanded.add(meeting.round);
-    renderCalendar();
-
-    const card = document.querySelector(`.round-card[data-round="${meeting.round}"]`);
-    if (!card) return;
-    const head = card.querySelector(".round-card__head");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.hidden;
-    head?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
-    head?.focus({ preventScroll: true });
-  }
-
-  function updateFilterButtons() {
-    $$(".tab").forEach((tab) => {
-      const active = tab.dataset.filter === state.filter;
-      tab.classList.toggle("is-active", active);
-      tab.setAttribute("aria-pressed", String(active));
-    });
-  }
-
   function handleAction(button) {
     const action = button.dataset.action;
-    if (action === "toggle-round") {
+    if (action === "toggle-calendar") {
+      setCalendarOpen(!state.calendarOpen);
+    } else if (action === "toggle-round") {
       toggleRound(button);
-    } else if (action === "jump-next") {
-      jumpToNext();
     } else if (action === "ics-weekend") {
       const fallback = focusMeeting();
       const round = Number(button.dataset.round || fallback?.round);
@@ -939,6 +1077,8 @@
 
   function initTimezones() {
     const select = $("#tz-select");
+    if (!select) return;
+
     let zones = [];
     try {
       if (typeof Intl.supportedValuesOf === "function") {
@@ -961,27 +1101,45 @@
   }
 
   function init() {
-    $("#year").textContent = String(new Date().getFullYear());
+    applyStaticText();
+    syncSettingsUi();
     initTimezones();
     renderAll();
 
     document.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-action]");
-      if (button) handleAction(button);
-    });
+      const settingsButton = event.target.closest("[data-theme-set], [data-lang-set]");
+      if (settingsButton) {
+        if (settingsButton.dataset.themeSet) setTheme(settingsButton.dataset.themeSet);
+        if (settingsButton.dataset.langSet) setLang(settingsButton.dataset.langSet);
+        return;
+      }
 
-    $$(".tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        state.filter = tab.dataset.filter || "all";
-        updateFilterButtons();
-        renderCalendar();
-      });
-    });
+      const actionButton = event.target.closest("[data-action]");
+      if (actionButton) {
+        handleAction(actionButton);
+        return;
+      }
 
-    setSync(`Snapshot · ${fmt(new Date(season.generated || Date.now()), { day: "numeric", month: "short", year: "numeric" })}`, false);
+      const calendarLink = event.target.closest('a[href="#calendar"]');
+      if (calendarLink) {
+        event.preventDefault();
+        setCalendarOpen(true);
+        return;
+      }
+
+      const banner = event.target.closest("#next");
+      if (banner && !event.target.closest("button, a, select")) {
+        setCalendarOpen(!state.calendarOpen);
+      }
+    });
 
     setInterval(tick, 1000);
     tick();
+
+    if (location.hash === "#calendar") {
+      setCalendarOpen(true);
+    }
+
     refreshLive();
   }
 

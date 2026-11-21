@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>F1 Race Reminder · Every session in your timezone — tomsix.xyz</title>
-  <meta name="description" content="The full 2026 Formula 1 calendar with practice, qualifying, sprint and race times converted to your timezone. One-click calendar reminders for every session.">
-  <meta name="theme-color" content="#07080b">
+  <title>F1 připomínky · každá session ve tvém čase — tomsix.xyz</title>
+  <meta name="description" content="Kompletní kalendář formule 1 pro rok 2026 s časy tréninků, kvalifikací, sprintů a závodů ve tvém časovém pásmu. Připomínky do kalendáře na jeden klik.">
+  <meta name="theme-color" content="#f7f8fa">
   <link rel="canonical" href="https://tomsix.xyz/">
 
   <meta property="og:type" content="website">
@@ -24,229 +24,118 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("tomsix.f1.theme");
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.dataset.theme = theme;
+
+        var lang = localStorage.getItem("tomsix.f1.lang");
+        if (lang !== "cs" && lang !== "en") {
+          lang = (navigator.language || "en").toLowerCase().indexOf("cs") === 0 ? "cs" : "en";
+        }
+        document.documentElement.lang = lang;
+      } catch (error) {
+        document.documentElement.dataset.theme = "light";
+        document.documentElement.lang = "cs";
+      }
+    })();
+  </script>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main" data-i18n="skip">Přejít na obsah</a>
 
-  <header class="site-header">
-    <div class="container header__inner">
-      <a class="brand" href="/" aria-label="tomsix — home">
-        <span class="brand__text">tomsix<span class="brand__colon">:</span></span>
-      </a>
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <a class="brand" href="#main" aria-label="tomsix">tomsix<span class="brand__colon">:</span></a>
 
-      <nav class="nav" aria-label="Main navigation">
-        <a href="#next">Next race</a>
-        <a href="#calendar">Calendar</a>
-        <a href="#about">About</a>
+      <nav class="topnav" aria-label="Main">
+        <a href="#next" data-i18n="nav.next">Další závod</a>
+        <a href="#calendar" data-i18n="nav.calendar">Kalendář</a>
       </nav>
 
-      <div class="header__tools">
-        <div class="clock" aria-label="Your local time">
-          <span class="clock__time" id="clock-time">--:--:--</span>
-          <span class="clock__zone" id="clock-zone">—</span>
-        </div>
-        <label class="tz-select">
-          <span class="sr-only">Timezone</span>
-          <svg class="tz-select__icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3Z"/></svg>
-          <select id="tz-select" aria-label="Choose timezone"></select>
+      <div class="tools">
+        <label class="tz">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3Z"/></svg>
+          <span class="sr-only" data-i18n="settings.timezone">Časové pásmo</span>
+          <select id="tz-select" aria-label="Časové pásmo"></select>
         </label>
+
+        <div class="seg" role="group" data-i18n-aria="settings.theme" aria-label="Motiv">
+          <button class="seg__btn" type="button" data-theme-set="light" aria-pressed="true" data-i18n-title="settings.light" title="Světlý motiv">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+          </button>
+          <button class="seg__btn" type="button" data-theme-set="dark" aria-pressed="false" data-i18n-title="settings.dark" title="Tmavý motiv">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+          </button>
+        </div>
+
+        <div class="seg seg--lang" role="group" data-i18n-aria="settings.language" aria-label="Jazyk">
+          <button class="seg__btn seg__btn--text" type="button" data-lang-set="cs" aria-pressed="true">CZ</button>
+          <button class="seg__btn seg__btn--text" type="button" data-lang-set="en" aria-pressed="false">EN</button>
+        </div>
       </div>
     </div>
   </header>
 
   <main id="main">
-    <!-- Hero -->
-    <section class="hero">
-      <div class="container hero__grid">
-        <div class="hero__copy">
-          <p class="eyebrow">
-            <span class="eyebrow__dot" aria-hidden="true"></span>
-            <span id="hero-eyebrow">2026 Formula 1 season</span>
-          </p>
-          <h1 class="hero__title">Every session.<br><span class="hero__title-accent">Your time.</span></h1>
-          <p class="hero__lead">
-            Practice, qualifying, sprints and lights out — the whole 2026 season converted
-            to the timezone you actually live in, with one-click calendar reminders.
-            No app, no account, no excuses.
-          </p>
-          <div class="hero__actions">
-            <a class="btn btn--primary" href="#calendar">
-              Season calendar
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-            </a>
-            <button class="btn btn--ghost" type="button" data-action="ics-weekend" id="hero-ics" disabled>
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-              Add next race
-            </button>
-          </div>
+    <section class="hero wrap">
+      <p class="eyebrow">
+        <span class="eyebrow__dot" aria-hidden="true"></span>
+        <span id="season-label" data-i18n="hero.eyebrow">Sezóna 2026</span>
+      </p>
 
-          <dl class="hero__stats">
-            <div class="stat">
-              <dt>Races</dt>
-              <dd id="stat-races">23</dd>
-            </div>
-            <div class="stat">
-              <dt>Sprints</dt>
-              <dd id="stat-sprints">6</dd>
-            </div>
-            <div class="stat">
-              <dt>Sessions</dt>
-              <dd id="stat-sessions">115</dd>
-            </div>
-            <div class="stat">
-              <dt>Timezone</dt>
-              <dd class="stat__tz" id="stat-tz">—</dd>
-            </div>
-          </dl>
-        </div>
+      <h1 class="hero__title" data-i18n-html="hero.title">Celá sezóna.<br><em>Ve tvém čase.</em></h1>
 
-        <div class="hero__card-wrap">
-          <div class="next-card" id="next-card">
-            <div class="next-card__loading">Loading the 2026 schedule…</div>
-          </div>
-          <p class="hero__note">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            Times update automatically for your timezone.
-          </p>
-        </div>
+      <p class="hero__lead" data-i18n="hero.lead">
+        Tréninky, kvalifikace, sprinty i start závodu — převedené do tvého časového pásma,
+        s připomínkou v kalendáři na jeden klik.
+      </p>
+
+      <div class="next" id="next" aria-labelledby="next-title">
+        <div class="next__loading" data-i18n="loading">Načítám rozvrh…</div>
       </div>
+
+      <p class="hero__note" id="hero-note"></p>
     </section>
 
-    <!-- Next / current weekend -->
-    <section class="section section--weekend" id="next" aria-labelledby="weekend-title">
-      <div class="container">
-        <div class="weekend-panel" id="weekend-panel">
-          <div class="weekend-panel__head">
-            <div>
-              <p class="section-kicker" id="weekend-kicker">Next race weekend</p>
-              <h2 class="weekend-panel__title" id="weekend-title">Loading…</h2>
-              <p class="weekend-panel__meta" id="weekend-meta"></p>
-            </div>
-            <div class="weekend-panel__actions">
-              <span class="weekend-panel__dates" id="weekend-dates"></span>
-              <button class="btn btn--ghost btn--sm" type="button" data-action="ics-weekend" id="weekend-ics" disabled>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-                Whole weekend
-              </button>
-            </div>
-          </div>
-          <ul class="session-list" id="weekend-sessions" aria-label="Sessions this weekend"></ul>
-          <p class="weekend-panel__foot" id="weekend-foot"></p>
+    <section class="season wrap" id="calendar" hidden aria-labelledby="season-title">
+      <div class="season__head">
+        <div>
+          <h2 class="season__title" id="season-title" data-i18n="season.title">Kalendář 2026</h2>
+          <p class="season__sub" data-i18n="season.sub">Všechny session v tvém pásmu. Klikni na závod a rozbal celý rozvrh víkendu.</p>
+        </div>
+        <div class="sync" id="sync-status">
+          <span class="sync__dot" aria-hidden="true"></span>
+          <span id="sync-text">—</span>
         </div>
       </div>
-    </section>
 
-    <!-- Season calendar -->
-    <section class="section" id="calendar" aria-labelledby="calendar-title">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <p class="section-kicker">Season calendar</p>
-            <h2 class="section-title" id="calendar-title">All 23 rounds</h2>
-            <p class="section-sub" id="calendar-sub">Every session, in your timezone. Expand a weekend for practice, qualifying and race times.</p>
-          </div>
-          <div class="sync" id="sync-status" title="Schedule source">
-            <span class="sync__dot" aria-hidden="true"></span>
-            <span id="sync-text">Offline snapshot</span>
-          </div>
-        </div>
-
-        <div class="calendar-toolbar">
-          <div class="tabs" role="group" aria-label="Filter rounds">
-            <button class="tab is-active" type="button" data-filter="all" aria-pressed="true">All <span id="count-all">23</span></button>
-            <button class="tab" type="button" data-filter="upcoming" aria-pressed="false">Upcoming <span id="count-upcoming">3</span></button>
-            <button class="tab" type="button" data-filter="sprint" aria-pressed="false">Sprints <span id="count-sprint">6</span></button>
-          </div>
-          <button class="btn btn--ghost btn--sm" type="button" data-action="jump-next">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            Jump to next race
-          </button>
-        </div>
-
-        <div class="calendar" id="calendar-list" aria-live="off"></div>
-        <p class="calendar__empty" id="calendar-empty" hidden>No rounds match this filter.</p>
-      </div>
-    </section>
-
-    <!-- About -->
-    <section class="section section--about" id="about" aria-labelledby="about-title">
-      <div class="container about">
-        <div class="about__copy">
-          <p class="section-kicker">Why this exists</p>
-          <h2 class="section-title" id="about-title">Built for the 6 a.m. qualifying.</h2>
-          <p>
-            I kept missing sessions. Qualifying at midnight, a sprint at breakfast, lights out
-            while I was stuck at work — and every schedule I found lived in someone else's timezone.
-          </p>
-          <p>
-            So this page does one job: it keeps the full season in one place, converts every
-            session to the time you actually live in, and hands you a calendar file with a
-            reminder already attached.
-          </p>
-          <p class="about__sign">— Tom, <a href="https://tomsix.xyz">tomsix.xyz</a></p>
-        </div>
-
-        <ul class="feature-list">
-          <li class="feature">
-            <span class="feature__num">01</span>
-            <div>
-              <h3>Automatic timezone</h3>
-              <p>Detected from your browser, switchable in the header. Your choice is remembered locally.</p>
-            </div>
-          </li>
-          <li class="feature">
-            <span class="feature__num">02</span>
-            <div>
-              <h3>Live schedule</h3>
-              <p>Session times come from OpenF1 and refresh in the background. A bundled snapshot keeps the page useful if the network doesn't cooperate.</p>
-            </div>
-          </li>
-          <li class="feature">
-            <span class="feature__num">03</span>
-            <div>
-              <h3>Calendar ready</h3>
-              <p>Download a single session or a whole weekend as an .ics file. Every event carries a 30-minute heads-up.</p>
-            </div>
-          </li>
-          <li class="feature">
-            <span class="feature__num">04</span>
-            <div>
-              <h3>No tracking</h3>
-              <p>No accounts, no analytics, no third-party cookies. Just localStorage for your timezone and a schedule cache.</p>
-            </div>
-          </li>
-        </ul>
-      </div>
+      <div class="groups" id="race-groups"></div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer__top">
-        <a class="footer__brand" href="/">tomsix<span>.xyz</span></a>
-        <nav class="footer__nav" aria-label="Footer navigation">
-          <a href="#next">Next race</a>
-          <a href="#calendar">Calendar</a>
-          <a href="#about">About</a>
-          <a href="#main">Back to top ↑</a>
-        </nav>
-      </div>
-      <div class="footer__bottom">
-        <p>
-          Unofficial fan project. Not affiliated with Formula 1, the FIA or any team.
-          Session times from <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a>,
-          race data from <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica</a>.
-          Always double-check the official schedule.
-        </p>
-        <p class="footer__copy">© <span id="year">2026</span> tomsix.xyz · <span id="footer-tz">—</span></p>
-      </div>
+  <footer class="foot">
+    <div class="wrap foot__inner">
+      <span class="foot__brand">tomsix<span class="brand__colon">:</span></span>
+      <p class="foot__note" data-i18n-html="footer.note">
+        Neoficiální fanouškový projekt. Není spojený s Formula 1, FIA ani žádným týmem.
+        Časy ze <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a>,
+        data z <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica</a>.
+        Vždy zkontroluj oficiální harmonogram.
+      </p>
+      <span class="foot__tz" id="footer-tz">—</span>
     </div>
   </footer>
 
   <noscript>
-    <div class="noscript">This page needs JavaScript to convert session times to your timezone.</div>
+    <div class="noscript" data-i18n="noscript">Pro převod časů do tvého pásma je potřeba JavaScript.</div>
   </noscript>
 
   <script src="js/data.js"></script>
