@@ -35,6 +35,11 @@ f1/
 - **Anglické rozhraní** – veškerý viditelný text je v angličtině.
 - **Banner dalšího závodu** s živým odpočtem; kliknutím (nebo mezerníkem)
   se pod ním rozbalí celý rozvrh víkendu.
+- **Přidání všech zbývajících závodů do Google Calendar** – tlačítko nad
+  seznamem nadcházejících závodů stáhne jeden `.ics` soubor se všemi
+  zbývajícími session (včetně upozornění 30 minut před startem) a otevře
+  import v Google Calendar; soubor jde importovat i do Apple Calendar
+  nebo Outlooku.
 - **Kalendář 2026** hned pod bannerem ve dvou skupinách – *Upcoming races*
   nahoře, *Completed races* dole, v odstínech šedi (barevné zůstávají jen
   vlajky). Závod z banneru se v seznamu neduplikuje; kliknutím na ostatní

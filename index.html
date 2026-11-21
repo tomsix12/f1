@@ -118,6 +118,58 @@
     </div>
   </footer>
 
+  <dialog class="sheet" id="gcal-dialog" aria-labelledby="gcal-title">
+    <div class="sheet__card">
+      <div class="sheet__head">
+        <span class="sheet__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path fill="#4285f4" d="M21 5.1v10.8L15.9 21H4.8A1.8 1.8 0 0 1 3 19.2V5.1A1.8 1.8 0 0 1 4.8 3.3h14.4A1.8 1.8 0 0 1 21 5.1Z"/>
+            <path fill="#fff" d="M6.8 7.9h10.4v7.4H6.8z"/>
+            <path fill="#fbbc04" d="M15.9 21v-3.6a1.8 1.8 0 0 1 1.8-1.8H21Z"/>
+          </svg>
+        </span>
+        <div class="sheet__titles">
+          <h2 class="sheet__title" id="gcal-title">Add remaining races to Google Calendar</h2>
+          <p class="sheet__sub" id="gcal-summary">Every session still to come, in your timezone.</p>
+        </div>
+        <button class="sheet__close" type="button" data-action="gcal-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+
+      <ol class="sheet__steps">
+        <li class="sheet__step">
+          <span class="sheet__num" aria-hidden="true">1</span>
+          <div>
+            <strong>Download the calendar file</strong>
+            <span>One .ics file with every remaining session, already converted to your timezone.</span>
+          </div>
+        </li>
+        <li class="sheet__step">
+          <span class="sheet__num" aria-hidden="true">2</span>
+          <div>
+            <strong>Google Calendar opens</strong>
+            <span>Click “Import”, choose the downloaded file and select the calendar to add it to.</span>
+          </div>
+        </li>
+        <li class="sheet__step">
+          <span class="sheet__num" aria-hidden="true">3</span>
+          <div>
+            <strong>You are set</strong>
+            <span>Every remaining practice, qualifying, sprint and race appears with a 30-minute reminder.</span>
+          </div>
+        </li>
+      </ol>
+
+      <div class="sheet__actions">
+        <button class="btn btn--primary" type="button" data-action="gcal-export">Download &amp; open Google Calendar</button>
+        <button class="btn btn--ghost" type="button" data-action="gcal-download">Download only</button>
+      </div>
+
+      <p class="sheet__hint">The .ics file also imports into Apple Calendar, Outlook and any other calendar app.</p>
+    </div>
+  </dialog>
+
   <noscript>
     <div class="noscript">This page needs JavaScript to convert session times to your timezone.</div>
   </noscript>

@@ -10,6 +10,7 @@
   const THEME_KEY = "tomsix.f1.theme";
   const LIVE_KEY = "tomsix.f1.live.v3";
   const LIVE_TTL = 6 * 60 * 60 * 1000;
+  const GCAL_IMPORT_URL = "https://calendar.google.com/calendar/u/0/r/settings/import";
 
   const ZONE_COUNTRIES = window.F1_ZONE_COUNTRIES || {};
   const COUNTRY_EXCLUDE = new Set(["AQ", "BV", "GS", "HM", "IO", "TF", "UM"]);
@@ -78,6 +79,10 @@
       "season.sub": "Every session in your zone. Click a race to unfold the full weekend schedule.",
       "group.upcoming": "Upcoming races",
       "group.past": "Completed races",
+      "gcal.button": "Add all to Google Calendar",
+      "gcal.summary": "{weekends} race weekends · {sessions} sessions left in {year}",
+      "gcal.summaryNone": "No sessions left in the season.",
+      "gcal.file": "f1-{year}-remaining.ics",
       "race.live": "Live",
       "race.next": "Next",
       "race.sessions": "{n} sessions",
@@ -560,19 +565,32 @@
     }
     past.sort((a, b) => b.round - a.round);
 
-    const group = (title, list) => {
-      if (!list.length) return "";
+    const group = (title, list, action = "") => {
+      if (!list.length && !action) return "";
+      const count = list.length ? `<span class="group__count">${list.length}</span>` : "";
+      const actionMarkup = action ? `<div class="group__action">${action}</div>` : "";
       return `
         <section class="group">
           <div class="group__head">
             <h3 class="group__title">${esc(title)}</h3>
-            <span class="group__count">${list.length}</span>
+            ${count}
+            ${actionMarkup}
           </div>
           <ul class="race-list">${list.map((meeting) => raceMarkup(meeting, focus)).join("")}</ul>
         </section>`;
     };
 
-    host.innerHTML = group(t("group.upcoming"), upcoming) + group(t("group.past"), past);
+    const gcalButton = remainingSessions().length ? `
+      <button class="btn btn--quiet gcal-btn" type="button" data-action="open-gcal" title="${esc(t("gcal.button"))}">
+        <svg class="gcal-btn__icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <path fill="#4285f4" d="M21 5.1v10.8L15.9 21H4.8A1.8 1.8 0 0 1 3 19.2V5.1A1.8 1.8 0 0 1 4.8 3.3h14.4A1.8 1.8 0 0 1 21 5.1Z"/>
+          <path fill="#fff" d="M6.8 7.9h10.4v7.4H6.8z"/>
+          <path fill="#fbbc04" d="M15.9 21v-3.6a1.8 1.8 0 0 1 1.8-1.8H21Z"/>
+        </svg>
+        <span>${esc(t("gcal.button"))}</span>
+      </button>` : "";
+
+    host.innerHTML = group(t("group.upcoming"), upcoming, gcalButton) + group(t("group.past"), past);
   }
 
   function updateCountdown(target) {
@@ -923,6 +941,64 @@
   }
 
   /* ------------------------------------------------------------------------
+     Add every remaining session to Google Calendar
+     ------------------------------------------------------------------------ */
+
+  function remainingMeetings(now = state.now) {
+    return season.meetings.filter((meeting) => +meeting.endDate >= now);
+  }
+
+  function remainingSessions(now = state.now) {
+    const list = [];
+    for (const meeting of remainingMeetings(now)) {
+      for (const session of meeting.sessions) {
+        if (+session.endDate > now) list.push({ meeting, session });
+      }
+    }
+    return list;
+  }
+
+  function downloadRemainingIcs() {
+    const events = remainingSessions().map(({ meeting, session }) => makeEvent(meeting, session));
+    if (!events.length) return 0;
+    downloadIcs(events, t("gcal.file", { year: season.year }));
+    return events.length;
+  }
+
+  function openGcalDialog() {
+    const dialog = $("#gcal-dialog");
+    if (!dialog) return;
+
+    const meetings = remainingMeetings();
+    const sessions = remainingSessions().length;
+    const summary = $("#gcal-summary");
+    if (summary) {
+      summary.textContent = sessions
+        ? t("gcal.summary", { weekends: meetings.length, sessions, year: season.year })
+        : t("gcal.summaryNone");
+    }
+
+    const exportBtn = $("#gcal-dialog [data-action='gcal-export']");
+    const downloadBtn = $("#gcal-dialog [data-action='gcal-download']");
+    if (exportBtn) exportBtn.disabled = !sessions;
+    if (downloadBtn) downloadBtn.disabled = !sessions;
+
+    dialog.showModal();
+    (exportBtn || dialog.querySelector(".sheet__close"))?.focus();
+  }
+
+  function closeGcalDialog() {
+    const dialog = $("#gcal-dialog");
+    if (dialog?.open) dialog.close();
+  }
+
+  function exportToGoogle(openCalendar) {
+    if (!downloadRemainingIcs()) return;
+    if (openCalendar) window.open(GCAL_IMPORT_URL, "_blank", "noopener");
+    closeGcalDialog();
+  }
+
+  /* ------------------------------------------------------------------------
      Interactions
      ------------------------------------------------------------------------ */
 
@@ -944,9 +1020,11 @@
 
   function handleAction(button) {
     const action = button.dataset.action;
-    if (action === "toggle-round") {
-      toggleRound(button);
-    }
+    if (action === "toggle-round") toggleRound(button);
+    else if (action === "open-gcal") openGcalDialog();
+    else if (action === "gcal-export") exportToGoogle(true);
+    else if (action === "gcal-download") exportToGoogle(false);
+    else if (action === "gcal-close") closeGcalDialog();
   }
 
   /* ------------------------------------------------------------------------
@@ -1177,6 +1255,13 @@
     applyStaticText();
     syncSettingsUi();
     initTimezones();
+
+    const sheet = $("#gcal-dialog");
+    if (sheet) {
+      sheet.addEventListener("click", (event) => {
+        if (event.target === sheet) closeGcalDialog();
+      });
+    }
 
     const focus = focusMeeting();
     if (focus) state.expanded.add(focus.round);
