@@ -33,8 +33,9 @@ f1/
 - **Čeština a angličtina** – přepínač v hlavičce přeloží veškerý viditelný
   text; volba se pamatuje.
 - **Kalendář 2026** ve dvou skupinách – *Nadcházející závody* nahoře,
-  *Proběhlé závody* dole, v odstínech šedi. Kliknutím na závod se pod ním
-  rozbalí celý rozvrh víkendu (FP1–Race, včetně sprintových formátů).
+  *Proběhlé závody* dole, v odstínech šedi (barevné zůstávají jen vlajky).
+  Kliknutím na závod se pod ním rozbalí celý rozvrh víkendu (FP1–Race,
+  včetně sprintových formátů).
 - **Stahování `.ics`** pro jednu session, celý víkend nebo další závod;
   každá událost má 30minutovou připomínku.
 - **Živá data z OpenF1** při načtení (cache 6 h), se snapshotem jako fallback.
