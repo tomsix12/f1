@@ -1,18 +1,10 @@
-# tomsix.xyz — F1 race reminder
+ F1 race reminder
 
-Statická landing page: kompletní kalendář formule 1 pro rok 2026 převedený do
+ kompletní kalendář formule 1 pro rok 2026 převedený do
 časového pásma návštěvníka, s odpočtem do další session a stahováním `.ics`
-událostí do kalendáře.
-
-Nic není nasazené ani nahrané — vše je jen lokálně v této složce.
-
+událostí do kalendar
 ## Otevření
 
-Dvojklik na **`index.html`**. Stránka funguje i bez serveru (obrázky, styly,
-data i kalendář jsou lokální). Internet je potřeba jen pro živé načtení časů
-z OpenF1 a fonty z Google Fonts; bez sítě se použije přibalený snapshot.
-
-## Struktura
 
 ```
 tomsix-web/
