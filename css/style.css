@@ -274,7 +274,7 @@ h3 {
 .tz select {
   max-width: 168px;
   border: 0;
-  background: transparent;
+  background: var(--surface);
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text);
@@ -282,6 +282,11 @@ h3 {
   cursor: pointer;
   outline: none;
   text-overflow: ellipsis;
+}
+
+.tz select option {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .seg {
@@ -322,8 +327,8 @@ h3 {
    -------------------------------------------------------------------------- */
 
 .hero {
-  padding-top: 72px;
-  padding-bottom: 48px;
+  padding-top: 56px;
+  padding-bottom: 20px;
 }
 
 .eyebrow {
@@ -371,13 +376,6 @@ h3 {
   text-wrap: pretty;
 }
 
-.hero__note {
-  margin-top: 14px;
-  padding-left: 2px;
-  color: var(--text-3);
-  font-size: 12.5px;
-}
-
 /* --------------------------------------------------------------------------
    Next race banner
    -------------------------------------------------------------------------- */
@@ -387,20 +385,17 @@ h3 {
   grid-template-columns: 52px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 22px;
-  margin-top: 42px;
+  margin-top: 32px;
   padding: 18px 20px;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .next:hover {
   border-color: var(--line-2);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
 }
 
 .next:focus-within {
@@ -644,62 +639,16 @@ h3 {
    -------------------------------------------------------------------------- */
 
 .season {
-  padding-top: 28px;
+  padding-top: 16px;
   padding-bottom: 96px;
 }
 
-.season__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  padding-bottom: 10px;
-}
-
-.season__title {
-  font-size: clamp(28px, 3.6vw, 40px);
-  letter-spacing: -0.035em;
-}
-
-.season__sub {
-  margin-top: 8px;
-  max-width: 520px;
-  color: var(--text-2);
-  font-size: 14.5px;
-}
-
-.sync {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--text-3);
-  font-size: 11.5px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.sync__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-3);
-}
-
-.sync.is-live .sync__dot {
-  background: var(--text);
-}
-
 .group {
-  margin-top: 44px;
+  margin-top: 0;
 }
 
 .group + .group {
-  margin-top: 64px;
+  margin-top: 48px;
 }
 
 .group__head {
@@ -928,21 +877,6 @@ h3 {
   font-size: 13px;
 }
 
-.race__foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 20px;
-  border-top: 1px solid var(--line);
-  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-}
-
-.race__foot p {
-  color: var(--text-3);
-  font-size: 11.5px;
-}
-
 /* --------------------------------------------------------------------------
    Footer
    -------------------------------------------------------------------------- */
@@ -1077,11 +1011,6 @@ h3 {
     font-size: 19px;
   }
 
-  .season__head {
-    flex-direction: column;
-    gap: 14px;
-  }
-
   .race__head {
     padding: 14px 16px;
     gap: 12px;
@@ -1093,12 +1022,6 @@ h3 {
 
   .sched {
     padding-inline: 16px;
-  }
-
-  .race__foot {
-    padding-inline: 16px;
-    flex-wrap: wrap;
-    gap: 10px;
   }
 }
 
@@ -1141,11 +1064,10 @@ h3 {
   }
 
   .next {
-    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-columns: 44px minmax(0, 1fr) auto;
     grid-template-areas:
-      "flag info"
-      "count count"
-      "actions actions";
+      "flag info info"
+      "count count actions";
     gap: 14px;
     padding: 16px;
   }
@@ -1153,11 +1075,6 @@ h3 {
   .next__flag img {
     width: 44px;
     height: 31px;
-  }
-
-  .next__actions .btn {
-    flex: 1;
-    height: 38px;
   }
 
   .countdown {

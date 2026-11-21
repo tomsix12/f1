@@ -187,8 +187,7 @@
     theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
     tz: validZone(store.get(TZ_KEY) || browserZone()),
     now: Date.now(),
-    expanded: new Set(),
-    calendarOpen: false
+    expanded: new Set()
   };
 
   function t(key, vars) {
@@ -478,19 +477,10 @@
       </div>`).join("");
   }
 
-  function calendarButtonMarkup() {
-    const label = state.calendarOpen ? t("next.hide") : t("next.show");
-    return `<button class="btn btn--primary" type="button" data-action="toggle-calendar">
-      ${esc(label)}
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"${state.calendarOpen ? ' transform="rotate(180 12 12)"' : ""}/></svg>
-    </button>`;
-  }
-
   function renderBanner() {
     const el = $("#next");
     if (!el) return;
     const snap = snapshot();
-    const note = $("#hero-note");
 
     if (!snap.session) {
       const focus = focusMeeting();
@@ -504,9 +494,7 @@
           </div>
           <div class="next__gp" id="next-title">${esc(focus?.name || "")}</div>
           <div class="next__session">${esc(t("next.overSub", { year: season.year }))}</div>
-        </div>
-        <div class="next__actions">${calendarButtonMarkup()}</div>`;
-      if (note) note.textContent = "";
+        </div>`;
       return;
     }
 
@@ -537,15 +525,10 @@
       </div>
 
       <div class="next__actions">
-        ${calendarButtonMarkup()}
         <button class="icon-btn" type="button" data-action="ics-weekend" data-round="${meeting.round}" title="${esc(t("next.calendar"))}" aria-label="${esc(t("next.calendar"))}">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
         </button>
       </div>`;
-
-    if (note) {
-      note.textContent = t("next.note", { tz: state.tz, abbr: zoneAbbr() });
-    }
   }
 
   function scheduleMarkup(meeting) {
@@ -578,15 +561,7 @@
         </li>`;
     }).join("");
 
-    return `
-      <ul class="sched" aria-label="${esc(meeting.name)}">${rows}</ul>
-      <div class="race__foot">
-        <p>${esc(t("sched.timezone", { tz: state.tz, abbr: zoneAbbr(meeting.startDate) }))}</p>
-        <button class="btn btn--quiet" type="button" data-action="ics-weekend" data-round="${meeting.round}">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-          ${esc(t("sched.weekend"))}
-        </button>
-      </div>`;
+    return `<ul class="sched" aria-label="${esc(meeting.name)}">${rows}</ul>`;
   }
 
   function raceMarkup(meeting, focus) {
@@ -724,9 +699,6 @@
     const seasonLabel = $("#season-label");
     if (seasonLabel) seasonLabel.textContent = t("hero.eyebrow", { year: season.year });
 
-    const seasonTitle = $("#season-title");
-    if (seasonTitle) seasonTitle.textContent = t("season.title", { year: season.year });
-
     $("#tz-select")?.setAttribute("aria-label", t("settings.timezone"));
     $(".topnav")?.setAttribute("aria-label", t("nav.main"));
   }
@@ -745,28 +717,6 @@
     applyStaticText();
     syncSettingsUi();
     renderAll();
-  }
-
-  function setCalendarOpen(open) {
-    state.calendarOpen = Boolean(open);
-    const section = $("#calendar");
-    if (!section) return;
-
-    section.hidden = !state.calendarOpen;
-    const banner = $("#next");
-    if (banner) banner.setAttribute("aria-expanded", String(state.calendarOpen));
-
-    if (state.calendarOpen) {
-      if (!state.expanded.size) {
-        const focus = focusMeeting();
-        if (focus) state.expanded.add(focus.round);
-      }
-      renderCalendar();
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches || document.hidden;
-      section.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-    }
-
-    renderBanner();
   }
 
   /* ------------------------------------------------------------------------
@@ -1060,9 +1010,7 @@
 
   function handleAction(button) {
     const action = button.dataset.action;
-    if (action === "toggle-calendar") {
-      setCalendarOpen(!state.calendarOpen);
-    } else if (action === "toggle-round") {
+    if (action === "toggle-round") {
       toggleRound(button);
     } else if (action === "ics-weekend") {
       const fallback = focusMeeting();
@@ -1104,6 +1052,10 @@
     applyStaticText();
     syncSettingsUi();
     initTimezones();
+
+    const focus = focusMeeting();
+    if (focus) state.expanded.add(focus.round);
+
     renderAll();
 
     document.addEventListener("click", (event) => {
@@ -1117,28 +1069,11 @@
       const actionButton = event.target.closest("[data-action]");
       if (actionButton) {
         handleAction(actionButton);
-        return;
-      }
-
-      const calendarLink = event.target.closest('a[href="#calendar"]');
-      if (calendarLink) {
-        event.preventDefault();
-        setCalendarOpen(true);
-        return;
-      }
-
-      const banner = event.target.closest("#next");
-      if (banner && !event.target.closest("button, a, select")) {
-        setCalendarOpen(!state.calendarOpen);
       }
     });
 
     setInterval(tick, 1000);
     tick();
-
-    if (location.hash === "#calendar") {
-      setCalendarOpen(true);
-    }
 
     refreshLive();
   }
