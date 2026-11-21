@@ -8,18 +8,11 @@
 
   const TZ_KEY = "tomsix.f1.timezone";
   const THEME_KEY = "tomsix.f1.theme";
-  const LANG_KEY = "tomsix.f1.lang";
   const LIVE_KEY = "tomsix.f1.live.v3";
   const LIVE_TTL = 6 * 60 * 60 * 1000;
 
-  const FALLBACK_ZONES = [
-    "Europe/Prague", "Europe/London", "Europe/Berlin", "Europe/Paris", "Europe/Madrid",
-    "Europe/Rome", "Europe/Amsterdam", "Europe/Vienna", "Europe/Warsaw", "Europe/Budapest",
-    "Europe/Bucharest", "Europe/Istanbul", "America/New_York", "America/Chicago",
-    "America/Denver", "America/Los_Angeles", "America/Sao_Paulo", "America/Mexico_City",
-    "Asia/Tokyo", "Asia/Shanghai", "Asia/Singapore", "Asia/Dubai", "Asia/Kolkata",
-    "Australia/Sydney", "Australia/Melbourne", "Pacific/Auckland", "UTC"
-  ];
+  const ZONE_COUNTRIES = window.F1_ZONE_COUNTRIES || {};
+  const COUNTRY_EXCLUDE = new Set(["AQ", "BV", "GS", "HM", "IO", "TF", "UM"]);
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -50,71 +43,6 @@
   const JOLPICA_LINK = '<a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica</a>';
 
   const I18N = {
-    cs: {
-      "meta.title": "F1 připomínky · každá session ve tvém čase — tomsix.xyz",
-      "meta.desc": "Kompletní kalendář formule 1 pro rok 2026 s časy tréninků, kvalifikací, sprintů a závodů ve tvém časovém pásmu. Připomínky do kalendáře na jeden klik.",
-      "skip": "Přejít na obsah",
-      "nav.next": "Další závod",
-      "nav.calendar": "Kalendář",
-      "nav.main": "Hlavní navigace",
-      "settings.theme": "Motiv",
-      "settings.light": "Světlý motiv",
-      "settings.dark": "Tmavý motiv",
-      "settings.language": "Jazyk",
-      "settings.timezone": "Časové pásmo",
-      "hero.eyebrow": "Sezóna {year}",
-      "hero.title": "F<span class=\"hero__f1\">1</span> <em>kalendář</em>",
-      "hero.lead": "Tréninky, kvalifikace, sprinty i start závodu — převedené do tvého časového pásma, s připomínkou v kalendáři na jeden klik.",
-      "loading": "Načítám rozvrh…",
-      "next.live": "Právě teď",
-      "next.up": "Další v pořadí",
-      "next.over": "Sezóna je u konce",
-      "next.overSub": "Ročník {year} máme za sebou. Uvidíme se příští rok.",
-      "next.round": "Kolo {round} z {total}",
-      "next.show": "Zobrazit všechny závody",
-      "next.hide": "Skrýt seznam závodů",
-      "next.calendar": "Přidat do kalendáře",
-      "next.ends": "Session právě běží — končí v {time}.",
-      "next.starts": "{session} začíná {date} v {time}.",
-      "next.note": "Časy v {tz} ({abbr}) · přizpůsobené tvému pásmu",
-      "countdown.d": "Dny",
-      "countdown.h": "Hod",
-      "countdown.m": "Min",
-      "countdown.s": "Sek",
-      "season.title": "Kalendář {year}",
-      "season.sub": "Všechny session v tvém pásmu. Klikni na závod a rozbal celý rozvrh víkendu.",
-      "group.upcoming": "Nadcházející závody",
-      "group.past": "Proběhlé závody",
-      "race.live": "Probíhá",
-      "race.next": "Další",
-      "race.sessions": "{n} session",
-      "race.open": "Zobrazit rozvrh",
-      "race.close": "Skrýt rozvrh",
-      "sched.timezone": "Časy v {tz} ({abbr})",
-      "sched.weekend": "Přidat celý víkend",
-      "sched.add": "Přidat do kalendáře",
-      "sched.next": "Další",
-      "sched.live": "Živě",
-      "sched.done": "Hotovo",
-      "sess.practice": "Trénink {n}",
-      "sess.sprintQualifying": "Sprintová kvalifikace",
-      "sess.qualifying": "Kvalifikace",
-      "sess.sprint": "Sprint",
-      "sess.race": "Závod",
-      "badge.sprint": "Sprint",
-      "sync.live": "Živě · {time}",
-      "sync.cached": "Z mezipaměti · {time}",
-      "sync.snapshot": "Přibalená data · {date}",
-      "sync.offline": "Offline data",
-      "footer.note": `Neoficiální fanouškový projekt. Není spojený s Formula 1, FIA ani žádným týmem. Časy ze ${OPENF1_LINK}, data z ${JOLPICA_LINK}. Vždy zkontroluj oficiální harmonogram.`,
-      "noscript": "Pro převod časů do tvého pásma je potřeba JavaScript.",
-      "ics.round": "Kolo {round} z {total} · sezóna {year}",
-      "ics.circuit": "Okruh: {place}",
-      "ics.session": "Session: {date} {time} ({tz})",
-      "ics.duration": "Délka: {duration}",
-      "ics.schedule": "Rozvrh: https://tomsix.xyz",
-      "data.error": "Rozvrh 2026 se nepodařilo načíst."
-    },
     en: {
       "meta.title": "F1 reminders · every session in your time — tomsix.xyz",
       "meta.desc": "The full 2026 Formula 1 calendar with practice, qualifying, sprint and race times converted to your timezone. One-click calendar reminders for every session.",
@@ -183,7 +111,6 @@
   };
 
   const state = {
-    lang: document.documentElement.lang === "en" ? "en" : "cs",
     theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
     tz: validZone(store.get(TZ_KEY) || browserZone()),
     now: Date.now(),
@@ -192,8 +119,7 @@
   };
 
   function t(key, vars) {
-    const dict = I18N[state.lang] || I18N.cs;
-    let text = dict[key] ?? I18N.cs[key] ?? key;
+    let text = I18N.en[key] ?? key;
     if (vars) {
       for (const name of Object.keys(vars)) {
         text = text.split(`{${name}}`).join(String(vars[name]));
@@ -232,7 +158,7 @@
   }
 
   function locale() {
-    return state.lang === "cs" ? "cs-CZ" : "en-GB";
+    return "en-GB";
   }
 
   /* ------------------------------------------------------------------------
@@ -667,7 +593,10 @@
 
   function renderFooter() {
     const tz = $("#footer-tz");
-    if (tz) tz.textContent = `${state.tz} · ${zoneAbbr()}`;
+    if (tz) {
+      const option = currentZoneOption();
+      tz.textContent = `${option?.country || state.tz} · ${zoneAbbr()}`;
+    }
   }
 
   function renderAll() {
@@ -691,34 +620,29 @@
   }
 
   /* ------------------------------------------------------------------------
-     Theme & language
+     Theme
      ------------------------------------------------------------------------ */
 
   function syncSettingsUi() {
-    $$("[data-theme-set]").forEach((button) => {
-      button.setAttribute("aria-pressed", String(button.dataset.themeSet === state.theme));
-    });
-    $$("[data-lang-set]").forEach((button) => {
-      button.setAttribute("aria-pressed", String(button.dataset.langSet === state.lang));
-    });
+    const toggle = $("#theme-toggle");
+    if (toggle) {
+      const dark = state.theme === "dark";
+      toggle.setAttribute("aria-checked", String(dark));
+      toggle.setAttribute("aria-label", "Dark mode");
+      toggle.title = dark ? "Switch to light mode" : "Switch to dark mode";
+    }
     const meta = $('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", state.theme === "dark" ? "#0e0f11" : "#f7f8fa");
   }
 
   function applyStaticText() {
-    document.documentElement.lang = state.lang;
+    document.documentElement.lang = "en";
     document.title = t("meta.title");
     $('meta[name="description"]')?.setAttribute("content", t("meta.desc"));
-
-    $$("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
-    $$("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
-    $$("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
-    $$("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
 
     const seasonLabel = $("#season-label");
     if (seasonLabel) seasonLabel.textContent = t("hero.eyebrow", { year: season.year });
 
-    $("#tz-select")?.setAttribute("aria-label", t("settings.timezone"));
     $(".topnav")?.setAttribute("aria-label", t("nav.main"));
   }
 
@@ -727,15 +651,6 @@
     document.documentElement.dataset.theme = state.theme;
     store.set(THEME_KEY, state.theme);
     syncSettingsUi();
-  }
-
-  function setLang(lang) {
-    state.lang = lang === "en" ? "en" : "cs";
-    store.set(LANG_KEY, state.lang);
-    formatterCache.clear();
-    applyStaticText();
-    syncSettingsUi();
-    renderAll();
   }
 
   /* ------------------------------------------------------------------------
@@ -1034,28 +949,227 @@
     }
   }
 
-  function initTimezones() {
-    const select = $("#tz-select");
-    if (!select) return;
+  /* ------------------------------------------------------------------------
+     Timezone picker
+     ------------------------------------------------------------------------ */
 
-    let zones = [];
+  let regionNames = null;
+  try {
+    regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+  } catch { /* older browser */ }
+
+  let zoneOptions = [];
+  let activeZoneIndex = -1;
+
+  function countryName(code) {
+    if (!code) return "";
     try {
-      if (typeof Intl.supportedValuesOf === "function") {
-        zones = Intl.supportedValuesOf("timeZone");
+      return regionNames?.of(code) || code;
+    } catch {
+      return code;
+    }
+  }
+
+  function zoneOffsetMinutes(zone, date = new Date()) {
+    try {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: zone,
+        timeZoneName: "longOffset"
+      }).formatToParts(date);
+      const label = parts.find((part) => part.type === "timeZoneName")?.value || "";
+      const match = /GMT([+-])(\d{1,2})(?::(\d{2}))?/.exec(label);
+      if (match) {
+        const sign = match[1] === "-" ? -1 : 1;
+        return sign * (Number(match[2]) * 60 + Number(match[3] || 0));
       }
-    } catch { /* ignore */ }
-    if (!Array.isArray(zones) || !zones.length) zones = FALLBACK_ZONES.slice();
-    if (!zones.includes(state.tz)) zones = [state.tz, ...zones];
+      const utc = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
+      const local = new Date(date.toLocaleString("en-US", { timeZone: zone }));
+      return Math.round((local - utc) / 60000);
+    } catch {
+      return 0;
+    }
+  }
 
-    select.innerHTML = zones
-      .map((zone) => `<option value="${esc(zone)}"${zone === state.tz ? " selected" : ""}>${esc(zone)}</option>`)
-      .join("");
+  function offsetLabel(minutes) {
+    const sign = minutes < 0 ? "−" : "+";
+    const abs = Math.abs(minutes);
+    const hours = String(Math.floor(abs / 60)).padStart(2, "0");
+    const mins = String(abs % 60).padStart(2, "0");
+    return `UTC${sign}${hours}:${mins}`;
+  }
 
-    select.addEventListener("change", () => {
-      state.tz = validZone(select.value);
-      store.set(TZ_KEY, state.tz);
-      formatterCache.clear();
-      renderAll();
+  function buildZoneOptions() {
+    const byCountry = new Map();
+
+    for (const [zone, code] of Object.entries(ZONE_COUNTRIES)) {
+      if (!code || COUNTRY_EXCLUDE.has(code)) continue;
+      if (validZone(zone) !== zone) continue;
+
+      if (!byCountry.has(code)) byCountry.set(code, new Map());
+      const slots = byCountry.get(code);
+      const minutes = zoneOffsetMinutes(zone);
+      const slot = `${code}:${minutes}`;
+      if (!slots.has(slot)) slots.set(slot, { zone, minutes });
+    }
+
+    const options = [];
+    for (const [code, slots] of byCountry) {
+      const name = countryName(code);
+      const list = Array.from(slots.values()).sort((a, b) => a.minutes - b.minutes);
+      if (list.length === 1) {
+        options.push({ value: list[0].zone, label: name, country: name });
+      } else {
+        for (const slot of list) {
+          options.push({ value: slot.zone, label: `${name} · ${offsetLabel(slot.minutes)}`, country: name });
+        }
+      }
+    }
+
+    options.sort((a, b) => a.label.localeCompare(b.label, "en"));
+
+    if (!options.some((option) => option.value === state.tz)) {
+      const code = ZONE_COUNTRIES[state.tz];
+      const name = countryName(code) || state.tz.split("/").pop().replace(/_/g, " ");
+      options.unshift({ value: state.tz, label: name, country: name });
+    }
+
+    return options;
+  }
+
+  function currentZoneOption() {
+    return zoneOptions.find((option) => option.value === state.tz);
+  }
+
+  function updateZoneButton() {
+    const value = $("#tz-value");
+    const button = $("#tz-button");
+    if (!value) return;
+    const option = currentZoneOption();
+    value.textContent = option ? option.label : state.tz;
+    if (button) {
+      const title = option ? `${option.label} — ${option.value}` : state.tz;
+      button.title = title;
+      button.setAttribute("aria-label", `Timezone: ${title}`);
+    }
+  }
+
+  function renderZoneList(query = "") {
+    const list = $("#tz-list");
+    const empty = $("#tz-empty");
+    if (!list) return;
+
+    const needle = normalizePlace(query.trim());
+    const matches = needle
+      ? zoneOptions.filter((option) =>
+          normalizePlace(option.label).includes(needle) ||
+          normalizePlace(option.value).includes(needle)
+        )
+      : zoneOptions;
+
+    activeZoneIndex = -1;
+    list.innerHTML = matches.map((option, index) => {
+      const selected = option.value === state.tz;
+      return `
+        <li class="tz__option${selected ? " is-selected" : ""}" id="tz-option-${index}" role="option" aria-selected="${selected}" data-zone="${esc(option.value)}" title="${esc(option.value)}">
+          <span class="tz__option-label">${esc(option.label)}</span>
+          <svg class="tz__check" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        </li>`;
+    }).join("");
+
+    if (empty) empty.hidden = matches.length > 0;
+  }
+
+  function openZonePanel() {
+    const panel = $("#tz-panel");
+    const button = $("#tz-button");
+    const search = $("#tz-search");
+    if (!panel || !button) return;
+    panel.hidden = false;
+    button.setAttribute("aria-expanded", "true");
+    if (search) {
+      search.value = "";
+      renderZoneList("");
+      search.focus();
+    }
+    const list = $("#tz-list");
+    const selected = list?.querySelector(".is-selected");
+    if (list && selected) {
+      list.scrollTop = Math.max(0, selected.offsetTop - list.offsetTop - 8);
+    }
+  }
+
+  function closeZonePanel(focusButton = false) {
+    const panel = $("#tz-panel");
+    const button = $("#tz-button");
+    if (!panel || !button) return;
+    if (panel.hidden) return;
+    panel.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+    if (focusButton) button.focus();
+  }
+
+  function selectZone(zone) {
+    state.tz = validZone(zone);
+    store.set(TZ_KEY, state.tz);
+    formatterCache.clear();
+    updateZoneButton();
+    renderAll();
+    closeZonePanel(true);
+  }
+
+  function moveZoneActive(delta) {
+    const options = $$("#tz-list .tz__option");
+    if (!options.length) return;
+    activeZoneIndex = (activeZoneIndex + delta + options.length) % options.length;
+    options.forEach((node, index) => node.classList.toggle("is-active", index === activeZoneIndex));
+    const node = options[activeZoneIndex];
+    const list = $("#tz-list");
+    if (list && node) {
+      const top = node.offsetTop - list.offsetTop;
+      list.scrollTop = Math.max(0, top - (list.clientHeight - node.offsetHeight) / 2);
+    }
+    $("#tz-search")?.setAttribute("aria-activedescendant", node.id);
+  }
+
+  function initTimezones() {
+    zoneOptions = buildZoneOptions();
+    updateZoneButton();
+    renderZoneList("");
+
+    const button = $("#tz-button");
+    const panel = $("#tz-panel");
+    const search = $("#tz-search");
+    const list = $("#tz-list");
+
+    if (!button || !panel || !search || !list) return;
+
+    button.addEventListener("click", () => {
+      if (panel.hidden) openZonePanel();
+      else closeZonePanel();
+    });
+
+    search.addEventListener("input", () => renderZoneList(search.value));
+
+    search.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeZonePanel(true);
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        moveZoneActive(1);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveZoneActive(-1);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const active = $("#tz-list .is-active") || $("#tz-list .tz__option");
+        if (active) selectZone(active.dataset.zone);
+      }
+    });
+
+    list.addEventListener("click", (event) => {
+      const option = event.target.closest(".tz__option");
+      if (option) selectZone(option.dataset.zone);
     });
   }
 
@@ -1070,10 +1184,10 @@
     renderAll();
 
     document.addEventListener("click", (event) => {
-      const settingsButton = event.target.closest("[data-theme-set], [data-lang-set]");
-      if (settingsButton) {
-        if (settingsButton.dataset.themeSet) setTheme(settingsButton.dataset.themeSet);
-        if (settingsButton.dataset.langSet) setLang(settingsButton.dataset.langSet);
+      if (!event.target.closest("#tz")) closeZonePanel();
+
+      if (event.target.closest("#theme-toggle")) {
+        setTheme(state.theme === "dark" ? "light" : "dark");
         return;
       }
 
@@ -1089,6 +1203,9 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeZonePanel(true);
+      }
       if ((event.key === "Enter" || event.key === " ") && event.target.closest("#next")) {
         event.preventDefault();
         toggleBanner();

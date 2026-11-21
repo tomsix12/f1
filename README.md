@@ -1,8 +1,8 @@
 # F1 race reminder
 
 Kompletní kalendář formule 1 pro rok 2026 převedený do časového pásma
-návštěvníka, s odpočtem do další session a stahováním `.ics` událostí do
-kalendáře.
+návštěvníka, s odpočtem do další session a rozbalovacím rozvrhem víkendu.
+Rozhraní je pouze v angličtině.
 
 ## Otevření
 
@@ -13,7 +13,8 @@ statickým serverem.
 f1/
 ├─ index.html              – celá stránka
 ├─ css/style.css           – vzhled a oba motivy (tokeny v :root)
-├─ js/app.js               – logika: časová pásma, odpočet, překlady, rozvrh
+├─ js/app.js               – logika: časová pásma, odpočet, rozvrh
+├─ js/zones.js             – mapa časových pásem na země (z IANA zone.tab)
 ├─ js/data.js              – snapshot sezóny 2026 pro okamžité vykreslení
 ├─ data/season-2026.json   – stejná data v čitelné podobě (reference)
 ├─ img/og.png              – náhled pro sociální sítě (1200×630)
@@ -26,17 +27,17 @@ f1/
 ## Co stránka umí
 
 - **Živý odpočet** do další session (nebo do konce právě běžící).
-- **Automatická detekce časového pásma** + přepínač v hlavičce; volba se
-  ukládá do `localStorage`.
-- **Světlý a tmavý motiv** – přepínač v hlavičce, volba se pamatuje
+- **Automatická detekce časového pásma** + vyhledávací výběr země v hlavičce;
+  volba se ukládá do `localStorage`. Seznam obsahuje jen názvy zemí (u zemí
+  s více pásmy doplněné offsetem), nikoli města ani kontinenty.
+- **Světlý a tmavý motiv** – posuvný přepínač v hlavičce, volba se pamatuje
   (výchozí stav podle systému).
-- **Čeština a angličtina** – přepínač v hlavičce přeloží veškerý viditelný
-  text; volba se pamatuje.
+- **Anglické rozhraní** – veškerý viditelný text je v angličtině.
 - **Banner dalšího závodu** s živým odpočtem; kliknutím (nebo mezerníkem)
   se pod ním rozbalí celý rozvrh víkendu.
-- **Kalendář 2026** hned pod bannerem ve dvou skupinách – *Nadcházející
-  závody* nahoře, *Proběhlé závody* dole, v odstínech šedi (barevné zůstávají
-  jen vlajky). Závod z banneru se v seznamu neduplikuje; kliknutím na ostatní
+- **Kalendář 2026** hned pod bannerem ve dvou skupinách – *Upcoming races*
+  nahoře, *Completed races* dole, v odstínech šedi (barevné zůstávají jen
+  vlajky). Závod z banneru se v seznamu neduplikuje; kliknutím na ostatní
   závody se pod nimi rozbalí rozvrh (FP1–Race, včetně sprintových formátů).
 - **Živá data z OpenF1** při načtení (cache 6 h), se snapshotem jako fallback.
 - Bez frameworků, bez buildu, bez analytiky. Responzivní, respektuje
@@ -44,7 +45,7 @@ f1/
 
 ## Úpravy
 
-- **Texty** – překlady v `js/app.js` (objekt `I18N`), markup v `index.html`.
+- **Texty** – řetězce v `js/app.js` (objekt `I18N.en`), markup v `index.html`.
 - **Barvy, zaoblení, písmo** – `css/style.css`, blok `:root` (světlý motiv)
   a `html[data-theme="dark"]` (tmavý motiv).
 - **Chování** – `js/app.js` (formátování času, seskupení závodů, rozbalování).

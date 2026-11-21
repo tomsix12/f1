@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="cs" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>F1 připomínky · každá session ve tvém čase — tomsix.xyz</title>
-  <meta name="description" content="Kompletní kalendář formule 1 pro rok 2026 s časy tréninků, kvalifikací, sprintů a závodů ve tvém časovém pásmu. Připomínky do kalendáře na jeden klik.">
+  <title>F1 reminders · every session in your time — tomsix.xyz</title>
+  <meta name="description" content="The full 2026 Formula 1 calendar with practice, qualifying, sprint and race times converted to your timezone. One-click calendar reminders for every session.">
   <meta name="theme-color" content="#f7f8fa">
   <link rel="canonical" href="https://tomsix.xyz/">
 
@@ -35,49 +35,46 @@
           theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
         document.documentElement.dataset.theme = theme;
-
-        var lang = localStorage.getItem("tomsix.f1.lang");
-        if (lang !== "cs" && lang !== "en") {
-          lang = (navigator.language || "en").toLowerCase().indexOf("cs") === 0 ? "cs" : "en";
-        }
-        document.documentElement.lang = lang;
       } catch (error) {
         document.documentElement.dataset.theme = "light";
-        document.documentElement.lang = "cs";
       }
     })();
   </script>
 </head>
 <body>
-  <a class="skip-link" href="#main" data-i18n="skip">Přejít na obsah</a>
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="topbar">
     <div class="wrap topbar__inner">
-      <nav class="topnav" aria-label="Main">
-        <a href="#next" data-i18n="nav.next">Další závod</a>
-        <a href="#calendar" data-i18n="nav.calendar">Kalendář</a>
+      <nav class="topnav" aria-label="Main navigation">
+        <a href="#next">Next race</a>
+        <a href="#calendar">Calendar</a>
       </nav>
 
       <div class="tools">
-        <label class="tz">
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3Z"/></svg>
-          <span class="sr-only" data-i18n="settings.timezone">Časové pásmo</span>
-          <select id="tz-select" aria-label="Časové pásmo"></select>
-        </label>
+        <div class="tz" id="tz">
+          <button class="tz__button" id="tz-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="tz-panel" aria-label="Timezone">
+            <svg class="tz__globe" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3Z"/></svg>
+            <span class="tz__value" id="tz-value">UTC</span>
+            <svg class="tz__chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
 
-        <div class="seg" role="group" data-i18n-aria="settings.theme" aria-label="Motiv">
-          <button class="seg__btn" type="button" data-theme-set="light" aria-pressed="true" data-i18n-title="settings.light" title="Světlý motiv">
-            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
-          </button>
-          <button class="seg__btn" type="button" data-theme-set="dark" aria-pressed="false" data-i18n-title="settings.dark" title="Tmavý motiv">
-            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
-          </button>
+          <div class="tz__panel" id="tz-panel" hidden>
+            <div class="tz__search">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+              <input class="tz__input" id="tz-search" type="search" placeholder="Search country…" autocomplete="off" spellcheck="false" aria-label="Search country">
+            </div>
+            <ul class="tz__list" id="tz-list" role="listbox" aria-label="Timezone"></ul>
+            <p class="tz__empty" id="tz-empty" hidden>No matches</p>
+          </div>
         </div>
 
-        <div class="seg seg--lang" role="group" data-i18n-aria="settings.language" aria-label="Jazyk">
-          <button class="seg__btn seg__btn--text" type="button" data-lang-set="cs" aria-pressed="true">CZ</button>
-          <button class="seg__btn seg__btn--text" type="button" data-lang-set="en" aria-pressed="false">EN</button>
-        </div>
+        <button class="theme-toggle" type="button" id="theme-toggle" role="switch" aria-checked="false" aria-label="Dark mode" title="Switch to dark mode">
+          <span class="theme-toggle__thumb" aria-hidden="true">
+            <svg class="theme-toggle__sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+            <svg class="theme-toggle__moon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+          </span>
+        </button>
       </div>
     </div>
   </header>
@@ -86,19 +83,19 @@
     <section class="hero wrap">
       <p class="eyebrow">
         <span class="eyebrow__dot" aria-hidden="true"></span>
-        <span id="season-label" data-i18n="hero.eyebrow">Sezóna 2026</span>
+        <span id="season-label">Season 2026</span>
       </p>
 
-      <h1 class="hero__title" data-i18n-html="hero.title">F<span class="hero__f1">1</span> <em>kalendář</em></h1>
+      <h1 class="hero__title">F<span class="hero__f1">1</span> <em>calendar</em></h1>
 
-      <p class="hero__lead" data-i18n="hero.lead">
-        Tréninky, kvalifikace, sprinty i start závodu — převedené do tvého časového pásma,
-        s připomínkou v kalendáři na jeden klik.
+      <p class="hero__lead">
+        Practice, qualifying, sprints and lights out — converted to your timezone,
+        with one-click calendar reminders.
       </p>
 
       <div class="banner" id="banner">
         <div class="next" id="next" role="button" tabindex="0" aria-expanded="true" aria-controls="next-schedule" aria-labelledby="next-title">
-          <div class="next__loading" data-i18n="loading">Načítám rozvrh…</div>
+          <div class="next__loading">Loading the schedule…</div>
         </div>
         <div class="next-schedule" id="next-schedule"></div>
       </div>
@@ -111,21 +108,21 @@
 
   <footer class="foot">
     <div class="wrap foot__inner">
-      <span class="foot__brand">tomsix<span class="brand__colon">:</span></span>
-      <p class="foot__note" data-i18n-html="footer.note">
-        Neoficiální fanouškový projekt. Není spojený s Formula 1, FIA ani žádným týmem.
-        Časy ze <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a>,
-        data z <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica</a>.
-        Vždy zkontroluj oficiální harmonogram.
+      <p class="foot__note">
+        Unofficial fan project. Not affiliated with Formula 1, the FIA or any team.
+        Times from <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a>,
+        race data from <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica</a>.
+        Always double-check the official schedule.
       </p>
       <span class="foot__tz" id="footer-tz">—</span>
     </div>
   </footer>
 
   <noscript>
-    <div class="noscript" data-i18n="noscript">Pro převod časů do tvého pásma je potřeba JavaScript.</div>
+    <div class="noscript">This page needs JavaScript to convert session times to your timezone.</div>
   </noscript>
 
+  <script src="js/zones.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>
