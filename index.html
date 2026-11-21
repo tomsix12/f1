@@ -53,8 +53,6 @@
 
   <header class="topbar">
     <div class="wrap topbar__inner">
-      <a class="brand" href="#main" aria-label="tomsix">tomsix<span class="brand__colon">:</span></a>
-
       <nav class="topnav" aria-label="Main">
         <a href="#next" data-i18n="nav.next">Další závod</a>
         <a href="#calendar" data-i18n="nav.calendar">Kalendář</a>
@@ -98,8 +96,11 @@
         s připomínkou v kalendáři na jeden klik.
       </p>
 
-      <div class="next" id="next" aria-labelledby="next-title">
-        <div class="next__loading" data-i18n="loading">Načítám rozvrh…</div>
+      <div class="banner" id="banner">
+        <div class="next" id="next" role="button" tabindex="0" aria-expanded="true" aria-controls="next-schedule" aria-labelledby="next-title">
+          <div class="next__loading" data-i18n="loading">Načítám rozvrh…</div>
+        </div>
+        <div class="next-schedule" id="next-schedule"></div>
       </div>
     </section>
 

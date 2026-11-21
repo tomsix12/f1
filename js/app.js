@@ -187,7 +187,8 @@
     theme: document.documentElement.dataset.theme === "dark" ? "dark" : "light",
     tz: validZone(store.get(TZ_KEY) || browserZone()),
     now: Date.now(),
-    expanded: new Set()
+    expanded: new Set(),
+    bannerOpen: true
   };
 
   function t(key, vars) {
@@ -524,11 +525,33 @@
         ${countdownMarkup(snap.target)}
       </div>
 
-      <div class="next__actions">
-        <button class="icon-btn" type="button" data-action="ics-weekend" data-round="${meeting.round}" title="${esc(t("next.calendar"))}" aria-label="${esc(t("next.calendar"))}">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-        </button>
-      </div>`;
+      <span class="next__chevron" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </span>`;
+
+    el.setAttribute("aria-expanded", String(state.bannerOpen));
+    el.classList.toggle("is-open", state.bannerOpen);
+  }
+
+  function renderBannerSchedule() {
+    const host = $("#next-schedule");
+    if (!host) return;
+    const snap = snapshot();
+
+    if (!snap.meeting || !state.bannerOpen) {
+      host.hidden = true;
+      host.innerHTML = "";
+      return;
+    }
+
+    host.hidden = false;
+    host.innerHTML = scheduleMarkup(snap.meeting);
+  }
+
+  function toggleBanner() {
+    state.bannerOpen = !state.bannerOpen;
+    renderBanner();
+    renderBannerSchedule();
   }
 
   function scheduleMarkup(meeting) {
@@ -538,11 +561,6 @@
       const isActive = active && active.id === session.id;
       const rowClass = status === "live" ? "is-live" : status === "done" ? "is-done" : isActive ? "is-next" : "";
       const stateText = status === "live" ? t("sched.live") : status === "done" ? t("sched.done") : isActive ? t("sched.next") : "";
-      const ics = status === "done"
-        ? '<span class="icon-btn icon-btn--sm" aria-hidden="true"></span>'
-        : `<button class="icon-btn icon-btn--sm" type="button" data-action="ics-session" data-round="${meeting.round}" data-session="${esc(session.id)}" title="${esc(t("sched.add"))}" aria-label="${esc(`${meeting.name} — ${sessionLabel(session)} · ${t("sched.add")}`)}">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18M12 13v5M9.5 15.5h5"/></svg>
-          </button>`;
 
       return `
         <li class="sched__row ${rowClass}">
@@ -557,7 +575,6 @@
           </span>
           <span class="sched__time">${esc(timeStr(session.startDate))}</span>
           <span class="sched__state">${esc(stateText)}</span>
-          ${ics}
         </li>`;
     }).join("");
 
@@ -611,6 +628,7 @@
     const past = [];
 
     for (const meeting of season.meetings) {
+      if (focus && meeting.round === focus.round) continue;
       if (+meeting.endDate >= state.now) upcoming.push(meeting);
       else past.push(meeting);
     }
@@ -655,6 +673,7 @@
   function renderAll() {
     state.now = Date.now();
     renderBanner();
+    renderBannerSchedule();
     renderCalendar();
     renderSync();
     renderFooter();
@@ -1012,14 +1031,6 @@
     const action = button.dataset.action;
     if (action === "toggle-round") {
       toggleRound(button);
-    } else if (action === "ics-weekend") {
-      const fallback = focusMeeting();
-      const round = Number(button.dataset.round || fallback?.round);
-      if (round) downloadWeekend(round);
-    } else if (action === "ics-session") {
-      const round = Number(button.dataset.round);
-      const sessionId = button.dataset.session;
-      if (round && sessionId) downloadSession(round, sessionId);
     }
   }
 
@@ -1069,6 +1080,18 @@
       const actionButton = event.target.closest("[data-action]");
       if (actionButton) {
         handleAction(actionButton);
+        return;
+      }
+
+      if (event.target.closest("#next")) {
+        toggleBanner();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if ((event.key === "Enter" || event.key === " ") && event.target.closest("#next")) {
+        event.preventDefault();
+        toggleBanner();
       }
     });
 

@@ -13,7 +13,7 @@ statickým serverem.
 f1/
 ├─ index.html              – celá stránka
 ├─ css/style.css           – vzhled a oba motivy (tokeny v :root)
-├─ js/app.js               – logika: časová pásma, odpočet, překlady, .ics export
+├─ js/app.js               – logika: časová pásma, odpočet, překlady, rozvrh
 ├─ js/data.js              – snapshot sezóny 2026 pro okamžité vykreslení
 ├─ data/season-2026.json   – stejná data v čitelné podobě (reference)
 ├─ img/og.png              – náhled pro sociální sítě (1200×630)
@@ -32,12 +32,12 @@ f1/
   (výchozí stav podle systému).
 - **Čeština a angličtina** – přepínač v hlavičce přeloží veškerý viditelný
   text; volba se pamatuje.
+- **Banner dalšího závodu** s živým odpočtem; kliknutím (nebo mezerníkem)
+  se pod ním rozbalí celý rozvrh víkendu.
 - **Kalendář 2026** hned pod bannerem ve dvou skupinách – *Nadcházející
   závody* nahoře, *Proběhlé závody* dole, v odstínech šedi (barevné zůstávají
-  jen vlajky). Kliknutím na závod se pod ním rozbalí celý rozvrh víkendu
-  (FP1–Race, včetně sprintových formátů).
-- **Stahování `.ics`** pro jednu session, celý víkend nebo další závod;
-  každá událost má 30minutovou připomínku.
+  jen vlajky). Závod z banneru se v seznamu neduplikuje; kliknutím na ostatní
+  závody se pod nimi rozbalí rozvrh (FP1–Race, včetně sprintových formátů).
 - **Živá data z OpenF1** při načtení (cache 6 h), se snapshotem jako fallback.
 - Bez frameworků, bez buildu, bez analytiky. Responzivní, respektuje
   `prefers-reduced-motion`.
@@ -47,7 +47,7 @@ f1/
 - **Texty** – překlady v `js/app.js` (objekt `I18N`), markup v `index.html`.
 - **Barvy, zaoblení, písmo** – `css/style.css`, blok `:root` (světlý motiv)
   a `html[data-theme="dark"]` (tmavý motiv).
-- **Chování** – `js/app.js` (formátování času, seskupení závodů, `.ics`).
+- **Chování** – `js/app.js` (formátování času, seskupení závodů, rozbalování).
 - **Data závodů** – ideálně přes skript, ne ručně:
 
 ```powershell
