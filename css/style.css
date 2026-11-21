@@ -302,7 +302,7 @@ h3 {
   width: 34px;
   height: 30px;
   border-radius: 999px;
-  color: var(--text-3);
+  color: var(--text-2);
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
