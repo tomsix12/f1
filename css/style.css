@@ -1390,6 +1390,10 @@ body:has(dialog[open]) {
     transform: translateX(18px);
   }
 
+  .hero__lead {
+    display: none;
+  }
+
   .next {
     grid-template-columns: 38px minmax(0, 1fr) 18px;
     grid-template-areas:
