@@ -1391,12 +1391,48 @@ body:has(dialog[open]) {
   }
 
   .next {
-    grid-template-columns: 44px minmax(0, 1fr) 22px;
+    grid-template-columns: 38px minmax(0, 1fr) 18px;
     grid-template-areas:
       "flag info chev"
       "count count count";
-    gap: 14px;
-    padding: 16px;
+    gap: 10px 12px;
+    padding: 12px 14px;
+    border-radius: 18px;
+  }
+
+  .next__flag img {
+    width: 38px;
+    height: 27px;
+    border-radius: 5px;
+  }
+
+  .next__top {
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .next__round {
+    font-size: 10px;
+  }
+
+  .next .chip {
+    height: 21px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
+  .next__gp {
+    font-size: 17px;
+  }
+
+  .next__session {
+    margin-top: 2px;
+    font-size: 11.5px;
+  }
+
+  .next__chevron svg {
+    width: 16px;
+    height: 16px;
   }
 
   .season {
@@ -1431,16 +1467,11 @@ body:has(dialog[open]) {
     padding: 22px 0 24px;
   }
 
-  .next__flag img {
-    width: 44px;
-    height: 31px;
-  }
-
   .countdown {
     width: 100%;
     justify-content: space-between;
-    gap: 8px;
-    padding-top: 2px;
+    gap: 4px;
+    padding-top: 0;
   }
 
   .countdown__unit {
@@ -1449,7 +1480,13 @@ body:has(dialog[open]) {
   }
 
   .countdown__value {
-    font-size: 22px;
+    font-size: 18px;
+  }
+
+  .countdown__label {
+    margin-top: 3px;
+    font-size: 8px;
+    letter-spacing: 0.1em;
   }
 
   .race__head {
