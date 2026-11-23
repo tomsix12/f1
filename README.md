@@ -1,7 +1,7 @@
 # F1 dashboard
 
 Jednosouborový přehled formule 1 – kalendář závodů, vítězové, bodování jezdců
-a konstruktérů, odpočet do dalšího závodu a monochromatický motiv s jedním
+a konstruktérů, odpočet do dalšího závodu a grafitový motiv s volitelným
 akcentem ve stylu Google Material 3 Expressive. Veškerá data se tahají živě z
 [Jolpica F1 API](https://api.jolpi.ca/ergast/f1/), takže se stránka sama
 aktualizuje. Rozhraní je pouze v angličtině.
@@ -43,16 +43,19 @@ f1/
   jediným souborem. Neznámá země dostane neutrální glóbus.
 - **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
   kruhy pro první tři, pruhem v barvě týmu a podílovým neutrálním pruhem.
-- **Monochromatický motiv** – grafitové plochy, černý text a jedna akcentní
-  barva ve světlé i tmavé variantě. Přepínač Light / Dark je segmentovaný
-  seznam; volba se pamatuje a přechod barev je plynulý. Tlačítko vzhledu sedí
-  vedle navigace (na mobilu nad kalendářem).
+- **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
+  plochy s černým textem. Z osmi akcentů (Red, Blue, Green, Teal, Amber, Pink,
+  Violet, Graphite) jde vybrat jeden; mění se jen primární barva, nikdy
+  neutrální plochy. Přepínač Light / Dark i mřížka akcentů jsou segmentované
+  ovládací prvky, volba se pamatuje a přechod barev je plynulý. Tlačítko
+  vzhledu sedí vedle navigace (na mobilu nad kalendářem).
 - **M3 Expressive navigace** – segmentovaný seznam s ikonami, zaškrtnutím
   aktivní položky a posuvným indikátorem.
 - **Pohyb** – jemné najíždění karet, rozbalování rozvrhu, rozostření obsahu
   podle rychlosti scrollování. Vše respektuje `prefers-reduced-motion`.
-- **Mobil** – vycentrované nadpisy a banner, stavový text nahrazuje jen
-  animované tlačítko s tečkou; celý text zůstává v popisku pro čtečky.
+- **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
+  štítek s časem poslední aktualizace, na mobilu ho nahrazuje jen animované
+  kruhové tlačítko s tečkou; plný text zůstává v popisku pro čtečky.
 - Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
 ## Úpravy
@@ -71,8 +74,9 @@ Vše důležité je v komentáři na začátku `index.html` a v hlavním `<scrip
   `constructorId`. Neznámý tým dostane neutrální šedou a upozornění v konzoli.
 - **Názvy týmů** – `TEAM_NAMES` přepisuje názvy z API (např. „RB F1 Team“ →
   „Racing Bulls“).
-- **Motiv** – objekt `THEMES` v samostatném `<script>` v hlavičce; jediná
-  paleta `graphite` má variantu `light` a `dark` (jedna akcentní barva).
+- **Motiv** – objekt `ACCENTS` a `NEUTRALS` v samostatném `<script>`
+  v hlavičce; neutrální plochy jsou pevné, každý akcent má variantu `light`
+  a `dark` (jedna akcentní barva).
 - **Záložní snapshot** – konstanta `F1_BOOTSTRAP` (hledej `window.F1_BOOTSTRAP`),
   používaná jen když API i `data.json` selžou (např. při otevření přes `file://`).
 

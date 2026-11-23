@@ -33,10 +33,11 @@
                      shown; race ≈ 2 h).
   4. Team colours  — TEAM_COLORS (dark + light variants) in the main <script>.
   5. Team names    — TEAM_NAMES (display overrides for API names).
-  6. Palette       — THEMES in the small <script> in <head>: a graphite
-                     (grey + black) scheme with a single accent colour, in a
-                     light and a dark variant.
-  7. Storage keys  — CACHE_KEY, MODE_KEY.
+  6. Palette       — ACCENTS and NEUTRALS in the small <script> in <head>:
+                     grey/black surfaces plus one accent colour (red, blue,
+                     green, teal, amber, pink, violet or graphite), each with
+                     a light and a dark variant.
+  7. Storage keys  — CACHE_KEY, MODE_KEY, ACCENT_KEY.
   8. Fallback      — data.json next to this file, plus the inline BOOTSTRAP
                      snapshot (search for "F1_BOOTSTRAP").
   9. Flags         — inline SVG flags in the FLAGS map (country → ISO code in
@@ -50,8 +51,8 @@
 
 <style>
 /* --------------------------------------------------------------------------
-   Tokens (fallback = graphite, light). JS applies the light/dark palette.
-   Only neutral greys, black/white and one accent colour are used.
+   Tokens (fallback = red accent, light mode). JS applies neutrals + accent.
+   Surfaces/type are grey/black (or white/grey in light); one accent colour.
    -------------------------------------------------------------------------- */
 :root {
   color-scheme: light;
@@ -59,8 +60,6 @@
   --on-primary: #FFFFFF;
   --primary-container: #FFDAD6;
   --on-primary-container: #410002;
-  --secondary: #5D5D63;
-  --tertiary: #7A7A80;
   --bg: #F6F6F7;
   --surface: #FFFFFF;
   --surface-2: #EFEFF1;
@@ -358,6 +357,8 @@ ul, ol { list-style: none; }
   right: 16px;
   z-index: 71;
   width: min(330px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   padding: 16px;
   border-radius: 24px;
   border: 1px solid var(--line);
@@ -418,6 +419,45 @@ ul, ol { list-style: none; }
   color: var(--on-primary);
 }
 .mode button[aria-pressed="true"] .mode__check { display: block; }
+
+.palette__label {
+  display: block;
+  margin: 14px 0 8px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Accent swatches: the neutral surfaces stay put, only the accent changes. */
+.accents {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.accent {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+.accent:hover { border-color: color-mix(in srgb, var(--sw) 55%, var(--line)); transform: translateY(-1px); }
+.accent__dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sw);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.accent__dot svg { width: 13px; height: 13px; color: var(--sw-on); opacity: 0; transition: opacity 0.18s ease; }
+.accent[aria-pressed="true"] { border-color: var(--sw); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sw) 32%, transparent); }
+.accent[aria-pressed="true"] .accent__dot svg { opacity: 1; }
 
 /* --------------------------------------------------------------------------
    Chips
@@ -1296,45 +1336,112 @@ html.theming *::after {
 
 <script>
 /* ---------------------------------------------------------------------------
-   Theme palette — graphite (grey + black) with one accent colour.
-   The light and dark variants are applied as CSS custom properties on <html>;
-   everything on the page uses those variables.
+   Theme palette — graphite surfaces with a choice of accent colours.
+   Neutrals (backgrounds, surfaces, type) stay grey/black or white/grey in both
+   modes; the accent only changes primary / container tokens. Everything on the
+   page reads these CSS custom properties from <html>.
    --------------------------------------------------------------------------- */
 (function () {
   "use strict";
-  var THEMES = {
-    graphite: {
-      label: "Graphite",
-      light: { "primary": "#D32F2F", "on-primary": "#FFFFFF", "primary-container": "#FFDAD6", "on-primary-container": "#410002", "secondary": "#5D5D63", "tertiary": "#7A7A80", "bg": "#F6F6F7", "surface": "#FFFFFF", "surface-2": "#EFEFF1", "surface-3": "#E4E4E7", "text": "#0B0B0C", "text-2": "#3C3C40", "text-3": "#68686E", "line": "#DDDDE0" },
-      dark: { "primary": "#FFB4AB", "on-primary": "#690005", "primary-container": "#93000A", "on-primary-container": "#FFDAD6", "secondary": "#C9C9CE", "tertiary": "#A6A6AC", "bg": "#0B0B0C", "surface": "#141416", "surface-2": "#1E1E21", "surface-3": "#29292D", "text": "#F2F2F3", "text-2": "#C6C6CA", "text-3": "#8E8E94", "line": "#2E2E32" }
+
+  var NEUTRALS = {
+    light: {
+      "bg": "#F6F6F7", "surface": "#FFFFFF", "surface-2": "#EFEFF1",
+      "surface-3": "#E4E4E7", "text": "#0B0B0C", "text-2": "#3C3C40",
+      "text-3": "#68686E", "line": "#DDDDE0"
+    },
+    dark: {
+      "bg": "#0B0B0C", "surface": "#141416", "surface-2": "#1E1E21",
+      "surface-3": "#29292D", "text": "#F2F2F3", "text-2": "#C6C6CA",
+      "text-3": "#8E8E94", "line": "#2E2E32"
     }
   };
 
-  window.F1_THEMES = THEMES;
+  var ACCENTS = {
+    red: {
+      label: "Red",
+      light: { "primary": "#D32F2F", "on-primary": "#FFFFFF", "primary-container": "#FFDAD6", "on-primary-container": "#410002" },
+      dark: { "primary": "#FFB4AB", "on-primary": "#690005", "primary-container": "#93000A", "on-primary-container": "#FFDAD6" }
+    },
+    blue: {
+      label: "Blue",
+      light: { "primary": "#1565C0", "on-primary": "#FFFFFF", "primary-container": "#D6E3FF", "on-primary-container": "#001B3E" },
+      dark: { "primary": "#A9C7FF", "on-primary": "#003063", "primary-container": "#00468B", "on-primary-container": "#D6E3FF" }
+    },
+    green: {
+      label: "Green",
+      light: { "primary": "#2E7D32", "on-primary": "#FFFFFF", "primary-container": "#C8E6C9", "on-primary-container": "#002105" },
+      dark: { "primary": "#8FD694", "on-primary": "#00390F", "primary-container": "#00531B", "on-primary-container": "#C8E6C9" }
+    },
+    teal: {
+      label: "Teal",
+      light: { "primary": "#00695C", "on-primary": "#FFFFFF", "primary-container": "#B2DFDB", "on-primary-container": "#00201C" },
+      dark: { "primary": "#6FD8C8", "on-primary": "#00382F", "primary-container": "#005144", "on-primary-container": "#B2DFDB" }
+    },
+    amber: {
+      label: "Amber",
+      light: { "primary": "#8A4F00", "on-primary": "#FFFFFF", "primary-container": "#FFE0B2", "on-primary-container": "#2B1700" },
+      dark: { "primary": "#FFB95C", "on-primary": "#4A2800", "primary-container": "#6A3B00", "on-primary-container": "#FFE0B2" }
+    },
+    pink: {
+      label: "Pink",
+      light: { "primary": "#B0005C", "on-primary": "#FFFFFF", "primary-container": "#FFD9E2", "on-primary-container": "#3E001D" },
+      dark: { "primary": "#FFB1C8", "on-primary": "#64002F", "primary-container": "#8E0046", "on-primary-container": "#FFD9E2" }
+    },
+    violet: {
+      label: "Violet",
+      light: { "primary": "#6A3DB8", "on-primary": "#FFFFFF", "primary-container": "#EADDFF", "on-primary-container": "#23005C" },
+      dark: { "primary": "#D0BCFF", "on-primary": "#3A1D71", "primary-container": "#513A87", "on-primary-container": "#EADDFF" }
+    },
+    graphite: {
+      label: "Graphite",
+      light: { "primary": "#2E2E32", "on-primary": "#FFFFFF", "primary-container": "#E4E4E7", "on-primary-container": "#1B1B1E" },
+      dark: { "primary": "#E4E4E7", "on-primary": "#1B1B1E", "primary-container": "#3C3C40", "on-primary-container": "#E4E4E7" }
+    }
+  };
 
-  window.F1_applyTheme = function (theme, mode) {
-    var palette = THEMES.graphite[mode === "dark" ? "dark" : "light"];
+  var ACCENT_ORDER = ["red", "blue", "green", "teal", "amber", "pink", "violet", "graphite"];
+  var DEFAULT_ACCENT = "red";
+
+  window.F1_ACCENTS = ACCENTS;
+  window.F1_ACCENT_ORDER = ACCENT_ORDER;
+  window.F1_DEFAULT_ACCENT = DEFAULT_ACCENT;
+
+  window.F1_applyTheme = function (accentKey, mode) {
+    var selectedMode = mode === "dark" ? "dark" : "light";
+    var key = Object.prototype.hasOwnProperty.call(ACCENTS, accentKey) ? accentKey : DEFAULT_ACCENT;
+    var palette = {};
+    var name;
+    for (name in NEUTRALS[selectedMode]) {
+      if (Object.prototype.hasOwnProperty.call(NEUTRALS[selectedMode], name)) palette[name] = NEUTRALS[selectedMode][name];
+    }
+    for (name in ACCENTS[key][selectedMode]) {
+      if (Object.prototype.hasOwnProperty.call(ACCENTS[key][selectedMode], name)) palette[name] = ACCENTS[key][selectedMode][name];
+    }
     var root = document.documentElement;
-    root.dataset.theme = "graphite";
-    root.dataset.mode = mode === "dark" ? "dark" : "light";
-    for (var name in palette) {
+    root.dataset.theme = key;
+    root.dataset.mode = selectedMode;
+    for (name in palette) {
       if (Object.prototype.hasOwnProperty.call(palette, name)) {
         root.style.setProperty("--" + name, palette[name]);
       }
     }
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", palette.bg);
+    if (meta) meta.setAttribute("content", NEUTRALS[selectedMode].bg);
   };
 
+  var accent = null;
   var mode = null;
   try {
+    accent = localStorage.getItem("f1.accent");
     var savedMode = localStorage.getItem("f1.mode");
     if (savedMode === "dark" || savedMode === "light") mode = savedMode;
   } catch (error) { /* storage may be unavailable */ }
+  if (!Object.prototype.hasOwnProperty.call(ACCENTS, accent)) accent = DEFAULT_ACCENT;
   if (!mode) {
     mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
-  window.F1_applyTheme("graphite", mode);
+  window.F1_applyTheme(accent, mode);
 })();
 </script>
 </head>
@@ -1372,7 +1479,7 @@ html.theming *::after {
         </button>
       </nav>
 
-      <button class="navbtn" id="palette-btn" type="button" aria-label="Appearance: light or dark mode" aria-expanded="false" aria-controls="palette">
+      <button class="navbtn" id="palette-btn" type="button" aria-label="Appearance: accent colour and light or dark mode" aria-expanded="false" aria-controls="palette">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 22 10.8C22 5.8 17.5 2 12 2Zm-5.5 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
       </button>
     </div>
@@ -1401,7 +1508,9 @@ html.theming *::after {
       <svg class="mode__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
     </button>
   </div>
-  <p class="palette__note">Graphite surfaces, black type and one accent colour.</p>
+  <p class="palette__label" id="accent-label">Accent</p>
+  <div class="accents" id="accent-grid" role="group" aria-labelledby="accent-label"></div>
+  <p class="palette__note">Grey surfaces and black type in light mode, pure graphite in dark. Choose one accent colour; it is remembered in this browser.</p>
 </div>
 
 <main id="main">
@@ -1476,6 +1585,9 @@ html.theming *::after {
   const FETCH_TIMEOUT = 20000;
   const CACHE_KEY = "f1.dashboard.cache.v2";
   const MODE_KEY = "f1.mode";
+  const ACCENT_KEY = "f1.accent";
+  const ACCENTS = window.F1_ACCENTS || {};
+  const ACCENT_ORDER = window.F1_ACCENT_ORDER || [];
   const TZ = "Europe/Prague";
   const FALLBACK_FILE = "data.json";
 
@@ -2385,30 +2497,70 @@ html.theming *::after {
   /* -------------------------------------------------------------- appearance */
   const palettePanel = $("#palette");
   const paletteBtn = $("#palette-btn");
+  const accentGrid = $("#accent-grid");
 
   function currentMode() {
     return document.documentElement.dataset.mode === "dark" ? "dark" : "light";
   }
 
+  function currentAccent() {
+    const key = document.documentElement.dataset.theme;
+    return Object.prototype.hasOwnProperty.call(ACCENTS, key) ? key : (window.F1_DEFAULT_ACCENT || "red");
+  }
+
   function syncThemeUI() {
     const mode = currentMode();
+    const accent = currentAccent();
     for (const btn of $$(".mode button")) {
       btn.setAttribute("aria-pressed", String(btn.dataset.mode === mode));
     }
+    for (const btn of $$(".accent", accentGrid)) {
+      const swatch = ACCENTS[btn.dataset.accent];
+      if (!swatch) continue;
+      const palette = swatch[mode] || swatch.light;
+      btn.style.setProperty("--sw", palette.primary);
+      btn.style.setProperty("--sw-on", palette["on-primary"]);
+      btn.setAttribute("aria-pressed", String(btn.dataset.accent === accent));
+    }
+  }
+
+  function buildAccentGrid() {
+    if (!accentGrid) return;
+    accentGrid.innerHTML = ACCENT_ORDER.filter((key) => ACCENTS[key]).map((key) => {
+      const swatch = ACCENTS[key];
+      const palette = swatch[currentMode()] || swatch.light;
+      return '<button class="accent" type="button" data-accent="' + key + '" aria-pressed="false"' +
+        ' aria-label="' + esc(swatch.label) + ' accent" title="' + esc(swatch.label) + ' accent"' +
+        ' style="--sw:' + palette.primary + ';--sw-on:' + palette["on-primary"] + '">' +
+        '<span class="accent__dot" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' +
+        '</span>' +
+      '</button>';
+    }).join("");
+    syncThemeUI();
   }
 
   let themeTimer = 0;
 
-  function applyMode(mode) {
+  function commitTheme(accent, mode) {
     const root = document.documentElement;
     root.classList.add("theming");
-    window.F1_applyTheme("graphite", mode);
+    window.F1_applyTheme(accent, mode);
     try {
+      localStorage.setItem(ACCENT_KEY, accent);
       localStorage.setItem(MODE_KEY, mode);
     } catch (error) { /* storage may be unavailable */ }
     syncThemeUI();
     window.clearTimeout(themeTimer);
     themeTimer = window.setTimeout(() => root.classList.remove("theming"), 360);
+  }
+
+  function applyMode(mode) {
+    commitTheme(currentAccent(), mode);
+  }
+
+  function applyAccent(accent) {
+    commitTheme(accent, currentMode());
   }
 
   function placePalette() {
@@ -2419,7 +2571,9 @@ html.theming *::after {
     palettePanel.style.width = panelWidth + "px";
     palettePanel.style.left = left + "px";
     palettePanel.style.right = "auto";
-    palettePanel.style.top = Math.min(rect.bottom + 10, window.innerHeight - 140) + "px";
+    const panelHeight = palettePanel.offsetHeight || 0;
+    const top = Math.min(rect.bottom + 10, window.innerHeight - panelHeight - 12);
+    palettePanel.style.top = Math.max(8, top) + "px";
   }
 
   function openPalette() {
@@ -2501,6 +2655,7 @@ html.theming *::after {
 
   /* ------------------------------------------------------------------- wiring */
   function wireUi() {
+    buildAccentGrid();
     syncThemeUI();
 
     for (const tab of $$(".tab")) {
@@ -2555,6 +2710,11 @@ html.theming *::after {
 
     if (palettePanel) {
       palettePanel.addEventListener("click", (event) => {
+        const accentBtn = event.target.closest(".accent");
+        if (accentBtn) {
+          applyAccent(accentBtn.dataset.accent);
+          return;
+        }
         const modeBtn = event.target.closest(".mode button");
         if (modeBtn) applyMode(modeBtn.dataset.mode);
       });
