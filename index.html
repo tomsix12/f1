@@ -411,10 +411,10 @@ html[data-mode="dark"] .mode button[aria-pressed="true"] {
 .tile {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 9px;
-  padding: 12px 5px 10px;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 6px;
   border-radius: 16px;
   border: 1px solid var(--line);
   background: var(--surface-2);
@@ -429,22 +429,14 @@ html[data-mode="dark"] .mode button[aria-pressed="true"] {
 }
 .tile.is-active:hover { transform: none; }
 
-.tile__dots { display: flex; gap: 6px; }
+.tile__dots { display: flex; gap: 7px; }
 .tile__dots i {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   box-shadow: 0 0 0 1.5px var(--text-3);
 }
 .tile.is-active .tile__dots i { box-shadow: 0 0 0 2px var(--on-primary); }
-
-.tile__name {
-  font-size: 10.5px;
-  font-weight: 650;
-  line-height: 1.2;
-  letter-spacing: -0.005em;
-  text-align: center;
-}
 
 /* --------------------------------------------------------------------------
    Chips
@@ -1244,8 +1236,7 @@ html.theming *::after {
   .cd__num { font-size: 22px; }
   .countdown { gap: 6px; }
   .palette__grid { gap: 6px; }
-  .tile { padding: 10px 3px 8px; }
-  .tile__name { font-size: 10px; }
+  .tile { min-height: 42px; padding: 9px 3px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2365,9 +2356,8 @@ html.theming *::after {
     themeGrid.innerHTML = THEME_ORDER.map((key) => {
       const theme = THEMES[key];
       if (!theme) return "";
-      return '<button class="tile" type="button" data-theme-key="' + key + '" aria-pressed="false" aria-label="' + esc(theme.label) + ' colour theme">' +
+      return '<button class="tile" type="button" data-theme-key="' + key + '" aria-pressed="false" aria-label="' + esc(theme.label) + ' colour theme" title="' + esc(theme.label) + '">' +
         '<span class="tile__dots" aria-hidden="true">' + themeDots(key) + '</span>' +
-        '<span class="tile__name">' + esc(theme.label) + '</span>' +
       '</button>';
     }).join("");
     syncThemeUI();
