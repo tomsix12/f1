@@ -32,8 +32,8 @@ f1/
 - **Kalendář v jednom sloupci** – všechny závody seřazené podle čísla kola,
   rozdělené do sekcí „Upcoming races“ a „Completed races“ s počtem závodů
   v nadpisu. Závod z banneru se v seznamu už neopakuje. Karta ukazuje číslo
-  kola, vlajku země, název Grand Prix, štítek Sprint, datum závodu, okruh,
-  město a zemi, počet sessioní a chevron.
+  kola, vlajku země, název Grand Prix, štítek Sprint, datum závodu, počet
+  sessioní a chevron.
 - **Rozbalovací rozvrh** – kliknutím na kartu se plynule rozbalí session
   (Practice 1–3, Sprint Qualifying, Sprint, Qualifying, Race) s dnem, délkou
   a časem v `Europe/Prague`. Nejbližší session má odznak NEXT. U dokončených
@@ -55,7 +55,7 @@ f1/
   podle rychlosti scrollování. Vše respektuje `prefers-reduced-motion`.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na mobilu ho nahrazuje jen animované
-  kruhové tlačítko s tečkou; plný text zůstává v popisku pro čtečky.
+  kruhové tlačítko s ikonou refresh; plný text zůstává v popisku pro čtečky.
 - Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
 ## Úpravy
