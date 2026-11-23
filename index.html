@@ -46,9 +46,19 @@
 
   <header class="topbar">
     <div class="wrap topbar__inner">
-      <nav class="topnav" aria-label="Main navigation">
-        <a href="#next">Next race</a>
-        <a href="#calendar">Calendar</a>
+      <nav class="topnav" aria-label="Sections">
+        <a href="#calendar" class="topnav__link" data-view="calendar" aria-current="page">
+          <span class="topnav__long">Calendar</span>
+          <span class="topnav__short">Calendar</span>
+        </a>
+        <a href="#drivers" class="topnav__link" data-view="drivers">
+          <span class="topnav__long">Driver standings</span>
+          <span class="topnav__short">Drivers</span>
+        </a>
+        <a href="#teams" class="topnav__link" data-view="teams">
+          <span class="topnav__long">Team standings</span>
+          <span class="topnav__short">Teams</span>
+        </a>
       </nav>
 
       <div class="tools">
@@ -81,11 +91,6 @@
 
   <main id="main">
     <section class="hero wrap">
-      <p class="eyebrow">
-        <span class="eyebrow__dot" aria-hidden="true"></span>
-        <span id="season-label">Season 2026</span>
-      </p>
-
       <h1 class="hero__title">F<span class="hero__f1">1</span> <em>calendar</em></h1>
 
       <p class="hero__lead">
@@ -101,8 +106,24 @@
       </div>
     </section>
 
-    <section class="season wrap" id="calendar">
+    <section class="season wrap" id="calendar" data-view-panel="calendar">
       <div class="groups" id="race-groups"></div>
+    </section>
+
+    <section class="standings wrap" id="drivers" data-view-panel="drivers" hidden>
+      <div class="standings__head">
+        <h2 class="standings__title">Driver standings</h2>
+        <p class="standings__meta" id="drivers-meta"></p>
+      </div>
+      <ol class="standings__list" id="driver-standings"></ol>
+    </section>
+
+    <section class="standings wrap" id="teams" data-view-panel="teams" hidden>
+      <div class="standings__head">
+        <h2 class="standings__title">Team standings</h2>
+        <p class="standings__meta" id="teams-meta"></p>
+      </div>
+      <ol class="standings__list" id="team-standings"></ol>
     </section>
   </main>
 
@@ -175,6 +196,7 @@
   </noscript>
 
   <script src="js/zones.js"></script>
+  <script src="js/standings.js"></script>
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>

@@ -24,6 +24,13 @@
 
   --accent: #e10600;
   --accent-soft: rgba(225, 6, 0, 0.08);
+  --accent-warm: #ff7a00;
+  --accent-2: #1a73e8;
+  --accent-2-soft: rgba(26, 115, 232, 0.1);
+  --accent-3: #0f7b4f;
+  --gold: #c9920a;
+  --silver: #8a929b;
+  --bronze: #b5723f;
 
   --shadow-sm: 0 1px 2px rgba(60, 64, 67, 0.08), 0 2px 6px rgba(60, 64, 67, 0.05);
   --shadow-md: 0 1px 2px rgba(60, 64, 67, 0.06), 0 16px 40px -18px rgba(60, 64, 67, 0.28);
@@ -57,6 +64,13 @@ html[data-theme="dark"] {
 
   --accent: #ff5a52;
   --accent-soft: rgba(255, 90, 82, 0.14);
+  --accent-warm: #ffb35c;
+  --accent-2: #8ab4f8;
+  --accent-2-soft: rgba(138, 180, 248, 0.14);
+  --accent-3: #81c995;
+  --gold: #fdd663;
+  --silver: #c3c8cf;
+  --bronze: #e5a371;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px -18px rgba(0, 0, 0, 0.8);
@@ -208,21 +222,70 @@ h3 {
 .topnav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-2);
 }
 
-.topnav a {
-  padding: 8px 14px;
+.topnav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
   color: var(--text-2);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.topnav a:hover {
-  background: var(--surface-2);
+.topnav__link::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot, var(--text-3));
+  opacity: 0.45;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.topnav__link[data-view="calendar"] {
+  --dot: var(--accent);
+}
+
+.topnav__link[data-view="drivers"] {
+  --dot: var(--accent-2);
+}
+
+.topnav__link[data-view="teams"] {
+  --dot: var(--accent-3);
+}
+
+.topnav__link:hover {
   color: var(--text);
+}
+
+.topnav__link:hover::before {
+  opacity: 0.8;
+}
+
+.topnav__link.is-active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.topnav__link.is-active::before {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.topnav__short {
+  display: none;
 }
 
 .tools {
@@ -433,26 +496,8 @@ h3 {
   padding-bottom: 20px;
 }
 
-.eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-3);
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.eyebrow__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
 .hero__title {
-  margin-top: 18px;
+  margin-top: 4px;
   max-width: 880px;
   font-size: clamp(46px, 7.2vw, 92px);
   font-weight: 800;
@@ -462,7 +507,10 @@ h3 {
 
 .hero__title em {
   font-style: normal;
-  color: var(--accent);
+  background: linear-gradient(96deg, var(--accent) 12%, var(--accent-warm));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .hero__f1 {
@@ -781,9 +829,26 @@ h3 {
 }
 
 .group__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.group__title::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 0 4px var(--accent-2-soft);
+}
+
+.group--past .group__title::before {
+  background: var(--text-3);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--text-3) 14%, transparent);
 }
 
 .group__count {
@@ -1012,6 +1077,235 @@ h3 {
 }
 
 /* --------------------------------------------------------------------------
+   Championship standings
+   -------------------------------------------------------------------------- */
+
+.standings {
+  padding-top: 8px;
+  padding-bottom: 96px;
+}
+
+/* The standings tabs are focused views — no race banner above them. */
+body[data-view="drivers"] .hero,
+body[data-view="teams"] .hero {
+  display: none;
+}
+
+body[data-view="drivers"] .standings,
+body[data-view="teams"] .standings {
+  padding-top: 34px;
+}
+
+.standings[hidden] {
+  display: none;
+}
+
+.standings__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-bottom: 18px;
+}
+
+.standings__title {
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  background: linear-gradient(94deg, var(--text) 30%, var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.standings__meta {
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.standings__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.standing {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px 5px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  padding: 10px 16px 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  overflow: hidden;
+  isolation: isolate;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.standing:hover {
+  border-color: var(--line-2);
+}
+
+.standing::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: var(--pct, 0%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--team) 18%, transparent),
+    color-mix(in srgb, var(--team) 5%, transparent)
+  );
+  pointer-events: none;
+}
+
+.standing__pos {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.standing__pos.is-p1 {
+  background: var(--gold);
+  color: #1d1500;
+}
+
+.standing__pos.is-p2 {
+  background: var(--silver);
+  color: #13181d;
+}
+
+.standing__pos.is-p3 {
+  background: var(--bronze);
+  color: #1c0f04;
+}
+
+.standing__edge {
+  width: 5px;
+  height: 28px;
+  border-radius: 3px;
+  background: var(--team, var(--text-3));
+}
+
+.standing__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.standing__name {
+  overflow: hidden;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.standing__code {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 5px;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  color: var(--text-3);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  vertical-align: 2px;
+}
+
+.standing__sub {
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: 11.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.standing__points {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.standing__points span {
+  margin-left: 5px;
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 620px) {
+  body[data-view="drivers"] .standings,
+  body[data-view="teams"] .standings {
+    padding-top: 18px;
+  }
+
+  .standings {
+    padding-bottom: 40px;
+  }
+
+  .standings__head {
+    margin-bottom: 14px;
+  }
+
+  .standings__title {
+    font-size: 22px;
+  }
+
+  .standings__meta {
+    font-size: 11.5px;
+  }
+
+  .standing {
+    grid-template-columns: 28px 4px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 9px 12px 9px 10px;
+  }
+
+  .standing__pos {
+    width: 27px;
+    height: 27px;
+    font-size: 11.5px;
+  }
+
+  .standing__edge {
+    height: 26px;
+  }
+
+  .standing__name {
+    font-size: 13.5px;
+  }
+
+  .standing__points {
+    font-size: 17px;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Footer
    -------------------------------------------------------------------------- */
 
@@ -1237,6 +1531,48 @@ body:has(dialog[open]) {
 }
 
 /* --------------------------------------------------------------------------
+   Theme switch
+   -------------------------------------------------------------------------- */
+
+html.theme-fade,
+html.theme-fade *,
+html.theme-fade *::before,
+html.theme-fade *::after {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.26s ease !important;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+  animation: theme-reveal 0.52s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 0%));
+  }
+  to {
+    clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 0%));
+  }
+}
+
+/* --------------------------------------------------------------------------
    Motion
    -------------------------------------------------------------------------- */
 
@@ -1283,14 +1619,40 @@ body:has(dialog[open]) {
 }
 
 @media (max-width: 760px) {
-  .topnav {
-    display: none;
+  .topbar__inner {
+    flex-wrap: wrap;
+    gap: 6px;
+    height: auto;
+    padding: 6px 0 7px;
   }
 
   .tools {
+    order: 1;
+    flex: 1 0 100%;
     margin-left: 0;
-    flex: 1;
     justify-content: space-between;
+  }
+
+  .topnav {
+    order: 2;
+    flex: 1 0 100%;
+    justify-content: space-between;
+  }
+
+  .topnav__link {
+    flex: 1;
+    justify-content: center;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 12.5px;
+  }
+
+  .topnav__long {
+    display: none;
+  }
+
+  .topnav__short {
+    display: inline;
   }
 
   .tz__panel {
@@ -1299,7 +1661,7 @@ body:has(dialog[open]) {
   }
 
   .hero {
-    padding-top: 40px;
+    padding-top: 26px;
     padding-bottom: 16px;
   }
 
@@ -1313,7 +1675,7 @@ body:has(dialog[open]) {
   }
 
   .next {
-    margin-top: 24px;
+    margin-top: 22px;
   }
 
   .next__gp {
@@ -1349,8 +1711,8 @@ body:has(dialog[open]) {
   }
 
   .topbar__inner {
-    gap: 12px;
-    height: 60px;
+    gap: 6px;
+    height: auto;
   }
 
   .tools {

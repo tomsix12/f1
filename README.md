@@ -13,9 +13,10 @@ statickým serverem.
 f1/
 ├─ index.html              – celá stránka
 ├─ css/style.css           – vzhled a oba motivy (tokeny v :root)
-├─ js/app.js               – logika: časová pásma, odpočet, rozvrh
+├─ js/app.js               – logika: časová pásma, odpočet, rozvrh, záložky
 ├─ js/zones.js             – mapa časových pásem na země (z IANA zone.tab)
 ├─ js/data.js              – snapshot sezóny 2026 pro okamžité vykreslení
+├─ js/standings.js         – snapshot bodování jezdců a týmů
 ├─ data/season-2026.json   – stejná data v čitelné podobě (reference)
 ├─ img/og.png              – náhled pro sociální sítě (1200×630)
 ├─ img/flags/*.svg         – vlajky okruhů
@@ -31,7 +32,14 @@ f1/
   volba se ukládá do `localStorage`. Seznam obsahuje jen názvy zemí (u zemí
   s více pásmy doplněné offsetem), nikoli města ani kontinenty.
 - **Světlý a tmavý motiv** – posuvný přepínač v hlavičce, volba se pamatuje
-  (výchozí stav podle systému).
+  (výchozí stav podle systému). Přepnutí má plynulý přechod – barevný kruh
+  se rozevírá z místa kliknutí (View Transitions API, fallback je prolínačka).
+  Motiv mění i akcenty: nadpisy, odrážky skupin, vlajky záložek, medailové
+  pozice a barevné pruhy týmů.
+- **Záložky v hlavičce** – *Calendar*, *Driver standings* a *Team standings*
+  jako přepínatelné pohledy s vlastní adresou (`#calendar`, `#drivers`,
+  `#teams`). Bodování je snapshot z Jolpica API (viz `js/standings.js`),
+  seřazený podle bodů, s pruhem délky odpovídající zisku bodů a barvou týmu.
 - **Anglické rozhraní** – veškerý viditelný text je v angličtině.
 - **Banner dalšího závodu** s živým odpočtem; kliknutím (nebo mezerníkem)
   se pod ním rozbalí celý rozvrh víkendu.
@@ -54,6 +62,10 @@ f1/
 - **Barvy, zaoblení, písmo** – `css/style.css`, blok `:root` (světlý motiv)
   a `html[data-theme="dark"]` (tmavý motiv).
 - **Chování** – `js/app.js` (formátování času, seskupení závodů, rozbalování).
+- **Bodování** – `js/standings.js` je snapshot z Jolpica API
+  (`/f1/2026/driverstandings.json` a `/f1/2026/constructorstandings.json`).
+  Po každém závodě je potřeba soubor ručně obnovit; stránka si ho sama
+  nestahuje.
 - **Data závodů** – ideálně přes skript, ne ručně:
 
 ```powershell

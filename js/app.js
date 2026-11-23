@@ -13,6 +13,7 @@
   const GCAL_IMPORT_URL = "https://calendar.google.com/calendar/u/0/r/settings/import";
 
   const ZONE_COUNTRIES = window.F1_ZONE_COUNTRIES || {};
+  const STANDINGS = window.F1_STANDINGS || null;
   const COUNTRY_EXCLUDE = new Set(["AQ", "BV", "GS", "HM", "IO", "TF", "UM"]);
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -50,8 +51,17 @@
       "skip": "Skip to content",
       "nav.next": "Next race",
       "nav.calendar": "Calendar",
-      "nav.main": "Main navigation",
+      "nav.drivers": "Driver standings",
+      "nav.teams": "Team standings",
+      "nav.driversShort": "Drivers",
+      "nav.teamsShort": "Teams",
+      "nav.main": "Sections",
       "settings.theme": "Theme",
+      "standings.meta": "After round {round} of {total}",
+      "standings.pts": "PTS",
+      "standings.win": "{n} win",
+      "standings.wins": "{n} wins",
+      "standings.unavailable": "Standings are not available right now.",
       "settings.light": "Light theme",
       "settings.dark": "Dark theme",
       "settings.language": "Language",
@@ -120,7 +130,8 @@
     tz: validZone(store.get(TZ_KEY) || browserZone()),
     now: Date.now(),
     expanded: new Set(),
-    bannerOpen: true
+    bannerOpen: true,
+    view: "calendar"
   };
 
   function t(key, vars) {
@@ -565,12 +576,12 @@
     }
     past.sort((a, b) => b.round - a.round);
 
-    const group = (title, list, action = "") => {
+    const group = (title, list, action = "", modifier = "") => {
       if (!list.length && !action) return "";
       const count = list.length ? `<span class="group__count">${list.length}</span>` : "";
       const actionMarkup = action ? `<div class="group__action">${action}</div>` : "";
       return `
-        <section class="group">
+        <section class="group${modifier ? ` group--${modifier}` : ""}">
           <div class="group__head">
             <h3 class="group__title">${esc(title)}</h3>
             ${count}
@@ -590,7 +601,110 @@
         <span>${esc(t("gcal.button"))}</span>
       </button>` : "";
 
-    host.innerHTML = group(t("group.upcoming"), upcoming, gcalButton) + group(t("group.past"), past);
+    host.innerHTML = group(t("group.upcoming"), upcoming, gcalButton, "upcoming") + group(t("group.past"), past, "", "past");
+  }
+
+  /* ------------------------------------------------------------------------
+     Championship standings
+     ------------------------------------------------------------------------ */
+
+  function teamInfo(id) {
+    return STANDINGS?.teams?.[id] || { name: id, color: "var(--text-3)" };
+  }
+
+  function winsLabel(wins) {
+    if (!wins) return "";
+    return t(wins === 1 ? "standings.win" : "standings.wins", { n: wins });
+  }
+
+  function standingRow({ pos, title, code, sub, points, team, share }) {
+    const pct = Math.max(2, Math.round(share * 100));
+    const medal = pos <= 3 ? ` is-p${pos}` : "";
+    return `
+      <li class="standing" style="--team:${esc(teamInfo(team).color)};--pct:${pct}%">
+        <span class="standing__pos${medal}">${pos}</span>
+        <span class="standing__edge" aria-hidden="true"></span>
+        <span class="standing__main">
+          <span class="standing__name">${esc(title)}${code ? `<span class="standing__code">${esc(code)}</span>` : ""}</span>
+          ${sub ? `<span class="standing__sub">${esc(sub)}</span>` : ""}
+        </span>
+        <span class="standing__points">${points}<span>${esc(t("standings.pts"))}</span></span>
+      </li>`;
+  }
+
+  function renderStandings() {
+    if (!STANDINGS) return;
+
+    const meta = t("standings.meta", {
+      round: STANDINGS.round,
+      total: season.meetings.length,
+      year: STANDINGS.season
+    });
+    const driversMeta = $("#drivers-meta");
+    const teamsMeta = $("#teams-meta");
+    if (driversMeta) driversMeta.textContent = meta;
+    if (teamsMeta) teamsMeta.textContent = meta;
+
+    const driverHost = $("#driver-standings");
+    if (driverHost) {
+      const leader = Math.max(1, STANDINGS.drivers[0]?.points || 1);
+      driverHost.innerHTML = STANDINGS.drivers.map((driver) => standingRow({
+        pos: driver.pos,
+        title: driver.name,
+        code: driver.code,
+        sub: [teamInfo(driver.team).name, winsLabel(driver.wins)].filter(Boolean).join(" · "),
+        points: driver.points,
+        team: driver.team,
+        share: driver.points / leader
+      })).join("");
+    }
+
+    const teamHost = $("#team-standings");
+    if (teamHost) {
+      const leader = Math.max(1, STANDINGS.constructors[0]?.points || 1);
+      teamHost.innerHTML = STANDINGS.constructors.map((entry) => standingRow({
+        pos: entry.pos,
+        title: teamInfo(entry.id).name,
+        code: "",
+        sub: winsLabel(entry.wins),
+        points: entry.points,
+        team: entry.id,
+        share: entry.points / leader
+      })).join("");
+    }
+  }
+
+  /* ------------------------------------------------------------------------
+     Views
+     ------------------------------------------------------------------------ */
+
+  const VIEWS = ["calendar", "drivers", "teams"];
+
+  function viewFromHash() {
+    const value = (location.hash || "").replace("#", "");
+    return VIEWS.includes(value) ? value : "calendar";
+  }
+
+  function showView(view, options = {}) {
+    const next = VIEWS.includes(view) ? view : "calendar";
+    const changed = state.view !== next;
+    state.view = next;
+    document.body.dataset.view = next;
+
+    for (const panel of $$("[data-view-panel]")) {
+      panel.hidden = panel.dataset.viewPanel !== next;
+    }
+    for (const link of $$(".topnav__link[data-view]")) {
+      const active = link.dataset.view === next;
+      link.classList.toggle("is-active", active);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    }
+
+    if (changed && options.scroll) {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    }
   }
 
   function updateCountdown(target) {
@@ -622,6 +736,7 @@
     renderBanner();
     renderBannerSchedule();
     renderCalendar();
+    renderStandings();
     renderSync();
     renderFooter();
     lastKey = snapshot().key;
@@ -658,17 +773,73 @@
     document.title = t("meta.title");
     $('meta[name="description"]')?.setAttribute("content", t("meta.desc"));
 
-    const seasonLabel = $("#season-label");
-    if (seasonLabel) seasonLabel.textContent = t("hero.eyebrow", { year: season.year });
-
     $(".topnav")?.setAttribute("aria-label", t("nav.main"));
+
+    const navLabels = [
+      ["calendar", "nav.calendar", "nav.calendar"],
+      ["drivers", "nav.drivers", "nav.driversShort"],
+      ["teams", "nav.teams", "nav.teamsShort"]
+    ];
+    for (const [view, longKey, shortKey] of navLabels) {
+      const link = $(`[data-view="${view}"]`);
+      const long = link?.querySelector(".topnav__long");
+      const short = link?.querySelector(".topnav__short");
+      if (long) long.textContent = t(longKey);
+      if (short) short.textContent = t(shortKey);
+    }
+    const driversTitle = $("#drivers .standings__title");
+    const teamsTitle = $("#teams .standings__title");
+    if (driversTitle) driversTitle.textContent = t("nav.drivers");
+    if (teamsTitle) teamsTitle.textContent = t("nav.teams");
   }
 
-  function setTheme(theme) {
-    state.theme = theme === "dark" ? "dark" : "light";
-    document.documentElement.dataset.theme = state.theme;
-    store.set(THEME_KEY, state.theme);
-    syncSettingsUi();
+  function setTheme(theme, origin) {
+    const next = theme === "dark" ? "dark" : "light";
+    const root = document.documentElement;
+
+    const apply = () => {
+      state.theme = next;
+      root.dataset.theme = next;
+      store.set(THEME_KEY, next);
+      syncSettingsUi();
+    };
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!document.startViewTransition || reduce) {
+      root.classList.add("theme-fade");
+      apply();
+      window.setTimeout(() => root.classList.remove("theme-fade"), 340);
+      return;
+    }
+
+    let done = false;
+    const applyOnce = () => {
+      if (done) return;
+      done = true;
+      apply();
+    };
+
+    const x = origin && (origin.clientX || origin.clientY) ? origin.clientX : window.innerWidth - 44;
+    const y = origin && (origin.clientX || origin.clientY) ? origin.clientY : 36;
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    ) + 24;
+    root.style.setProperty("--theme-x", `${Math.round(x)}px`);
+    root.style.setProperty("--theme-y", `${Math.round(y)}px`);
+    root.style.setProperty("--theme-r", `${Math.round(radius)}px`);
+
+    try {
+      const transition = document.startViewTransition(applyOnce);
+      transition?.ready?.catch(() => {});
+      transition?.finished?.catch(() => {});
+      /* Safety net: throttled/background tabs can defer the transition callback. */
+      window.setTimeout(applyOnce, 420);
+    } catch {
+      root.classList.add("theme-fade");
+      applyOnce();
+      window.setTimeout(() => root.classList.remove("theme-fade"), 340);
+    }
   }
 
   /* ------------------------------------------------------------------------
@@ -1268,11 +1439,33 @@
 
     renderAll();
 
+    const initialView = viewFromHash();
+    showView(initialView);
+    /* A direct #calendar link would otherwise land halfway down the page. */
+    if (initialView === "calendar" && location.hash === "#calendar") {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch { /* file:// */ }
+      const toTop = () => window.scrollTo(0, 0);
+      toTop();
+      if (typeof requestAnimationFrame === "function") requestAnimationFrame(toTop);
+      window.addEventListener("load", toTop, { once: true });
+    }
+
     document.addEventListener("click", (event) => {
       if (!event.target.closest("#tz")) closeZonePanel();
 
+      const viewLink = event.target.closest(".topnav__link[data-view]");
+      if (viewLink) {
+        event.preventDefault();
+        const view = viewLink.dataset.view;
+        if (view !== state.view) {
+          try { history.pushState(null, "", `#${view}`); } catch { /* file:// */ }
+        }
+        showView(view, { scroll: true });
+        return;
+      }
+
       if (event.target.closest("#theme-toggle")) {
-        setTheme(state.theme === "dark" ? "light" : "dark");
+        setTheme(state.theme === "dark" ? "light" : "dark", event);
         return;
       }
 
@@ -1286,6 +1479,8 @@
         toggleBanner();
       }
     });
+
+    window.addEventListener("popstate", () => showView(viewFromHash()));
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
