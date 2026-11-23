@@ -1,8 +1,8 @@
 # F1 dashboard
 
 Jednosouborový přehled formule 1 – kalendář závodů, vítězové, bodování jezdců
-a konstruktérů, odpočet do dalšího závodu a devět barevných motivů ve stylu
-Google Material 3 Expressive. Veškerá data se tahají živě z
+a konstruktérů, odpočet do dalšího závodu a monochromatický motiv s jedním
+akcentem ve stylu Google Material 3 Expressive. Veškerá data se tahají živě z
 [Jolpica F1 API](https://api.jolpi.ca/ergast/f1/), takže se stránka sama
 aktualizuje. Rozhraní je pouze v angličtině.
 
@@ -26,12 +26,14 @@ f1/
   Načte se při otevření, obnovuje se každých 10 minut a znovu při návratu
   na kartu. Data se ukládají do `localStorage` i s časem poslední aktualizace.
 - **Odpočet do dalšího závodu** v časovém pásmu `Europe/Prague`, s jemnou
-  animací měnících se číslic. Závod se počítá jako dokončený, jakmile má
-  výsledky; do té doby karta ukazuje „Not raced yet“ a odpočet.
+  animací měnících se číslic. Banner je kompaktní a rozklikává se stejně jako
+  karty závodů – pod odpočtem se otevře celý rozvrh víkendu. Závod se počítá
+  jako dokončený, jakmile má výsledky; do té doby banner ukazuje „Lights out“.
 - **Kalendář v jednom sloupci** – všechny závody seřazené podle čísla kola,
   rozdělené do sekcí „Upcoming races“ a „Completed races“ s počtem závodů
-  v nadpisu. Karta ukazuje číslo kola, vlajku země, název Grand Prix, štítek
-  Sprint, datum závodu, okruh, město a zemi, počet sessioní a chevron.
+  v nadpisu. Závod z banneru se v seznamu už neopakuje. Karta ukazuje číslo
+  kola, vlajku země, název Grand Prix, štítek Sprint, datum závodu, okruh,
+  město a zemi, počet sessioní a chevron.
 - **Rozbalovací rozvrh** – kliknutím na kartu se plynule rozbalí session
   (Practice 1–3, Sprint Qualifying, Sprint, Qualifying, Race) s dnem, délkou
   a časem v `Europe/Prague`. Nejbližší session má odznak NEXT. U dokončených
@@ -40,13 +42,17 @@ f1/
 - **Vlajky zemí** – kreslené inline SVG přímo v `index.html`, takže zůstává
   jediným souborem. Neznámá země dostane neutrální glóbus.
 - **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
-  kruhy pro první tři, pruhem v barvě týmu a podílovým barevným přechodem.
-- **Devět motivů** – Intense, Tonal spot, Content, Fidelity, Vibrant,
-  Expressive, Fruit salad, Rainbow a Neutral, každý ve světlé i tmavé
-  variantě. Dlaždice ukazují přesně dvě tečky (primární barva + její
-  kontejner), volba se pamatuje a přepnutí barev je plynulé.
+  kruhy pro první tři, pruhem v barvě týmu a podílovým neutrálním pruhem.
+- **Monochromatický motiv** – grafitové plochy, černý text a jedna akcentní
+  barva ve světlé i tmavé variantě. Přepínač Light / Dark je segmentovaný
+  seznam; volba se pamatuje a přechod barev je plynulý. Tlačítko vzhledu sedí
+  vedle navigace (na mobilu nad kalendářem).
+- **M3 Expressive navigace** – segmentovaný seznam s ikonami, zaškrtnutím
+  aktivní položky a posuvným indikátorem.
 - **Pohyb** – jemné najíždění karet, rozbalování rozvrhu, rozostření obsahu
   podle rychlosti scrollování. Vše respektuje `prefers-reduced-motion`.
+- **Mobil** – vycentrované nadpisy a banner, stavový text nahrazuje jen
+  animované tlačítko s tečkou; celý text zůstává v popisku pro čtečky.
 - Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
 ## Úpravy
@@ -65,8 +71,8 @@ Vše důležité je v komentáři na začátku `index.html` a v hlavním `<scrip
   `constructorId`. Neznámý tým dostane neutrální šedou a upozornění v konzoli.
 - **Názvy týmů** – `TEAM_NAMES` přepisuje názvy z API (např. „RB F1 Team“ →
   „Racing Bulls“).
-- **Motivy** – objekt `THEMES` v samostatném `<script>` v hlavičce; každý motiv
-  má paletu `light` a `dark`.
+- **Motiv** – objekt `THEMES` v samostatném `<script>` v hlavičce; jediná
+  paleta `graphite` má variantu `light` a `dark` (jedna akcentní barva).
 - **Záložní snapshot** – konstanta `F1_BOOTSTRAP` (hledej `window.F1_BOOTSTRAP`),
   používaná jen když API i `data.json` selžou (např. při otevření přes `file://`).
 
@@ -74,7 +80,8 @@ Vše důležité je v komentáři na začátku `index.html` a v hlavním `<scrip
 
 Pořadí zdrojů je: paměť → `localStorage` → `data.json` → inline snapshot.
 Při výpadku API zůstane na obrazovce poslední známý stav a v hlavičce se
-zobrazí „Offline · …“ s časem poslední aktualizace.
+zobrazí „Offline · …“ s časem poslední aktualizace (na mobilu jen animované
+tlačítko, plný text je v jeho popisku pro čtečky).
 
 ## Nasazení
 
