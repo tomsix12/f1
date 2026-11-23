@@ -1,8 +1,10 @@
-# F1 race reminder
+# F1 dashboard
 
-Kompletní kalendář formule 1 pro rok 2026 převedený do časového pásma
-návštěvníka, s odpočtem do další session a rozbalovacím rozvrhem víkendu.
-Rozhraní je pouze v angličtině.
+Jednosouborový přehled formule 1 – kalendář závodů, vítězové, bodování jezdců
+a konstruktérů, odpočet do dalšího závodu a devět barevných motivů ve stylu
+Google Material 3 Expressive. Veškerá data se tahají živě z
+[Jolpica F1 API](https://api.jolpi.ca/ergast/f1/), takže se stránka sama
+aktualizuje. Rozhraní je pouze v angličtině.
 
 ## Otevření
 
@@ -11,81 +13,64 @@ statickým serverem.
 
 ```
 f1/
-├─ index.html              – celá stránka
-├─ css/style.css           – vzhled a oba motivy (tokeny v :root)
-├─ js/app.js               – logika: časová pásma, odpočet, rozvrh, záložky
-├─ js/zones.js             – mapa časových pásem na země (z IANA zone.tab)
-├─ js/data.js              – snapshot sezóny 2026 pro okamžité vykreslení
-├─ js/standings.js         – snapshot bodování jezdců a týmů
-├─ data/season-2026.json   – stejná data v čitelné podobě (reference)
-├─ img/og.png              – náhled pro sociální sítě (1200×630)
-├─ img/flags/*.svg         – vlajky okruhů
-├─ tools/build-data.ps1    – obnovení dat z API
+├─ index.html     – celá stránka (HTML + CSS + JS + záložní snapshot)
+├─ data.json      – záložní data pro první načtení bez API
+├─ img/og.png     – náhled pro sociální sítě (1200×630)
 ├─ robots.txt
 └─ sitemap.xml
 ```
 
 ## Co stránka umí
 
-- **Živý odpočet** do další session (nebo do konce právě běžící).
-- **Automatická detekce časového pásma** + vyhledávací výběr země v hlavičce;
-  volba se ukládá do `localStorage`. Seznam obsahuje jen názvy zemí (u zemí
-  s více pásmy doplněné offsetem), nikoli města ani kontinenty.
-- **Světlý a tmavý motiv** – posuvný přepínač v hlavičce, volba se pamatuje
-  (výchozí stav podle systému). Přepnutí má plynulý přechod – barevný kruh
-  se rozevírá z místa kliknutí (View Transitions API, fallback je prolínačka).
-  Motiv mění i akcenty: nadpisy, odrážky skupin, vlajky záložek, medailové
-  pozice a barevné pruhy týmů.
-- **Záložky v hlavičce** – *Calendar*, *Driver standings* a *Team standings*
-  jako přepínatelné pohledy s vlastní adresou (`#calendar`, `#drivers`,
-  `#teams`). Bodování je snapshot z Jolpica API (viz `js/standings.js`),
-  seřazený podle bodů, s pruhem délky odpovídající zisku bodů a barvou týmu.
-- **Anglické rozhraní** – veškerý viditelný text je v angličtině.
-- **Banner dalšího závodu** s živým odpočtem; kliknutím (nebo mezerníkem)
-  se pod ním rozbalí celý rozvrh víkendu.
-- **Přidání všech zbývajících závodů do Google Calendar** – tlačítko nad
-  seznamem nadcházejících závodů stáhne jeden `.ics` soubor se všemi
-  zbývajícími session (včetně upozornění 30 minut před startem) a otevře
-  import v Google Calendar; soubor jde importovat i do Apple Calendar
-  nebo Outlooku.
-- **Kalendář 2026** hned pod bannerem ve dvou skupinách – *Upcoming races*
-  nahoře, *Completed races* dole, v odstínech šedi (barevné zůstávají jen
-  vlajky). Závod z banneru se v seznamu neduplikuje; kliknutím na ostatní
-  závody se pod nimi rozbalí rozvrh (FP1–Race, včetně sprintových formátů).
-- **Živá data z OpenF1** při načtení (cache 6 h), se snapshotem jako fallback.
-- Bez frameworků, bez buildu, bez analytiky. Responzivní, respektuje
-  `prefers-reduced-motion`.
+- **Živá data** – kalendář, vítězové, bodování jezdců i týmů z Jolpica F1.
+  Načte se při otevření, obnovuje se každých 10 minut a znovu při návratu
+  na kartu. Data se ukládají do `localStorage` i s časem poslední aktualizace.
+- **Odpočet do dalšího závodu** v časovém pásmu `Europe/Prague`, s jemnou
+  animací měnících se číslic. Závod se počítá jako dokončený, jakmile má
+  výsledky; do té doby karta ukazuje „Not raced yet“ a odpočet.
+- **Kalendář po víkendech** – přepínač týdnů a karty závodů s názvem GP,
+  okruhem, datem a časem. U dokončených závodů je vítěz, tým a čas / stav.
+- **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
+  kruhy pro první tři, pruhem v barvě týmu a podílovým barevným přechodem.
+- **Devět motivů** – Intense, Tonal spot, Content, Fidelity, Vibrant,
+  Expressive, Fruit salad, Rainbow a Neutral, každý ve světlé i tmavé
+  variantě. Volba se pamatuje, přepnutí barev je plynulé.
+- **Pohyb** – jemné najíždění karet, přechod mezi týdny, rozostření obsahu
+  podle rychlosti scrollování. Vše respektuje `prefers-reduced-motion`.
+- Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
 ## Úpravy
 
-- **Texty** – řetězce v `js/app.js` (objekt `I18N.en`), markup v `index.html`.
-- **Barvy, zaoblení, písmo** – `css/style.css`, blok `:root` (světlý motiv)
-  a `html[data-theme="dark"]` (tmavý motiv).
-- **Chování** – `js/app.js` (formátování času, seskupení závodů, rozbalování).
-- **Bodování** – `js/standings.js` je snapshot z Jolpica API
-  (`/f1/2026/driverstandings.json` a `/f1/2026/constructorstandings.json`).
-  Po každém závodě je potřeba soubor ručně obnovit; stránka si ho sama
-  nestahuje.
-- **Data závodů** – ideálně přes skript, ne ručně:
+Vše důležité je v komentáři na začátku `index.html` a v hlavním `<script>`
+(uprostřed souboru):
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build-data.ps1
-```
+- **API** – konstanta `API_BASE` (výchozí `https://api.jolpi.ca/ergast/f1`).
+- **Interval obnovy** – `REFRESH_MS` (výchozích 10 minut).
+- **Barvy týmů** – `TEAM_COLORS` s variantami `dark` a `light` pro každý
+  `constructorId`. Neznámý tým dostane neutrální šedou a upozornění v konzoli.
+- **Názvy týmů** – `TEAM_NAMES` přepisuje názvy z API (např. „RB F1 Team“ →
+  „Racing Bulls“).
+- **Motivy** – objekt `THEMES` v samostatném `<script>` v hlavičce; každý motiv
+  má paletu `light` a `dark`.
+- **Záložní snapshot** – konstanta `F1_BOOTSTRAP` (hledej `window.F1_BOOTSTRAP`),
+  používaná jen když API i `data.json` selžou (např. při otevření přes `file://`).
 
-Skript stáhne termíny z [OpenF1](https://openf1.org) a metadat ze
-[Jolpica F1](https://api.jolpi.ca), přepíše `js/data.js` i
-`data/season-2026.json`. Snapshot v repozitáři je z **21. 11. 2026**.
+### Když API neodpovídá
+
+Pořadí zdrojů je: paměť → `localStorage` → `data.json` → inline snapshot.
+Při výpadku API zůstane na obrazovce poslední známý stav a v hlavičce se
+zobrazí „Offline · …“ s časem poslední aktualizace.
 
 ## Nasazení
 
-Je to čistě statický web — stačí nahrát obsah tohoto repozitáře na
-Cloudflare Pages, Netlify, Vercel nebo GitHub Pages. Žádný build krok.
-Pro vlastní doménu `tomsix.xyz` nastav odpovídající DNS záznamy u poskytovatele.
+Čistě statický web – nahraj obsah repozitáře na Cloudflare Pages, Netlify,
+Vercel nebo GitHub Pages. Žádný build krok. Pro doménu `tomsix.xyz` nastav
+odpovídající DNS záznamy.
 
 ## Poznámky
 
 - Neoficiální fanouškový projekt, není spojený s Formula 1, FIA ani týmy.
-- Časy session pocházejí z OpenF1, závodní metadata z Jolpica. Vždy je dobré
-  zkontrolovat oficiální harmonogram.
-- Fonty: Inter + Plus Jakarta Sans (Google Fonts), s fallbackem na systémová
-  písma.
+- Časy jsou převáděné do `Europe/Prague`; oficiální harmonogram je vždy
+  dobré zkontrolovat.
+- `data.json` i inline snapshot jsou z **23. 11. 2026** (po 21. závodě sezóny
+  2026). Slouží jen jako záloha pro první načtení; živá data mají přednost.

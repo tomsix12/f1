@@ -1,203 +1,3173 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="tonal-spot" data-mode="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>F1 reminders · every session in your time — tomsix.xyz</title>
-  <meta name="description" content="The full 2026 Formula 1 calendar with practice, qualifying, sprint and race times converted to your timezone. One-click calendar reminders for every session.">
-  <meta name="theme-color" content="#f7f8fa">
-  <link rel="canonical" href="https://tomsix.xyz/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1 · Schedule, results &amp; standings</title>
+<meta name="description" content="Live Formula 1 schedule, race winners and championship standings, converted to Europe/Prague time. Data from Jolpica F1.">
+<meta name="theme-color" content="#F7F9FE">
+<link rel="canonical" href="https://tomsix.xyz/">
 
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="tomsix.xyz">
-  <meta property="og:title" content="F1 Race Reminder — every session in your timezone">
-  <meta property="og:description" content="Practice, qualifying, sprints and races for the 2026 season, converted to your local time and ready for your calendar.">
-  <meta property="og:url" content="https://tomsix.xyz/">
-  <meta property="og:image" content="https://tomsix.xyz/img/og.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="tomsix.xyz — F1 race reminder. Every session, your time.">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://tomsix.xyz/img/og.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="tomsix.xyz">
+<meta property="og:title" content="F1 · Schedule, results and standings">
+<meta property="og:description" content="Every race weekend, winner and championship standing, kept up to date from the Jolpica F1 API.">
+<meta property="og:url" content="https://tomsix.xyz/">
+<meta property="og:image" content="https://tomsix.xyz/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e10600'/%3E%3Crect x='8' y='8' width='16' height='4' rx='1' fill='%23fff'/%3E%3Crect x='13' y='8' width='6' height='16' rx='1' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230B57D0'/%3E%3Crect x='8' y='8' width='16' height='4' rx='1' fill='%23fff'/%3E%3Crect x='13' y='8' width='6' height='16' rx='1' fill='%23fff'/%3E%3C/svg%3E">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+<!--
+  ============================================================================
+  F1 2026 — single-file dashboard (HTML + CSS + JS, no build step)
 
-  <script>
-    (function () {
-      try {
-        var theme = localStorage.getItem("tomsix.f1.theme");
-        if (theme !== "light" && theme !== "dark") {
-          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
-        document.documentElement.dataset.theme = theme;
-      } catch (error) {
-        document.documentElement.dataset.theme = "light";
+  QUICK EDITS
+  -----------
+  1. API           — API_BASE in the main <script> near the bottom.
+  2. Refresh rate  — REFRESH_MS (10 minutes by default) in the same block.
+  3. Team colours  — TEAM_COLORS (dark + light variants) in the main <script>.
+  4. Team names    — TEAM_NAMES (display overrides for API names).
+  5. Themes        — THEMES in the small <script> in <head>; 9 palettes,
+                     each with a light and a dark variant.
+  6. Storage keys  — CACHE_KEY, THEME_KEY, MODE_KEY.
+  7. Fallback      — data.json next to this file, plus the inline BOOTSTRAP
+                     snapshot (search for "F1_BOOTSTRAP").
+
+  Data flow: localStorage cache (with timestamp) → Jolpica F1 API every
+  REFRESH_MS and whenever the tab becomes visible again → data.json →
+  inline snapshot. Failed refreshes keep showing the last known data.
+  ============================================================================
+-->
+
+<style>
+/* --------------------------------------------------------------------------
+   Tokens (fallback = Tonal spot, light). JS applies the chosen palette.
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --primary: #0B57D0;
+  --on-primary: #FFFFFF;
+  --primary-container: #D3E3FD;
+  --on-primary-container: #041E49;
+  --secondary: #00639B;
+  --tertiary: #6B4E00;
+  --bg: #F7F9FE;
+  --surface: #FFFFFF;
+  --surface-2: #EDF2FA;
+  --surface-3: #E1E9F6;
+  --text: #111318;
+  --text-2: #44474F;
+  --text-3: #6F737B;
+  --line: #DDE3EC;
+  --ok: #1E8E3E;
+  --warn: #A05A00;
+  --bad: #B3261E;
+  --gold: #E9B949;
+  --silver: #C6CBD1;
+  --bronze: #D79A63;
+  --shadow-sm: 0 1px 2px rgba(17, 19, 24, 0.06), 0 8px 24px rgba(17, 19, 24, 0.05);
+  --shadow-lg: 0 18px 50px rgba(17, 19, 24, 0.18);
+  --r-xl: 34px;
+  --r-lg: 26px;
+  --r-md: 18px;
+  --wrap: 1120px;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html[data-mode="dark"] {
+  color-scheme: dark;
+  --ok: #81C995;
+  --warn: #FDD663;
+  --bad: #F28B82;
+  --gold: #F2CC60;
+  --silver: #C3C8CF;
+  --bronze: #E5A371;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Reset & base
+   -------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 42% at 12% -4%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 72%),
+    radial-gradient(48% 36% at 92% 2%, color-mix(in srgb, var(--tertiary) 10%, transparent), transparent 70%);
+}
+
+main { position: relative; z-index: 1; }
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
+img, svg { display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+ul, ol { list-style: none; }
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+::selection { background: var(--primary); color: var(--on-primary); }
+
+.wrap {
+  width: min(var(--wrap), 100% - 40px);
+  margin-inline: auto;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -60px;
+  left: 16px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 650;
+  transition: top 0.2s ease;
+}
+.skip-link:focus { top: 12px; }
+
+.noscript {
+  margin: 20px auto;
+  width: min(var(--wrap), 100% - 40px);
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-weight: 550;
+}
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-height: 66px;
+}
+
+@media (max-width: 1240px) {
+  .topbar__inner { padding-right: 62px; }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  flex: 0 0 auto;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  background: linear-gradient(140deg, var(--primary), color-mix(in srgb, var(--tertiary) 70%, var(--primary)));
+  color: var(--on-primary);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.brand__text strong { font-family: var(--font-display); font-size: 14.5px; font-weight: 800; letter-spacing: -0.02em; }
+.brand__text span { color: var(--text-3); font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.tab {
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tab:hover { color: var(--text); }
+
+.tab[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-mode="dark"] .tab[aria-selected="true"] {
+  background: var(--surface-3);
+}
+
+.topbar__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.status:hover { background: var(--surface-3); }
+
+.status__dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 18%, transparent);
+}
+
+.status[data-state="cache"] .status__dot,
+.status[data-state="sample"] .status__dot { background: var(--warn); box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 18%, transparent); }
+.status[data-state="offline"] .status__dot { background: var(--bad); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 18%, transparent); }
+.status[data-state="syncing"] .status__dot { background: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); animation: pulse 1.1s ease-in-out infinite; }
+
+.status svg { width: 13px; height: 13px; opacity: 0.7; }
+.status[data-state="syncing"] svg { opacity: 1; animation: spin 0.9s linear infinite; }
+
+@keyframes pulse { 0%, 100% { transform: scale(0.85); } 50% { transform: scale(1.15); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --------------------------------------------------------------------------
+   Floating appearance button + theme panel
+   -------------------------------------------------------------------------- */
+.fab {
+  position: fixed;
+  top: 13px;
+  right: 16px;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  border: 1px solid color-mix(in srgb, var(--primary) 26%, var(--line));
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.fab:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+.fab svg { width: 21px; height: 21px; }
+
+.palette {
+  position: fixed;
+  top: 66px;
+  right: 16px;
+  z-index: 71;
+  width: min(356px, calc(100vw - 32px));
+  max-height: min(620px, calc(100vh - 84px));
+  overflow: auto;
+  padding: 16px;
+  border-radius: 26px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  animation: paletteIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.palette[hidden] { display: none; }
+
+@keyframes paletteIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.palette__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mode {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.mode button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+.mode button svg { width: 14px; height: 14px; }
+.mode button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-mode="dark"] .mode button[aria-pressed="true"] {
+  background: var(--surface-3);
+  box-shadow: none;
+}
+
+.palette__label {
+  margin: 16px 2px 10px;
+  color: var(--text-3);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.palette__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 5px 10px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+}
+.tile:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--primary) 40%, var(--line)); }
+.tile.is-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+.tile.is-active:hover { transform: none; }
+
+.tile__dots { display: flex; gap: 4px; }
+.tile__dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+.tile.is-active .tile__dots i { box-shadow: 0 0 0 1.5px var(--on-primary); }
+
+.tile__name {
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  text-align: center;
+}
+
+.tile__check {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--on-primary);
+  color: var(--primary);
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 13px;
+  text-align: center;
+}
+.tile.is-active .tile__check { display: block; }
+
+/* --------------------------------------------------------------------------
+   Chips
+   -------------------------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.chip--accent { background: var(--primary-container); color: var(--on-primary-container); }
+.chip--live { background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary); }
+.chip--done { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+
+/* --------------------------------------------------------------------------
+   Hero / next race
+   -------------------------------------------------------------------------- */
+.hero {
+  position: relative;
+  padding: clamp(22px, 3.6vw, 40px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(80% 120% at 100% 0%, color-mix(in srgb, var(--tertiary) 12%, transparent), transparent 60%),
+    linear-gradient(140deg, color-mix(in srgb, var(--primary) 13%, var(--surface)), var(--surface) 58%);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.hero__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+.hero__round,
+.hero__season {
+  color: var(--text-3);
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__title {
+  margin-top: 16px;
+  max-width: 18ch;
+  font-size: clamp(42px, 7.6vw, 84px);
+  letter-spacing: -0.05em;
+  line-height: 0.94;
+  text-wrap: balance;
+}
+.hero__title em {
+  font-style: normal;
+  background: linear-gradient(96deg, var(--primary), var(--tertiary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero__meta {
+  margin-top: 14px;
+  max-width: 52ch;
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.hero__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.countdown {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(64px, 1fr));
+  gap: 9px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.cd {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 13px 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.cd__num {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 36px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.cd__num.is-tick { animation: tick 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+@keyframes tick {
+  0% { opacity: 0.35; transform: translateY(-6px); }
+  100% { opacity: 1; transform: none; }
+}
+
+.cd__label {
+  margin-top: 7px;
+  color: var(--text-3);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hero__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+}
+.hero__info-label {
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.hero__info strong {
+  font-family: var(--font-display);
+  font-size: clamp(17px, 2vw, 21px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.hero__info span:last-child { color: var(--text-3); font-size: 12px; }
+
+.hero__loading {
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 550;
+}
+
+.hero__pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px dashed color-mix(in srgb, var(--primary) 45%, var(--line));
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 550;
+}
+
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+.hero__stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.hero__stats span { color: var(--text-3); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.hero__stats strong { font-size: 15px; font-weight: 700; letter-spacing: -0.015em; }
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Sections & views
+   -------------------------------------------------------------------------- */
+.view { padding-top: clamp(22px, 3.6vw, 34px); }
+
+.section { margin-top: 44px; }
+#view-teams .section__head,
+#view-drivers .section__head { margin-bottom: 18px; }
+
+.section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 18px;
+  margin-bottom: 16px;
+}
+
+.section__title {
+  font-size: clamp(24px, 3vw, 32px);
+  letter-spacing: -0.04em;
+}
+
+.section__meta {
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+
+.view[hidden] { display: none !important; }
+.view.is-entering { animation: viewIn 0.34s cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Week picker & race cards
+   -------------------------------------------------------------------------- */
+.weekstrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  margin-inline: -2px;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  scrollbar-color: var(--line) transparent;
+}
+.weekstrip::-webkit-scrollbar { height: 6px; }
+.weekstrip::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+.weekstrip::-webkit-scrollbar-track { background: transparent; }
+
+.weekchip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px 9px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  scroll-snap-align: start;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+}
+.weekchip:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--line)); transform: translateY(-1px); }
+.weekchip[aria-selected="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  transform: none;
+}
+
+.weekchip__r {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.weekchip[aria-selected="true"] .weekchip__r {
+  background: color-mix(in srgb, var(--on-primary) 20%, transparent);
+  color: var(--on-primary);
+}
+
+.weekpanel {
+  margin-top: 6px;
+  animation: weekIn 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@keyframes weekIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.weekpanel__caption {
+  margin-bottom: 12px;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.race-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+}
+
+.race {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  animation: cardIn 0.44s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.race__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.race__round {
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.race__name {
+  margin-top: 8px;
+  font-size: 21px;
+  letter-spacing: -0.03em;
+}
+
+.race__circuit {
+  margin-top: 4px;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.race__when {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.race__when svg { width: 15px; height: 15px; color: var(--text-3); flex: 0 0 auto; }
+.race__when strong { font-weight: 650; }
+
+.race__winner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border-left: 4px solid var(--team, var(--primary));
+  background: var(--surface-2);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+.race__winner-label {
+  color: var(--text-3);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.race__winner strong { color: var(--text); font-weight: 700; }
+.race__winner em { font-style: normal; color: var(--text-3); }
+
+.race__pending {
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px dashed var(--line);
+  color: var(--text-3);
+  font-size: 12.5px;
+  font-weight: 550;
+}
+
+.race__cd {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  color: var(--primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.race__cd svg { width: 14px; height: 14px; }
+
+/* --------------------------------------------------------------------------
+   Standings
+   -------------------------------------------------------------------------- */
+.team-list, .driver-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.team-card {
+  --team: var(--team-dark, var(--text-3));
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 5px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 20px 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  overflow: hidden;
+  isolation: isolate;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.team-card:hover { border-color: color-mix(in srgb, var(--team) 45%, var(--line)); }
+html[data-mode="light"] .team-card { --team: var(--team-light, var(--text-3)); }
+
+.team-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: var(--pct, 4%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--team) 16%, transparent), transparent 92%);
+  pointer-events: none;
+}
+
+.team-card__pos,
+.driver__pos {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.is-p1 { background: var(--gold); color: #241A00; }
+.is-p2 { background: var(--silver); color: #16191C; }
+.is-p3 { background: var(--bronze); color: #241205; }
+
+.team-card__edge {
+  width: 5px;
+  height: 30px;
+  border-radius: 4px;
+  background: var(--team);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--team) 25%, transparent);
+}
+
+.team-card__main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.team-card__name {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.team-card__sub { color: var(--text-3); font-size: 11.5px; }
+
+.team-card__pts {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.team-card__pts span {
+  margin-left: 5px;
+  color: var(--text-3);
+  font-family: var(--font);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.driver {
+  --team: var(--team-dark, var(--text-3));
+  display: grid;
+  grid-template-columns: 32px 4px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 16px 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  transition: border-color 0.2s ease;
+}
+.driver:hover { border-color: color-mix(in srgb, var(--team) 40%, var(--line)); }
+html[data-mode="light"] .driver { --team: var(--team-light, var(--text-3)); }
+
+.driver__pos { width: 28px; height: 28px; font-size: 11px; }
+
+.driver__edge { width: 4px; height: 24px; border-radius: 3px; background: var(--team); }
+
+.driver__main { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+
+.driver__name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.driver__name span:first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.driver__code {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.driver__sub {
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.driver__pts {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.driver__pts span { margin-left: 4px; color: var(--text-3); font-family: var(--font); font-size: 8.5px; font-weight: 700; letter-spacing: 0.1em; }
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+.foot {
+  margin-top: 60px;
+  padding: 22px 0 46px;
+  border-top: 1px solid var(--line);
+}
+.foot__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  color: var(--text-3);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.foot a { color: var(--text-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; }
+.foot a:hover { color: var(--primary); text-decoration-color: currentColor; }
+.foot__note { max-width: 70ch; }
+.foot__meta { font-variant-numeric: tabular-nums; text-align: right; }
+
+/* --------------------------------------------------------------------------
+   Theme switch animation & motion
+   -------------------------------------------------------------------------- */
+html.theming,
+html.theming *,
+html.theming *::before,
+html.theming *::after {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease,
+    box-shadow 0.3s ease !important;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  .topbar__inner {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-block: 9px;
+  }
+  .palette { top: 102px; }
+  .brand { order: 1; }
+  .topbar__right { order: 2; margin-left: auto; }
+  .tabs { order: 3; flex: 1 0 100%; }
+  .tab { flex: 1; text-align: center; }
+  .hero__body { flex-direction: column; align-items: stretch; }
+  .hero__info { text-align: left; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .hero__info-label { flex: 0 0 auto; }
+  .hero__info span:last-child { flex: 1 0 100%; }
+}
+
+@media (max-width: 620px) {
+  .wrap { width: min(var(--wrap), 100% - 28px); }
+  .fab { top: 10px; right: 12px; width: 42px; height: 42px; border-radius: 14px; }
+  .palette { top: 102px; right: 12px; width: min(340px, calc(100vw - 24px)); padding: 14px; }
+  .topbar__inner { padding-right: 54px; }
+  .brand__mark { width: 34px; height: 34px; border-radius: 11px; font-size: 13.5px; }
+  .brand__text span { display: none; }
+  .hero { border-radius: 28px; }
+  .hero__title { font-size: clamp(38px, 12vw, 56px); max-width: 100%; }
+  .hero__meta { font-size: 14px; }
+  .hero__body { margin-top: 22px; gap: 18px; }
+  .countdown { gap: 7px; }
+  .cd { padding: 11px 5px 9px; border-radius: 15px; }
+  .cd__num { font-size: clamp(24px, 8vw, 30px); }
+  .cd__label { font-size: 8.5px; }
+  .section { margin-top: 32px; }
+  .race { padding: 18px; border-radius: 22px; }
+  .race__name { font-size: 19px; }
+  .team-card { grid-template-columns: 34px 5px minmax(0, 1fr) auto; gap: 11px; padding: 11px 14px 11px 12px; }
+  .team-card__pos { width: 32px; height: 32px; font-size: 11.5px; }
+  .team-card__pts { font-size: 19px; }
+  .team-card__name { font-size: 14px; }
+  .driver { grid-template-columns: 28px 4px minmax(0, 1fr) auto; gap: 10px; padding: 8px 12px 8px 10px; }
+  .driver__name { font-size: 13.5px; }
+  .driver__pts { font-size: 15px; }
+  .foot { padding-bottom: 30px; }
+  .foot__inner { justify-content: flex-start; }
+  .foot__meta { text-align: left; }
+}
+
+@media (max-width: 400px) {
+  .cd__num { font-size: 22px; }
+  .countdown { gap: 6px; }
+  .palette__grid { gap: 6px; }
+  .tile { padding: 10px 3px 8px; }
+  .tile__name { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Theme palettes — 9 Google Material 3 "expressive" colour schemes.
+   Each theme has a light and a dark palette. The palette is applied as CSS
+   custom properties on <html>; everything on the page uses those variables.
+   --------------------------------------------------------------------------- */
+(function () {
+  "use strict";
+  var THEMES = {
+    "intense": {
+      label: "Intense",
+      light: { "primary": "#C8102E", "on-primary": "#FFFFFF", "primary-container": "#FFDAD6", "on-primary-container": "#410002", "secondary": "#8A1C9E", "tertiary": "#C2410C", "bg": "#FFF7F6", "surface": "#FFFFFF", "surface-2": "#FDECEA", "surface-3": "#F9DCD9", "text": "#1B1110", "text-2": "#55413F", "text-3": "#7C6B69", "line": "#F0D9D6" },
+      dark: { "primary": "#FFB3AD", "on-primary": "#68000B", "primary-container": "#93000F", "on-primary-container": "#FFDAD6", "secondary": "#E7B4F0", "tertiary": "#FFB68F", "bg": "#140F0F", "surface": "#1D1717", "surface-2": "#271E1E", "surface-3": "#332726", "text": "#EFE3E1", "text-2": "#D4BFBC", "text-3": "#A08A87", "line": "#382B2A" }
+    },
+    "tonal-spot": {
+      label: "Tonal spot",
+      light: { "primary": "#0B57D0", "on-primary": "#FFFFFF", "primary-container": "#D3E3FD", "on-primary-container": "#041E49", "secondary": "#00639B", "tertiary": "#6B4E00", "bg": "#F7F9FE", "surface": "#FFFFFF", "surface-2": "#EDF2FA", "surface-3": "#E1E9F6", "text": "#111318", "text-2": "#44474F", "text-3": "#6F737B", "line": "#DDE3EC" },
+      dark: { "primary": "#A8C7FA", "on-primary": "#062E6F", "primary-container": "#0842A0", "on-primary-container": "#D3E3FD", "secondary": "#7FC8F8", "tertiary": "#E0C36B", "bg": "#0E1116", "surface": "#171A20", "surface-2": "#1F232B", "surface-3": "#292E37", "text": "#E3E6EA", "text-2": "#C2C7CF", "text-3": "#8F959E", "line": "#2C323C" }
+    },
+    "content": {
+      label: "Content",
+      light: { "primary": "#1E6C4A", "on-primary": "#FFFFFF", "primary-container": "#BDF0D0", "on-primary-container": "#00210F", "secondary": "#46664F", "tertiary": "#7C5635", "bg": "#F6FBF6", "surface": "#FFFFFF", "surface-2": "#EAF4EB", "surface-3": "#DCECDE", "text": "#0F1511", "text-2": "#415047", "text-3": "#637369", "line": "#D9E7DB" },
+      dark: { "primary": "#9CD6AE", "on-primary": "#00391F", "primary-container": "#00522F", "on-primary-container": "#BDF0D0", "secondary": "#AFCBB4", "tertiary": "#E0BE96", "bg": "#0D1210", "surface": "#161C18", "surface-2": "#1E2721", "surface-3": "#28352D", "text": "#E0E8E2", "text-2": "#BCC9C0", "text-3": "#8A978F", "line": "#2B3830" }
+    },
+    "fidelity": {
+      label: "Fidelity",
+      light: { "primary": "#6750A4", "on-primary": "#FFFFFF", "primary-container": "#EADDFF", "on-primary-container": "#22005D", "secondary": "#625B71", "tertiary": "#7D5260", "bg": "#FAF8FF", "surface": "#FFFFFF", "surface-2": "#F2EEF9", "surface-3": "#E9E3F3", "text": "#1B1620", "text-2": "#4B4456", "text-3": "#726A7E", "line": "#E4DDF0" },
+      dark: { "primary": "#D0BCFF", "on-primary": "#381E72", "primary-container": "#4F378B", "on-primary-container": "#EADDFF", "secondary": "#CAC3D3", "tertiary": "#EFB8C8", "bg": "#131118", "surface": "#1C1A21", "surface-2": "#25222B", "surface-3": "#302C37", "text": "#E7E0EC", "text-2": "#CAC3D3", "text-3": "#948D9E", "line": "#332F3B" }
+    },
+    "vibrant": {
+      label: "Vibrant",
+      light: { "primary": "#B0006D", "on-primary": "#FFFFFF", "primary-container": "#FFD9E8", "on-primary-container": "#3E0024", "secondary": "#8A4F00", "tertiary": "#00639B", "bg": "#FFF7FA", "surface": "#FFFFFF", "surface-2": "#FCE9F1", "surface-3": "#F7DAE6", "text": "#1C1116", "text-2": "#57414B", "text-3": "#7E6873", "line": "#F0D8E2" },
+      dark: { "primary": "#FFB0CF", "on-primary": "#65003E", "primary-container": "#8E0057", "on-primary-container": "#FFD9E8", "secondary": "#FFB95C", "tertiary": "#7FC8F8", "bg": "#150F13", "surface": "#1E171B", "surface-2": "#2A1F25", "surface-3": "#362830", "text": "#EFDFE6", "text-2": "#D3BCC6", "text-3": "#A28B97", "line": "#3A2A33" }
+    },
+    "expressive": {
+      label: "Expressive",
+      light: { "primary": "#D93A00", "on-primary": "#FFFFFF", "primary-container": "#FFDBCB", "on-primary-container": "#3B0A00", "secondary": "#8E4585", "tertiary": "#00696E", "bg": "#FFF8F5", "surface": "#FFFFFF", "surface-2": "#FCEBE3", "surface-3": "#F8DCCF", "text": "#1D120D", "text-2": "#5A4034", "text-3": "#80685B", "line": "#F0D9CC" },
+      dark: { "primary": "#FFB59B", "on-primary": "#5C1900", "primary-container": "#852800", "on-primary-container": "#FFDBCB", "secondary": "#E4B7DC", "tertiary": "#7FD5DA", "bg": "#16110E", "surface": "#1F1915", "surface-2": "#2B211B", "surface-3": "#362A22", "text": "#F0E1D8", "text-2": "#D6C1B4", "text-3": "#A48C7E", "line": "#3B2D24" }
+    },
+    "fruit-salad": {
+      label: "Fruit salad",
+      light: { "primary": "#3F7D00", "on-primary": "#FFFFFF", "primary-container": "#C8F0A6", "on-primary-container": "#102000", "secondary": "#B0006D", "tertiary": "#F2A900", "bg": "#FAFDF4", "surface": "#FFFFFF", "surface-2": "#EDF6E0", "surface-3": "#DFEECB", "text": "#141A0D", "text-2": "#45502F", "text-3": "#6B7753", "line": "#DEEBCB" },
+      dark: { "primary": "#A9D97F", "on-primary": "#1F3B00", "primary-container": "#2F5D00", "on-primary-container": "#C8F0A6", "secondary": "#FFB0CF", "tertiary": "#FFD066", "bg": "#101409", "surface": "#181E11", "surface-2": "#212A17", "surface-3": "#2B361E", "text": "#E4ECD8", "text-2": "#C2CFB1", "text-3": "#909D7F", "line": "#303B23" }
+    },
+    "rainbow": {
+      label: "Rainbow",
+      light: { "primary": "#6A3DE8", "on-primary": "#FFFFFF", "primary-container": "#E6DEFF", "on-primary-container": "#23005C", "secondary": "#007F86", "tertiary": "#C2410C", "bg": "#F8F7FF", "surface": "#FFFFFF", "surface-2": "#EFEDFB", "surface-3": "#E3DFF7", "text": "#16131F", "text-2": "#4A4459", "text-3": "#716A82", "line": "#E1DCF4" },
+      dark: { "primary": "#C4B2FF", "on-primary": "#3A1D8F", "primary-container": "#4F2EC0", "on-primary-container": "#E6DEFF", "secondary": "#6FD6DA", "tertiary": "#FFB68F", "bg": "#111018", "surface": "#1A1822", "surface-2": "#24212E", "surface-3": "#2E2A3A", "text": "#E7E3F2", "text-2": "#C7C2D6", "text-3": "#928CA2", "line": "#322E3E" }
+    },
+    "neutral": {
+      label: "Neutral",
+      light: { "primary": "#4F5B62", "on-primary": "#FFFFFF", "primary-container": "#D7E3E8", "on-primary-container": "#0B1418", "secondary": "#5D6B66", "tertiary": "#6E5F50", "bg": "#F7F9FA", "surface": "#FFFFFF", "surface-2": "#EDF2F4", "surface-3": "#E2EAED", "text": "#14181A", "text-2": "#41494D", "text-3": "#6A7478", "line": "#DCE5E8" },
+      dark: { "primary": "#B7C9D1", "on-primary": "#21313A", "primary-container": "#37474F", "on-primary-container": "#D7E3E8", "secondary": "#C0C9C4", "tertiary": "#D6C3B0", "bg": "#0F1315", "surface": "#171C1F", "surface-2": "#1F2629", "surface-3": "#283134", "text": "#E2E8EA", "text-2": "#BFC9CC", "text-3": "#8B9699", "line": "#2B3437" }
+    }
+  };
+
+  window.F1_THEMES = THEMES;
+
+  window.F1_applyTheme = function (theme, mode) {
+    var key = Object.prototype.hasOwnProperty.call(THEMES, theme) ? theme : "tonal-spot";
+    var palette = THEMES[key][mode === "dark" ? "dark" : "light"];
+    var root = document.documentElement;
+    root.dataset.theme = key;
+    root.dataset.mode = mode === "dark" ? "dark" : "light";
+    for (var name in palette) {
+      if (Object.prototype.hasOwnProperty.call(palette, name)) {
+        root.style.setProperty("--" + name, palette[name]);
       }
-    })();
-  </script>
+    }
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", palette.bg);
+  };
+
+  var theme = "tonal-spot";
+  var mode = null;
+  try {
+    var savedTheme = localStorage.getItem("f1.theme");
+    var savedMode = localStorage.getItem("f1.mode");
+    if (Object.prototype.hasOwnProperty.call(THEMES, savedTheme)) theme = savedTheme;
+    if (savedMode === "dark" || savedMode === "light") mode = savedMode;
+  } catch (error) { /* storage may be unavailable */ }
+  if (!mode) {
+    mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  window.F1_applyTheme(theme, mode);
+})();
+</script>
 </head>
+
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
+<a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="topbar">
-    <div class="wrap topbar__inner">
-      <nav class="topnav" aria-label="Sections">
-        <a href="#calendar" class="topnav__link" data-view="calendar" aria-current="page">
-          <span class="topnav__long">Calendar</span>
-          <span class="topnav__short">Calendar</span>
-        </a>
-        <a href="#drivers" class="topnav__link" data-view="drivers">
-          <span class="topnav__long">Driver standings</span>
-          <span class="topnav__short">Drivers</span>
-        </a>
-        <a href="#teams" class="topnav__link" data-view="teams">
-          <span class="topnav__long">Team standings</span>
-          <span class="topnav__short">Teams</span>
-        </a>
-      </nav>
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <a class="brand" href="#schedule" data-nav="schedule">
+      <span class="brand__mark">F1</span>
+      <span class="brand__text">
+        <strong id="season-label">Season</strong>
+        <span>World Championship</span>
+      </span>
+    </a>
 
-      <div class="tools">
-        <div class="tz" id="tz">
-          <button class="tz__button" id="tz-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="tz-panel" aria-label="Timezone">
-            <svg class="tz__globe" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3Z"/></svg>
-            <span class="tz__value" id="tz-value">UTC</span>
-            <svg class="tz__chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" type="button" role="tab" id="tab-schedule" aria-controls="view-schedule" aria-selected="true" data-view="schedule">Schedule</button>
+      <button class="tab" type="button" role="tab" id="tab-teams" aria-controls="view-teams" aria-selected="false" data-view="teams">Teams</button>
+      <button class="tab" type="button" role="tab" id="tab-drivers" aria-controls="view-drivers" aria-selected="false" data-view="drivers">Drivers</button>
+    </nav>
 
-          <div class="tz__panel" id="tz-panel" hidden>
-            <div class="tz__search">
-              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
-              <input class="tz__input" id="tz-search" type="search" placeholder="Search country…" autocomplete="off" spellcheck="false" aria-label="Search country">
-            </div>
-            <ul class="tz__list" id="tz-list" role="listbox" aria-label="Timezone"></ul>
-            <p class="tz__empty" id="tz-empty" hidden>No matches</p>
-          </div>
-        </div>
-
-        <button class="theme-toggle" type="button" id="theme-toggle" role="switch" aria-checked="false" aria-label="Dark mode" title="Switch to dark mode">
-          <span class="theme-toggle__thumb" aria-hidden="true">
-            <svg class="theme-toggle__sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
-            <svg class="theme-toggle__moon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
-          </span>
-        </button>
-      </div>
+    <div class="topbar__right">
+      <button class="status" id="status" type="button" data-state="syncing" title="Refresh data">
+        <span class="status__dot" aria-hidden="true"></span>
+        <span id="status-text">Loading…</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg>
+      </button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main id="main">
-    <section class="hero wrap">
-      <h1 class="hero__title">F<span class="hero__f1">1</span> <em>calendar</em></h1>
+<button class="fab" id="palette-btn" type="button" aria-label="Appearance: change theme and colour mode" aria-expanded="false" aria-controls="palette">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 22 10.8C22 5.8 17.5 2 12 2Zm-5.5 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
+</button>
 
-      <p class="hero__lead">
-        Practice, qualifying, sprints and lights out — converted to your timezone,
-        with one-click calendar reminders.
-      </p>
-
-      <div class="banner" id="banner">
-        <div class="next" id="next" role="button" tabindex="0" aria-expanded="true" aria-controls="next-schedule" aria-labelledby="next-title">
-          <div class="next__loading">Loading the schedule…</div>
-        </div>
-        <div class="next-schedule" id="next-schedule"></div>
-      </div>
-    </section>
-
-    <section class="season wrap" id="calendar" data-view-panel="calendar">
-      <div class="groups" id="race-groups"></div>
-    </section>
-
-    <section class="standings wrap" id="drivers" data-view-panel="drivers" hidden>
-      <div class="standings__head">
-        <h2 class="standings__title">Driver standings</h2>
-        <p class="standings__meta" id="drivers-meta"></p>
-      </div>
-      <ol class="standings__list" id="driver-standings"></ol>
-    </section>
-
-    <section class="standings wrap" id="teams" data-view-panel="teams" hidden>
-      <div class="standings__head">
-        <h2 class="standings__title">Team standings</h2>
-        <p class="standings__meta" id="teams-meta"></p>
-      </div>
-      <ol class="standings__list" id="team-standings"></ol>
-    </section>
-  </main>
-
-  <footer class="foot">
-    <div class="wrap foot__inner">
-      <p class="foot__note">
-        Unofficial fan project. Not affiliated with Formula 1, the FIA or any team.
-        Times from <a href="https://openf1.org" target="_blank" rel="noopener">OpenF1</a>,
-        race data from <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica</a>.
-        Always double-check the official schedule.
-      </p>
-      <span class="foot__tz" id="footer-tz">—</span>
+<div class="palette" id="palette" role="dialog" aria-label="Appearance" hidden>
+  <div class="palette__head">
+    <div class="mode" role="group" aria-label="Colour mode">
+      <button type="button" data-mode="light" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        Light
+      </button>
+      <button type="button" data-mode="dark" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
+        Dark
+      </button>
     </div>
-  </footer>
+  </div>
+  <p class="palette__label" id="theme-label">Colour theme</p>
+  <div class="palette__grid" id="theme-grid" role="group" aria-labelledby="theme-label"></div>
+</div>
 
-  <dialog class="sheet" id="gcal-dialog" aria-labelledby="gcal-title">
-    <div class="sheet__card">
-      <div class="sheet__head">
-        <span class="sheet__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path fill="#4285f4" d="M21 5.1v10.8L15.9 21H4.8A1.8 1.8 0 0 1 3 19.2V5.1A1.8 1.8 0 0 1 4.8 3.3h14.4A1.8 1.8 0 0 1 21 5.1Z"/>
-            <path fill="#fff" d="M6.8 7.9h10.4v7.4H6.8z"/>
-            <path fill="#fbbc04" d="M15.9 21v-3.6a1.8 1.8 0 0 1 1.8-1.8H21Z"/>
-          </svg>
-        </span>
-        <div class="sheet__titles">
-          <h2 class="sheet__title" id="gcal-title">Add remaining races to Google Calendar</h2>
-          <p class="sheet__sub" id="gcal-summary">Every session still to come, in your timezone.</p>
+<main id="main">
+  <div id="content">
+    <section class="view wrap" id="view-schedule" role="tabpanel" aria-labelledby="tab-schedule" tabindex="-1">
+      <section class="hero" id="hero" aria-live="off">
+        <p class="hero__loading">Loading the next race…</p>
+      </section>
+
+      <section class="section">
+        <div class="section__head">
+          <h2 class="section__title">Race calendar</h2>
+          <p class="section__meta" id="schedule-meta">Loading…</p>
         </div>
-        <button class="sheet__close" type="button" data-action="gcal-close" aria-label="Close">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-        </button>
+        <div class="weekstrip" id="weekstrip" role="tablist" aria-label="Race weekends"></div>
+        <div class="weekpanel" id="weekpanel" role="tabpanel" tabindex="0" aria-label="Selected race weekend"></div>
+      </section>
+    </section>
+
+    <section class="view wrap" id="view-teams" role="tabpanel" aria-labelledby="tab-teams" hidden>
+      <div class="section__head">
+        <h2 class="section__title">Constructors' championship</h2>
+        <p class="section__meta" id="teams-meta"></p>
       </div>
+      <ol class="team-list" id="team-list" aria-label="Constructors' championship standings"></ol>
+    </section>
 
-      <ol class="sheet__steps">
-        <li class="sheet__step">
-          <span class="sheet__num" aria-hidden="true">1</span>
-          <div>
-            <strong>Download the calendar file</strong>
-            <span>One .ics file with every remaining session, already converted to your timezone.</span>
-          </div>
-        </li>
-        <li class="sheet__step">
-          <span class="sheet__num" aria-hidden="true">2</span>
-          <div>
-            <strong>Google Calendar opens</strong>
-            <span>Click “Import”, choose the downloaded file and select the calendar to add it to.</span>
-          </div>
-        </li>
-        <li class="sheet__step">
-          <span class="sheet__num" aria-hidden="true">3</span>
-          <div>
-            <strong>You are set</strong>
-            <span>Every remaining practice, qualifying, sprint and race appears with a 30-minute reminder.</span>
-          </div>
-        </li>
-      </ol>
-
-      <div class="sheet__actions">
-        <button class="btn btn--primary" type="button" data-action="gcal-export">Download &amp; open Google Calendar</button>
-        <button class="btn btn--ghost" type="button" data-action="gcal-download">Download only</button>
+    <section class="view wrap" id="view-drivers" role="tabpanel" aria-labelledby="tab-drivers" hidden>
+      <div class="section__head">
+        <h2 class="section__title">Drivers' championship</h2>
+        <p class="section__meta" id="drivers-meta"></p>
       </div>
+      <ol class="driver-list" id="driver-list" aria-label="Drivers' championship standings"></ol>
+    </section>
+  </div>
+</main>
 
-      <p class="sheet__hint">The .ics file also imports into Apple Calendar, Outlook and any other calendar app.</p>
-    </div>
-  </dialog>
+<footer class="foot">
+  <div class="wrap foot__inner">
+    <p class="foot__note">
+      Unofficial fan project. Not affiliated with Formula 1, the FIA or any team.
+      Live data from <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica F1</a>;
+      all race times in Europe/Prague. Always double-check the official schedule.
+    </p>
+    <p class="foot__meta" id="foot-meta">Loading…</p>
+  </div>
+</footer>
 
-  <noscript>
-    <div class="noscript">This page needs JavaScript to convert session times to your timezone.</div>
-  </noscript>
+<div class="sr-only" id="live" role="status" aria-live="polite"></div>
+<noscript><div class="noscript">This dashboard needs JavaScript to load live Formula 1 data.</div></noscript>
 
-  <script src="js/zones.js"></script>
-  <script src="js/standings.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+<script>window.F1_BOOTSTRAP = {
+    "season":  "2026",
+    "round":  21,
+    "fetchedAt":  "2026-11-23T19:49:38.2657377Z",
+    "races":  [
+                  {
+                      "round":  1,
+                      "name":  "Australian Grand Prix",
+                      "circuit":  "Albert Park Grand Prix Circuit",
+                      "city":  "Melbourne",
+                      "country":  "Australia",
+                      "date":  "2026-03-08",
+                      "time":  "04:00:00Z",
+                      "start":  "2026-03-08T04:00:00.0000000+00:00",
+                      "weekFrom":  "2026-03-06",
+                      "winner":  {
+                                     "driver":  "George Russell",
+                                     "code":  "RUS",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:23:06.801"
+                                 }
+                  },
+                  {
+                      "round":  2,
+                      "name":  "Chinese Grand Prix",
+                      "circuit":  "Shanghai International Circuit",
+                      "city":  "Shanghai",
+                      "country":  "China",
+                      "date":  "2026-03-15",
+                      "time":  "07:00:00Z",
+                      "start":  "2026-03-15T07:00:00.0000000+00:00",
+                      "weekFrom":  "2026-03-13",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:33:15.607"
+                                 }
+                  },
+                  {
+                      "round":  3,
+                      "name":  "Japanese Grand Prix",
+                      "circuit":  "Suzuka Circuit",
+                      "city":  "Suzuka",
+                      "country":  "Japan",
+                      "date":  "2026-03-29",
+                      "time":  "05:00:00Z",
+                      "start":  "2026-03-29T05:00:00.0000000+00:00",
+                      "weekFrom":  "2026-03-27",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:28:03.403"
+                                 }
+                  },
+                  {
+                      "round":  4,
+                      "name":  "Miami Grand Prix",
+                      "circuit":  "Miami International Autodrome",
+                      "city":  "Miami",
+                      "country":  "USA",
+                      "date":  "2026-05-03",
+                      "time":  "20:00:00Z",
+                      "start":  "2026-05-03T20:00:00.0000000+00:00",
+                      "weekFrom":  "2026-05-01",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:33:19.273"
+                                 }
+                  },
+                  {
+                      "round":  5,
+                      "name":  "Canadian Grand Prix",
+                      "circuit":  "Circuit Gilles Villeneuve",
+                      "city":  "Montreal",
+                      "country":  "Canada",
+                      "date":  "2026-05-24",
+                      "time":  "20:00:00Z",
+                      "start":  "2026-05-24T20:00:00.0000000+00:00",
+                      "weekFrom":  "2026-05-22",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:28:15.758"
+                                 }
+                  },
+                  {
+                      "round":  6,
+                      "name":  "Monaco Grand Prix",
+                      "circuit":  "Circuit de Monaco",
+                      "city":  "Monte Carlo",
+                      "country":  "Monaco",
+                      "date":  "2026-06-07",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-06-07T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-06-05",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "2:23:31.243"
+                                 }
+                  },
+                  {
+                      "round":  7,
+                      "name":  "Barcelona Grand Prix",
+                      "circuit":  "Circuit de Barcelona-Catalunya",
+                      "city":  "Barcelona",
+                      "country":  "Spain",
+                      "date":  "2026-06-14",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-06-14T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-06-12",
+                      "winner":  {
+                                     "driver":  "Lewis Hamilton",
+                                     "code":  "HAM",
+                                     "teamId":  "ferrari",
+                                     "team":  "Ferrari",
+                                     "result":  "1:32:28.105"
+                                 }
+                  },
+                  {
+                      "round":  8,
+                      "name":  "Austrian Grand Prix",
+                      "circuit":  "Red Bull Ring",
+                      "city":  "Spielberg",
+                      "country":  "Austria",
+                      "date":  "2026-06-28",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-06-28T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-06-26",
+                      "winner":  {
+                                     "driver":  "George Russell",
+                                     "code":  "RUS",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:26:37.979"
+                                 }
+                  },
+                  {
+                      "round":  9,
+                      "name":  "British Grand Prix",
+                      "circuit":  "Silverstone Circuit",
+                      "city":  "Silverstone",
+                      "country":  "UK",
+                      "date":  "2026-07-05",
+                      "time":  "14:00:00Z",
+                      "start":  "2026-07-05T14:00:00.0000000+00:00",
+                      "weekFrom":  "2026-07-03",
+                      "winner":  {
+                                     "driver":  "Charles Leclerc",
+                                     "code":  "LEC",
+                                     "teamId":  "ferrari",
+                                     "team":  "Ferrari",
+                                     "result":  "1:27:11.335"
+                                 }
+                  },
+                  {
+                      "round":  10,
+                      "name":  "Belgian Grand Prix",
+                      "circuit":  "Circuit de Spa-Francorchamps",
+                      "city":  "Spa",
+                      "country":  "Belgium",
+                      "date":  "2026-07-19",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-07-19T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-07-17",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:24:42.479"
+                                 }
+                  },
+                  {
+                      "round":  11,
+                      "name":  "Hungarian Grand Prix",
+                      "circuit":  "Hungaroring",
+                      "city":  "Budapest",
+                      "country":  "Hungary",
+                      "date":  "2026-07-26",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-07-26T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-07-24",
+                      "winner":  {
+                                     "driver":  "Lando Norris",
+                                     "code":  "NOR",
+                                     "teamId":  "mclaren",
+                                     "team":  "McLaren",
+                                     "result":  "1:39:56.180"
+                                 }
+                  },
+                  {
+                      "round":  12,
+                      "name":  "Dutch Grand Prix",
+                      "circuit":  "Circuit Park Zandvoort",
+                      "city":  "Zandvoort",
+                      "country":  "Netherlands",
+                      "date":  "2026-08-23",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-08-23T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-08-21",
+                      "winner":  {
+                                     "driver":  "Lando Norris",
+                                     "code":  "NOR",
+                                     "teamId":  "mclaren",
+                                     "team":  "McLaren",
+                                     "result":  "2:04:44.859"
+                                 }
+                  },
+                  {
+                      "round":  13,
+                      "name":  "Italian Grand Prix",
+                      "circuit":  "Autodromo Nazionale di Monza",
+                      "city":  "Monza",
+                      "country":  "Italy",
+                      "date":  "2026-09-06",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-09-06T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-09-04",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:51:15.281"
+                                 }
+                  },
+                  {
+                      "round":  14,
+                      "name":  "Spanish Grand Prix",
+                      "circuit":  "Madring",
+                      "city":  "Madrid",
+                      "country":  "Spain",
+                      "date":  "2026-09-13",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-09-13T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-09-11",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:34:23.754"
+                                 }
+                  },
+                  {
+                      "round":  15,
+                      "name":  "Azerbaijan Grand Prix",
+                      "circuit":  "Baku City Circuit",
+                      "city":  "Baku",
+                      "country":  "Azerbaijan",
+                      "date":  "2026-09-26",
+                      "time":  "11:00:00Z",
+                      "start":  "2026-09-26T11:00:00.0000000+00:00",
+                      "weekFrom":  "2026-09-24",
+                      "winner":  {
+                                     "driver":  "George Russell",
+                                     "code":  "RUS",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:38:02.143"
+                                 }
+                  },
+                  {
+                      "round":  16,
+                      "name":  "Bahrain Grand Prix in Malaysia",
+                      "circuit":  "Sepang International Circuit",
+                      "city":  "Kuala Lumpur",
+                      "country":  "Malaysia",
+                      "date":  "2026-10-04",
+                      "time":  "07:00:00Z",
+                      "start":  "2026-10-04T07:00:00.0000000+00:00",
+                      "weekFrom":  "2026-10-02",
+                      "winner":  {
+                                     "driver":  "Max Verstappen",
+                                     "code":  "VER",
+                                     "teamId":  "red_bull",
+                                     "team":  "Red Bull",
+                                     "result":  "1:47:14.808"
+                                 }
+                  },
+                  {
+                      "round":  17,
+                      "name":  "Singapore Grand Prix",
+                      "circuit":  "Marina Bay Street Circuit",
+                      "city":  "Marina Bay",
+                      "country":  "Singapore",
+                      "date":  "2026-10-11",
+                      "time":  "12:00:00Z",
+                      "start":  "2026-10-11T12:00:00.0000000+00:00",
+                      "weekFrom":  "2026-10-09",
+                      "winner":  {
+                                     "driver":  "Max Verstappen",
+                                     "code":  "VER",
+                                     "teamId":  "red_bull",
+                                     "team":  "Red Bull",
+                                     "result":  "1:42:00.785"
+                                 }
+                  },
+                  {
+                      "round":  18,
+                      "name":  "United States Grand Prix",
+                      "circuit":  "Circuit of the Americas",
+                      "city":  "Austin",
+                      "country":  "USA",
+                      "date":  "2026-10-25",
+                      "time":  "20:00:00Z",
+                      "start":  "2026-10-25T20:00:00.0000000+00:00",
+                      "weekFrom":  "2026-10-23",
+                      "winner":  {
+                                     "driver":  "Andrea Kimi Antonelli",
+                                     "code":  "ANT",
+                                     "teamId":  "mercedes",
+                                     "team":  "Mercedes",
+                                     "result":  "1:35:16.650"
+                                 }
+                  },
+                  {
+                      "round":  19,
+                      "name":  "Mexico City Grand Prix",
+                      "circuit":  "AutÃ³dromo Hermanos RodrÃ­guez",
+                      "city":  "Mexico City",
+                      "country":  "Mexico",
+                      "date":  "2026-11-01",
+                      "time":  "20:00:00Z",
+                      "start":  "2026-11-01T20:00:00.0000000+00:00",
+                      "weekFrom":  "2026-10-30",
+                      "winner":  {
+                                     "driver":  "Max Verstappen",
+                                     "code":  "VER",
+                                     "teamId":  "red_bull",
+                                     "team":  "Red Bull",
+                                     "result":  "2:20:28.772"
+                                 }
+                  },
+                  {
+                      "round":  20,
+                      "name":  "Brazilian Grand Prix",
+                      "circuit":  "AutÃ³dromo JosÃ© Carlos Pace",
+                      "city":  "SÃ£o Paulo",
+                      "country":  "Brazil",
+                      "date":  "2026-11-08",
+                      "time":  "17:00:00Z",
+                      "start":  "2026-11-08T17:00:00.0000000+00:00",
+                      "weekFrom":  "2026-11-06",
+                      "winner":  {
+                                     "driver":  "Lando Norris",
+                                     "code":  "NOR",
+                                     "teamId":  "mclaren",
+                                     "team":  "McLaren",
+                                     "result":  "1:35:23.504"
+                                 }
+                  },
+                  {
+                      "round":  21,
+                      "name":  "Las Vegas Grand Prix",
+                      "circuit":  "Las Vegas Strip Street Circuit",
+                      "city":  "Las Vegas",
+                      "country":  "USA",
+                      "date":  "2026-11-22",
+                      "time":  "04:00:00Z",
+                      "start":  "2026-11-22T04:00:00.0000000+00:00",
+                      "weekFrom":  "2026-11-20",
+                      "winner":  {
+                                     "driver":  "Max Verstappen",
+                                     "code":  "VER",
+                                     "teamId":  "red_bull",
+                                     "team":  "Red Bull",
+                                     "result":  "1:27:39.624"
+                                 }
+                  },
+                  {
+                      "round":  22,
+                      "name":  "Qatar Grand Prix",
+                      "circuit":  "Lusail International Circuit",
+                      "city":  "Lusail",
+                      "country":  "Qatar",
+                      "date":  "2026-11-29",
+                      "time":  "16:00:00Z",
+                      "start":  "2026-11-29T16:00:00.0000000+00:00",
+                      "weekFrom":  "2026-11-27",
+                      "winner":  null
+                  },
+                  {
+                      "round":  23,
+                      "name":  "Abu Dhabi Grand Prix",
+                      "circuit":  "Yas Marina Circuit",
+                      "city":  "Abu Dhabi",
+                      "country":  "UAE",
+                      "date":  "2026-12-06",
+                      "time":  "13:00:00Z",
+                      "start":  "2026-12-06T13:00:00.0000000+00:00",
+                      "weekFrom":  "2026-12-04",
+                      "winner":  null
+                  }
+              ],
+    "drivers":  [
+                    {
+                        "pos":  1,
+                        "name":  "Andrea Kimi Antonelli",
+                        "code":  "ANT",
+                        "teamId":  "mercedes",
+                        "team":  "Mercedes",
+                        "points":  402,
+                        "wins":  9,
+                        "nat":  "Italian"
+                    },
+                    {
+                        "pos":  2,
+                        "name":  "Max Verstappen",
+                        "code":  "VER",
+                        "teamId":  "red_bull",
+                        "team":  "Red Bull",
+                        "points":  304,
+                        "wins":  4,
+                        "nat":  "Dutch"
+                    },
+                    {
+                        "pos":  3,
+                        "name":  "Lewis Hamilton",
+                        "code":  "HAM",
+                        "teamId":  "ferrari",
+                        "team":  "Ferrari",
+                        "points":  267,
+                        "wins":  1,
+                        "nat":  "British"
+                    },
+                    {
+                        "pos":  4,
+                        "name":  "George Russell",
+                        "code":  "RUS",
+                        "teamId":  "mercedes",
+                        "team":  "Mercedes",
+                        "points":  264,
+                        "wins":  3,
+                        "nat":  "British"
+                    },
+                    {
+                        "pos":  5,
+                        "name":  "Lando Norris",
+                        "code":  "NOR",
+                        "teamId":  "mclaren",
+                        "team":  "McLaren",
+                        "points":  264,
+                        "wins":  3,
+                        "nat":  "British"
+                    },
+                    {
+                        "pos":  6,
+                        "name":  "Charles Leclerc",
+                        "code":  "LEC",
+                        "teamId":  "ferrari",
+                        "team":  "Ferrari",
+                        "points":  250,
+                        "wins":  1,
+                        "nat":  "Monegasque"
+                    },
+                    {
+                        "pos":  7,
+                        "name":  "Oscar Piastri",
+                        "code":  "PIA",
+                        "teamId":  "mclaren",
+                        "team":  "McLaren",
+                        "points":  167,
+                        "wins":  0,
+                        "nat":  "Australian"
+                    },
+                    {
+                        "pos":  8,
+                        "name":  "Isack Hadjar",
+                        "code":  "HAD",
+                        "teamId":  "red_bull",
+                        "team":  "Red Bull",
+                        "points":  122,
+                        "wins":  0,
+                        "nat":  "French"
+                    },
+                    {
+                        "pos":  9,
+                        "name":  "Liam Lawson",
+                        "code":  "LAW",
+                        "teamId":  "red_bull",
+                        "team":  "Red Bull",
+                        "points":  89,
+                        "wins":  0,
+                        "nat":  "New Zealander"
+                    },
+                    {
+                        "pos":  10,
+                        "name":  "Pierre Gasly",
+                        "code":  "GAS",
+                        "teamId":  "alpine",
+                        "team":  "Alpine F1 Team",
+                        "points":  52,
+                        "wins":  0,
+                        "nat":  "French"
+                    },
+                    {
+                        "pos":  11,
+                        "name":  "Arvid Lindblad",
+                        "code":  "LIN",
+                        "teamId":  "rb",
+                        "team":  "RB F1 Team",
+                        "points":  38,
+                        "wins":  0,
+                        "nat":  "British"
+                    },
+                    {
+                        "pos":  12,
+                        "name":  "Franco Colapinto",
+                        "code":  "COL",
+                        "teamId":  "alpine",
+                        "team":  "Alpine F1 Team",
+                        "points":  35,
+                        "wins":  0,
+                        "nat":  "Argentine"
+                    },
+                    {
+                        "pos":  13,
+                        "name":  "Oliver Bearman",
+                        "code":  "BEA",
+                        "teamId":  "haas",
+                        "team":  "Haas F1 Team",
+                        "points":  23,
+                        "wins":  0,
+                        "nat":  "British"
+                    },
+                    {
+                        "pos":  14,
+                        "name":  "Gabriel Bortoleto",
+                        "code":  "BOR",
+                        "teamId":  "audi",
+                        "team":  "Audi",
+                        "points":  14,
+                        "wins":  0,
+                        "nat":  "Brazilian"
+                    },
+                    {
+                        "pos":  15,
+                        "name":  "Nico HÃ¼lkenberg",
+                        "code":  "HUL",
+                        "teamId":  "audi",
+                        "team":  "Audi",
+                        "points":  14,
+                        "wins":  0,
+                        "nat":  "German"
+                    },
+                    {
+                        "pos":  16,
+                        "name":  "Carlos Sainz",
+                        "code":  "SAI",
+                        "teamId":  "williams",
+                        "team":  "Williams",
+                        "points":  11,
+                        "wins":  0,
+                        "nat":  "Spanish"
+                    },
+                    {
+                        "pos":  17,
+                        "name":  "Esteban Ocon",
+                        "code":  "OCO",
+                        "teamId":  "haas",
+                        "team":  "Haas F1 Team",
+                        "points":  7,
+                        "wins":  0,
+                        "nat":  "French"
+                    },
+                    {
+                        "pos":  18,
+                        "name":  "Fernando Alonso",
+                        "code":  "ALO",
+                        "teamId":  "aston_martin",
+                        "team":  "Aston Martin",
+                        "points":  7,
+                        "wins":  0,
+                        "nat":  "Spanish"
+                    },
+                    {
+                        "pos":  19,
+                        "name":  "Alexander Albon",
+                        "code":  "ALB",
+                        "teamId":  "williams",
+                        "team":  "Williams",
+                        "points":  5,
+                        "wins":  0,
+                        "nat":  "Thai"
+                    },
+                    {
+                        "pos":  20,
+                        "name":  "Yuki Tsunoda",
+                        "code":  "TSU",
+                        "teamId":  "rb",
+                        "team":  "RB F1 Team",
+                        "points":  1,
+                        "wins":  0,
+                        "nat":  "Japanese"
+                    },
+                    {
+                        "pos":  21,
+                        "name":  "Ryo Hirakawa",
+                        "code":  "HIR",
+                        "teamId":  "haas",
+                        "team":  "Haas F1 Team",
+                        "points":  1,
+                        "wins":  0,
+                        "nat":  "Japanese"
+                    },
+                    {
+                        "pos":  22,
+                        "name":  "Lance Stroll",
+                        "code":  "STR",
+                        "teamId":  "aston_martin",
+                        "team":  "Aston Martin",
+                        "points":  0,
+                        "wins":  0,
+                        "nat":  "Canadian"
+                    },
+                    {
+                        "pos":  23,
+                        "name":  "Valtteri Bottas",
+                        "code":  "BOT",
+                        "teamId":  "cadillac",
+                        "team":  "Cadillac F1 Team",
+                        "points":  0,
+                        "wins":  0,
+                        "nat":  "Finnish"
+                    },
+                    {
+                        "pos":  24,
+                        "name":  "Sergio PÃ©rez",
+                        "code":  "PER",
+                        "teamId":  "cadillac",
+                        "team":  "Cadillac F1 Team",
+                        "points":  0,
+                        "wins":  0,
+                        "nat":  "Mexican"
+                    },
+                    {
+                        "pos":  25,
+                        "name":  "Rafael Camara",
+                        "code":  "CAM",
+                        "teamId":  "haas",
+                        "team":  "Haas F1 Team",
+                        "points":  0,
+                        "wins":  0,
+                        "nat":  "Brazilian"
+                    }
+                ],
+    "teams":  [
+                  {
+                      "pos":  1,
+                      "id":  "mercedes",
+                      "name":  "Mercedes",
+                      "points":  666,
+                      "wins":  12
+                  },
+                  {
+                      "pos":  2,
+                      "id":  "ferrari",
+                      "name":  "Ferrari",
+                      "points":  517,
+                      "wins":  2
+                  },
+                  {
+                      "pos":  3,
+                      "id":  "red_bull",
+                      "name":  "Red Bull",
+                      "points":  440,
+                      "wins":  4
+                  },
+                  {
+                      "pos":  4,
+                      "id":  "mclaren",
+                      "name":  "McLaren",
+                      "points":  431,
+                      "wins":  3
+                  },
+                  {
+                      "pos":  5,
+                      "id":  "rb",
+                      "name":  "RB F1 Team",
+                      "points":  114,
+                      "wins":  0
+                  },
+                  {
+                      "pos":  6,
+                      "id":  "alpine",
+                      "name":  "Alpine F1 Team",
+                      "points":  87,
+                      "wins":  0
+                  },
+                  {
+                      "pos":  7,
+                      "id":  "haas",
+                      "name":  "Haas F1 Team",
+                      "points":  31,
+                      "wins":  0
+                  },
+                  {
+                      "pos":  8,
+                      "id":  "audi",
+                      "name":  "Audi",
+                      "points":  28,
+                      "wins":  0
+                  },
+                  {
+                      "pos":  9,
+                      "id":  "williams",
+                      "name":  "Williams",
+                      "points":  16,
+                      "wins":  0
+                  },
+                  {
+                      "pos":  10,
+                      "id":  "aston_martin",
+                      "name":  "Aston Martin",
+                      "points":  7,
+                      "wins":  0
+                  },
+                  {
+                      "pos":  11,
+                      "id":  "cadillac",
+                      "name":  "Cadillac F1 Team",
+                      "points":  0,
+                      "wins":  0
+                  }
+              ]
+};</script>
+
+<script>
+/* ===========================================================================
+   MAIN SCRIPT
+   ---------------------------------------------------------------------------
+   API_BASE     Jolpica F1 (successor of Ergast). Endpoints used:
+                  /current.json                      — season calendar
+                  /current/results/1.json?limit=100  — race winners
+                  /current/driverstandings.json      — drivers' standings
+                  /current/constructorstandings.json — constructors' standings
+   REFRESH_MS   Automatic refresh interval (10 min). The tab also refreshes
+                when it becomes visible again after being hidden.
+   TEAM_COLORS  Dark/light variants per constructor id; unknown ids fall back
+                to neutral grey and log a console warning.
+   =========================================================================== */
+(function () {
+  "use strict";
+
+  const API_BASE = "https://api.jolpi.ca/ergast/f1";
+  const REFRESH_MS = 10 * 60 * 1000;
+  const FETCH_TIMEOUT = 20000;
+  const CACHE_KEY = "f1.dashboard.cache.v1";
+  const THEME_KEY = "f1.theme";
+  const MODE_KEY = "f1.mode";
+  const TZ = "Europe/Prague";
+  const FALLBACK_FILE = "data.json";
+
+  const TEAM_COLORS = {
+    mercedes:     { dark: "#2EE6D0", light: "#00857A" },
+    ferrari:      { dark: "#FF2D3D", light: "#C8001C" },
+    red_bull:     { dark: "#5B7BFF", light: "#1E3FD6" },
+    mclaren:      { dark: "#FF8C1A", light: "#C75000" },
+    rb:           { dark: "#7E9DFF", light: "#2A4FD0" },
+    racing_bulls: { dark: "#7E9DFF", light: "#2A4FD0" },
+    alphatauri:   { dark: "#7E9DFF", light: "#2A4FD0" },
+    alpine:       { dark: "#FF8FC7", light: "#C2185B" },
+    haas:         { dark: "#C4C8CC", light: "#5F6368" },
+    audi:         { dark: "#E0334A", light: "#A3122A" },
+    sauber:       { dark: "#E0334A", light: "#A3122A" },
+    kick_sauber:  { dark: "#E0334A", light: "#A3122A" },
+    williams:     { dark: "#6FD0FF", light: "#0077B6" },
+    aston_martin: { dark: "#3DD6A0", light: "#0B7A55" },
+    cadillac:     { dark: "#F2C84B", light: "#A67C00" }
+  };
+
+  const TEAM_NAMES = {
+    red_bull: "Red Bull Racing",
+    rb: "Racing Bulls",
+    haas: "Haas",
+    alpine: "Alpine",
+    cadillac: "Cadillac",
+    aston_martin: "Aston Martin",
+    audi: "Audi"
+  };
+
+  const NEUTRAL_TEAM = { dark: "#C4C8CC", light: "#5F6368" };
+  const THEMES = window.F1_THEMES || {};
+  const THEME_ORDER = ["intense", "tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral"];
+  const BOOTSTRAP = window.F1_BOOTSTRAP || null;
+
+  const $ = (selector, scope) => (scope || document).querySelector(selector);
+  const $$ = (selector, scope) => Array.from((scope || document).querySelectorAll(selector));
+
+  const esc = (value) => String(value == null ? "" : value).replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  const state = {
+    data: null,
+    savedAt: 0,
+    source: "sample",
+    loading: false,
+    stale: false,
+    lastFetch: 0,
+    lastAttempt: 0,
+    sig: "",
+    view: "schedule",
+    week: null
+  };
+
+  const warnedTeams = new Set();
+  function teamColors(id) {
+    const found = TEAM_COLORS[id];
+    if (found) return found;
+    if (!warnedTeams.has(id)) {
+      warnedTeams.add(id);
+      console.warn('[F1] No TEAM_COLORS entry for "' + id + '" — using neutral grey.');
+    }
+    return NEUTRAL_TEAM;
+  }
+
+  const teamDisplayName = (team) => TEAM_NAMES[team.id] || TEAM_NAMES[team.teamId] || team.name || team.team || "Unknown team";
+
+  /* ---------------------------------------------------------------- dates */
+  const dayFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
+  const dayYearFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false });
+  const stampFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+  const zoneFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, timeZoneName: "short" });
+
+  function zoneShort(date) {
+    const part = zoneFmt.formatToParts(date).find((p) => p.type === "timeZoneName");
+    return part ? part.value : "CET";
+  }
+
+  function raceStart(race) {
+    if (race.start) return new Date(race.start);
+    return new Date(race.date + "T" + (race.time || "12:00:00Z"));
+  }
+
+  function parseDateOnly(value) {
+    const parts = String(value || "").split("-").map(Number);
+    return new Date(Date.UTC(parts[0], (parts[1] || 1) - 1, parts[2] || 1, 12));
+  }
+
+  function fmtRaceWhen(race) {
+    const d = raceStart(race);
+    return dayFmt.format(d) + " " + timeFmt.format(d) + " " + zoneShort(d);
+  }
+
+  function fmtFullStamp(ts) {
+    if (!ts) return "—";
+    const d = new Date(ts);
+    return dayYearFmt.format(d) + ", " + timeFmt.format(d) + " " + zoneShort(d);
+  }
+
+  function fmtShortStamp(ts) {
+    if (!ts) return "—";
+    return stampFmt.format(new Date(ts)) + " " + zoneShort(new Date(ts));
+  }
+
+  function relTime(ts) {
+    if (!ts) return "—";
+    const diff = Math.max(0, Date.now() - ts);
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + " min ago";
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + (hours === 1 ? " h ago" : " h ago");
+    return fmtShortStamp(ts);
+  }
+
+  /* --------------------------------------------------------------- weeks */
+  function isoWeekKey(value) {
+    const parts = String(value).split("-").map(Number);
+    const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    const day = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+    return date.getUTCFullYear() + "-W" + String(week).padStart(2, "0");
+  }
+
+  function weekGroups() {
+    const races = state.data ? state.data.races : [];
+    const map = new Map();
+    for (const race of races) {
+      const key = isoWeekKey(race.date);
+      if (!map.has(key)) map.set(key, { key, races: [] });
+      map.get(key).races.push(race);
+    }
+    return Array.from(map.values()).sort((a, b) => a.races[0].round - b.races[0].round);
+  }
+
+  function groupRange(group) {
+    const first = group.races[0];
+    const last = group.races[group.races.length - 1];
+    const from = parseDateOnly(first.weekFrom || first.date);
+    const to = parseDateOnly(last.date);
+    const sameMonth = from.getUTCMonth() === to.getUTCMonth();
+    const left = from.getUTCDate() + (sameMonth ? "–" : " " + MONTHS[from.getUTCMonth()] + " – ");
+    return left + to.getUTCDate() + " " + MONTHS[to.getUTCMonth()];
+  }
+
+  function groupLongRange(group) {
+    const first = group.races[0];
+    const last = group.races[group.races.length - 1];
+    const from = parseDateOnly(first.weekFrom || first.date);
+    const to = parseDateOnly(last.date);
+    const left = from.getUTCDate() + " " + MONTHS[from.getUTCMonth()];
+    const right = to.getUTCDate() + " " + MONTHS[to.getUTCMonth()];
+    return (left === right ? left : left + " – " + right) + " " + to.getUTCFullYear();
+  }
+
+  function groupRoundLabel(group) {
+    const rounds = group.races.map((race) => race.round);
+    if (rounds.length === 1) return "R" + rounds[0];
+    return "R" + rounds[0] + "–" + rounds[rounds.length - 1];
+  }
+
+  /* ----------------------------------------------------------- countdown */
+  function cdParts(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    return {
+      d: Math.floor(total / 86400),
+      h: Math.floor((total % 86400) / 3600),
+      m: Math.floor((total % 3600) / 60),
+      s: total % 60
+    };
+  }
+
+  const pad2 = (n) => String(n).padStart(2, "0");
+
+  function nextRace() {
+    const races = state.data ? state.data.races : [];
+    return races.find((race) => !race.winner) || null;
+  }
+
+  function completedCount() {
+    return (state.data ? state.data.races : []).filter((race) => race.winner).length;
+  }
+
+  function fmtPoints(points) {
+    const n = Number(points);
+    return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  }
+
+  function winsText(wins) {
+    const n = Number(wins) || 0;
+    return n === 1 ? "1 win" : n + " wins";
+  }
+
+  /* --------------------------------------------------------------- cache */
+  const cache = {
+    read() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.data || !Array.isArray(parsed.data.races) || !parsed.data.races.length) return null;
+        return parsed;
+      } catch (error) {
+        return null;
+      }
+    },
+    write(savedAt, data) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt, data }));
+      } catch (error) {
+        console.warn("[F1] Unable to cache data:", error);
+      }
+    }
+  };
+
+  /* ------------------------------------------------------------- data load */
+  async function getJson(path, signal) {
+    const response = await fetch(API_BASE + path, {
+      cache: "no-store",
+      signal,
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status + " for " + path);
+    return response.json();
+  }
+
+  function winnerFrom(race) {
+    const result = race && race.Results && race.Results[0];
+    if (!result) return null;
+    return {
+      driver: (result.Driver.givenName + " " + result.Driver.familyName).trim(),
+      code: result.Driver.code || "",
+      teamId: result.Constructor.constructorId,
+      team: result.Constructor.name,
+      result: (result.Time && result.Time.time) || result.status || "Finished"
+    };
+  }
+
+  function normalize(calendar, winners, driversPayload, teamsPayload) {
+    const raceTable = calendar && calendar.MRData && calendar.MRData.RaceTable;
+    if (!raceTable || !Array.isArray(raceTable.Races) || !raceTable.Races.length) {
+      throw new Error("Calendar endpoint returned no races");
+    }
+
+    const winnerByRound = new Map();
+    const winnerRaces = (winners && winners.MRData && winners.MRData.RaceTable && winners.MRData.RaceTable.Races) || [];
+    for (const race of winnerRaces) {
+      const winner = winnerFrom(race);
+      if (winner) winnerByRound.set(String(race.round), winner);
+    }
+
+    const races = raceTable.Races.map((race) => ({
+      round: Number(race.round),
+      name: race.raceName,
+      circuit: (race.Circuit && race.Circuit.circuitName) || "",
+      city: (race.Circuit && race.Circuit.Location && race.Circuit.Location.locality) || "",
+      country: (race.Circuit && race.Circuit.Location && race.Circuit.Location.country) || "",
+      date: race.date,
+      time: race.time || "",
+      start: race.date + "T" + (race.time || "12:00:00Z"),
+      weekFrom: (race.FirstPractice && race.FirstPractice.date) || race.date,
+      winner: winnerByRound.get(String(race.round)) || null
+    }));
+
+    const standings = (driversPayload && driversPayload.MRData && driversPayload.MRData.StandingsTable && driversPayload.MRData.StandingsTable.StandingsLists[0]) || null;
+    const drivers = ((standings && standings.DriverStandings) || []).map((entry) => {
+      const team = entry.Constructors[entry.Constructors.length - 1] || {};
+      return {
+        pos: Number(entry.position),
+        name: (entry.Driver.givenName + " " + entry.Driver.familyName).trim(),
+        code: entry.Driver.code || "",
+        teamId: team.constructorId || "",
+        team: team.name || "",
+        points: Number(entry.points),
+        wins: Number(entry.wins)
+      };
+    });
+
+    const teamTable = (teamsPayload && teamsPayload.MRData && teamsPayload.MRData.StandingsTable && teamsPayload.MRData.StandingsTable.StandingsLists[0]) || null;
+    const teams = ((teamTable && teamTable.ConstructorStandings) || []).map((entry) => ({
+      pos: Number(entry.position),
+      id: entry.Constructor.constructorId,
+      name: entry.Constructor.name,
+      points: Number(entry.points),
+      wins: Number(entry.wins)
+    }));
+
+    if (!teams.length) throw new Error("Constructor standings endpoint returned no teams");
+
+    return {
+      season: String(raceTable.season || ""),
+      round: Number((teamTable && teamTable.round) || 0),
+      fetchedAt: new Date().toISOString(),
+      races,
+      drivers: drivers.sort((a, b) => a.pos - b.pos),
+      teams: teams.sort((a, b) => a.pos - b.pos)
+    };
+  }
+
+  function signature(data) {
+    return JSON.stringify([
+      data.season,
+      data.round,
+      data.races.map((race) => [race.round, race.winner ? race.winner.driver + race.winner.result : ""]),
+      data.teams.map((team) => [team.id, team.points, team.wins]),
+      data.drivers.map((driver) => [driver.code, driver.points, driver.wins])
+    ]);
+  }
+
+  function validData(data) {
+    return !!data && Array.isArray(data.races) && data.races.length > 0 && Array.isArray(data.teams);
+  }
+
+  function useData(data, source) {
+    state.data = data;
+    state.savedAt = Date.parse(data.fetchedAt) || Date.now();
+    state.source = source;
+  }
+
+  async function loadFallback() {
+    if (state.data) return;
+    try {
+      const response = await fetch(FALLBACK_FILE, { cache: "no-store" });
+      if (response.ok) {
+        const data = await response.json();
+        if (validData(data)) {
+          useData(data, "file");
+          return;
+        }
+      }
+    } catch (error) {
+      console.warn("[F1] data.json fallback unavailable:", error);
+    }
+    if (validData(BOOTSTRAP)) useData(BOOTSTRAP, "sample");
+  }
+
+  async function refresh() {
+    if (state.loading) return;
+    state.loading = true;
+    renderStatus();
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    try {
+      const [calendar, winners, drivers, teams] = await Promise.all([
+        getJson("/current.json", controller.signal),
+        getJson("/current/results/1.json?limit=100", controller.signal),
+        getJson("/current/driverstandings.json?limit=100", controller.signal),
+        getJson("/current/constructorstandings.json?limit=100", controller.signal)
+      ]);
+
+      const data = normalize(calendar, winners, drivers, teams);
+      const sig = signature(data);
+
+      state.data = data;
+      state.savedAt = Date.now();
+      state.lastFetch = Date.now();
+      state.source = "live";
+      state.stale = false;
+      cache.write(state.savedAt, data);
+
+      if (sig !== state.sig) {
+        state.sig = sig;
+        renderAll();
+        announce("Data updated.");
+      } else {
+        renderStatus();
+        renderFooter();
+      }
+    } catch (error) {
+      console.warn("[F1] Live data refresh failed:", error);
+      if (!state.data) {
+        await loadFallback();
+        if (state.data) {
+          state.sig = signature(state.data);
+          renderAll();
+        }
+      }
+      state.stale = true;
+      renderStatus();
+      announce(state.data ? "Offline. Showing the last known data." : "Data is unavailable right now.");
+    } finally {
+      clearTimeout(timer);
+      state.loading = false;
+      state.lastAttempt = Date.now();
+      renderStatus();
+      renderFooter();
+    }
+  }
+
+  function announce(message) {
+    const live = $("#live");
+    if (!live) return;
+    live.textContent = "";
+    window.setTimeout(() => { live.textContent = message; }, 60);
+  }
+
+  /* ------------------------------------------------------------- rendering */
+  function renderAll() {
+    if (!state.data) return;
+    renderSeason();
+    renderHero();
+    renderWeeks();
+    renderTeams();
+    renderDrivers();
+    renderStatus();
+    renderFooter();
+    tick();
+  }
+
+  function renderSeason() {
+    const data = state.data;
+    const label = $("#season-label");
+    if (label) label.textContent = data.season + " season";
+    document.title = "F1 " + data.season + " · Schedule, results & standings";
+  }
+
+  function gpTitle(name) {
+    const index = String(name).lastIndexOf("Grand Prix");
+    if (index === -1) return esc(name);
+    const prefix = String(name).slice(0, index).trim();
+    return (prefix ? esc(prefix) + " " : "") + "<em>Grand Prix</em>";
+  }
+
+  const cdBlock = (unit, label) => '<div class="cd"><span class="cd__num" data-cd="' + unit + '">--</span><span class="cd__label">' + label + '</span></div>';
+
+  function renderHero() {
+    const host = $("#hero");
+    if (!host) return;
+    const data = state.data;
+    const total = data.races.length;
+    const next = nextRace();
+
+    if (!next) {
+      const drivers = data.drivers || [];
+      const teams = data.teams || [];
+      const winners = data.races.filter((race) => race.winner);
+      const last = winners[winners.length - 1];
+      const championDriver = drivers[0];
+      const championTeam = teams[0];
+      host.innerHTML =
+        '<div class="hero__top">' +
+          '<span class="chip chip--accent">Season complete</span>' +
+          '<span class="hero__round">' + total + ' of ' + total + ' rounds</span>' +
+          '<span class="hero__season">' + esc(data.season) + ' season</span>' +
+        '</div>' +
+        '<h1 class="hero__title">That’s a wrap</h1>' +
+        '<p class="hero__meta">Every round of the ' + esc(data.season) + ' season has a result. Here is how it ended.</p>' +
+        '<div class="hero__stats">' +
+          (championDriver ? '<div><span>Drivers’ champion</span><strong>' + esc(championDriver.name) + '</strong></div>' : '') +
+          (championTeam ? '<div><span>Constructors’ champion</span><strong>' + esc(teamDisplayName(championTeam)) + '</strong></div>' : '') +
+          (last ? '<div><span>Last winner</span><strong>' + esc(last.winner.driver) + '</strong></div>' : '') +
+        '</div>';
+      return;
+    }
+
+    const start = raceStart(next);
+    const started = start.getTime() <= Date.now();
+    const circuit = [next.circuit, [next.city, next.country].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
+    const countdown = started
+      ? '<div class="hero__pending">Lights out — waiting for the official classification…</div>'
+      : '<div class="countdown" id="hero-cd" role="timer" aria-label="Time remaining until the race start">' +
+          cdBlock("d", "Days") + cdBlock("h", "Hours") + cdBlock("m", "Mins") + cdBlock("s", "Secs") +
+        '</div>';
+
+    host.innerHTML =
+      '<div class="hero__top">' +
+        '<span class="chip ' + (started ? "chip--live" : "chip--accent") + '">' + (started ? "Lights out" : "Up next") + '</span>' +
+        '<span class="hero__round">Round ' + next.round + ' of ' + total + '</span>' +
+        '<span class="hero__season">' + esc(data.season) + ' season</span>' +
+        '<span class="hero__round" style="margin-left:auto">' + completedCount() + ' completed</span>' +
+      '</div>' +
+      '<h1 class="hero__title">' + gpTitle(next.name) + '</h1>' +
+      '<p class="hero__meta">' + esc(circuit) + '</p>' +
+      '<div class="hero__body">' +
+        countdown +
+        '<div class="hero__info">' +
+          '<span class="hero__info-label">Race start</span>' +
+          '<strong>' + esc(fmtRaceWhen(next)) + '</strong>' +
+          '<span>Europe/Prague · times updated automatically</span>' +
+        '</div>' +
+      '</div>' +
+      '<p class="sr-only">Next race: ' + esc(next.name) + ', ' + esc(fmtRaceWhen(next)) + '.</p>';
+  }
+
+  /* --------------------------------------------------------------- schedule */
+  function teamNameFor(id, fallback) {
+    return TEAM_NAMES[id] || fallback || "Unknown team";
+  }
+
+  function weekAria(group) {
+    const label = groupRoundLabel(group) + " " + groupRange(group);
+    const races = group.races.map((race) => "Round " + race.round + ", " + race.name).join("; ");
+    return label + " — " + races + ", " + groupLongRange(group);
+  }
+
+  function weekCardCount(group) {
+    return group.races.length === 1 ? "1 race" : group.races.length + " races";
+  }
+
+  function renderWeeks() {
+    const strip = $("#weekstrip");
+    const panel = $("#weekpanel");
+    if (!strip || !panel) return;
+
+    const groups = weekGroups();
+    if (!groups.length) return;
+
+    if (!state.week || !groups.some((group) => group.key === state.week)) {
+      const next = nextRace();
+      const match = next ? groups.find((group) => group.races.some((race) => race.round === next.round)) : null;
+      state.week = (match || groups[groups.length - 1]).key;
+    }
+
+    strip.innerHTML = groups.map((group) => {
+      const selected = group.key === state.week;
+      return '<button class="weekchip" type="button" role="tab" aria-selected="' + selected + '" data-week="' + group.key + '" title="' + esc(weekAria(group)) + '">' +
+        '<span class="weekchip__r">' + groupRoundLabel(group) + '</span>' +
+        '<span class="weekchip__label">' + esc(groupRange(group)) + '</span>' +
+      '</button>';
+    }).join("");
+
+    const completed = completedCount();
+    const total = state.data.races.length;
+    $("#schedule-meta").textContent = total + " rounds · " + completed + " completed · " + (total - completed) + " remaining";
+
+    renderWeekPanel(groups);
+
+    const active = $('.weekchip[aria-selected="true"]', strip);
+    if (active) {
+      strip.scrollLeft = Math.max(0, active.offsetLeft - strip.clientWidth / 2 + active.offsetWidth / 2);
+    }
+  }
+
+  function renderWeekPanel(groups) {
+    const panel = $("#weekpanel");
+    const group = groups.find((item) => item.key === state.week);
+    if (!group) return;
+
+    panel.setAttribute("aria-label", "Races of " + groupLongRange(group));
+    const cards = group.races.map((race, index) => raceCard(race, index)).join("");
+    panel.innerHTML =
+      '<p class="weekpanel__caption">' + esc(groupLongRange(group)) + ' · ' + weekCardCount(group) + '</p>' +
+      '<div class="race-grid">' + cards + '</div>';
+  }
+
+  function raceCard(race, index) {
+    const done = !!race.winner;
+    const start = raceStart(race);
+    const started = start.getTime() <= Date.now();
+    const colors = done ? teamColors(race.winner.teamId) : null;
+
+    let badge = '<span class="chip">Upcoming</span>';
+    if (done) badge = '<span class="chip chip--done">Completed</span>';
+    else if (started) badge = '<span class="chip chip--live">Lights out</span>';
+
+    let status = "";
+    if (done) {
+      status =
+        '<p class="race__winner" style="--team-dark:' + colors.dark + ';--team-light:' + colors.light + '">' +
+          '<span class="race__winner-label">Winner</span>' +
+          '<strong>' + esc(race.winner.driver) + '</strong>' +
+          '<em>(' + esc(teamNameFor(race.winner.teamId, race.winner.team)) + ')</em>' +
+          '<span>· ' + esc(race.winner.result) + '</span>' +
+        '</p>';
+    } else if (!started) {
+      status = '<p class="race__pending">Not raced yet</p>';
+    }
+
+    let countdown = "";
+    if (!done && !started) {
+      countdown =
+        '<p class="race__cd" data-cd-until="' + esc(start.toISOString()) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>' +
+          '<span data-cd-text>Starts in ' + cardCdText(start.getTime() - Date.now()) + '</span>' +
+        '</p>';
+    } else if (!done && started) {
+      countdown = '<p class="race__cd"><span>Lights out · awaiting results</span></p>';
+    }
+
+    const location = [race.city, race.country].filter(Boolean).join(", ");
+
+    return '<article class="race" style="--i:' + index + '">' +
+      '<div class="race__top">' +
+        '<span class="race__round">Round ' + race.round + '</span>' +
+        badge +
+      '</div>' +
+      '<h3 class="race__name">' + esc(race.name) + '</h3>' +
+      '<p class="race__circuit">' + esc([race.circuit, location].filter(Boolean).join(" · ")) + '</p>' +
+      '<p class="race__when">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3.5v3M16 3.5v3M3.5 10h17"/></svg>' +
+        '<strong>' + esc(fmtRaceWhen(race)) + '</strong>' +
+      '</p>' +
+      status + countdown +
+    '</article>';
+  }
+
+  function cardCdText(ms) {
+    const parts = cdParts(ms);
+    if (parts.d > 0) return parts.d + " d " + pad2(parts.h) + " h";
+    if (parts.h > 0) return parts.h + " h " + pad2(parts.m) + " min";
+    return parts.m + " min " + pad2(parts.s) + " s";
+  }
+
+  /* -------------------------------------------------------------- standings */
+  function standingsMeta() {
+    const data = state.data;
+    return "After round " + data.round + " of " + data.races.length + " · " + data.season + " season";
+  }
+
+  function renderTeams() {
+    const host = $("#team-list");
+    const meta = $("#teams-meta");
+    if (!host) return;
+    const teams = state.data.teams || [];
+    if (meta) meta.textContent = standingsMeta();
+
+    const leader = Math.max(1, teams.length ? teams[0].points : 1);
+    host.innerHTML = teams.map((team) => {
+      const colors = teamColors(team.id);
+      const pct = Math.max(1.5, Math.round((team.points / leader) * 1000) / 10);
+      const medal = team.pos <= 3 ? " is-p" + team.pos : "";
+      return '<li class="team-card" style="--team-dark:' + colors.dark + ';--team-light:' + colors.light + ';--pct:' + pct + '%">' +
+        '<span class="team-card__pos' + medal + '">' + team.pos + '</span>' +
+        '<span class="team-card__edge" aria-hidden="true"></span>' +
+        '<span class="team-card__main">' +
+          '<span class="team-card__name">' + esc(teamNameFor(team.id, team.name)) + '</span>' +
+          '<span class="team-card__sub">' + esc(winsText(team.wins)) + '</span>' +
+        '</span>' +
+        '<span class="team-card__pts">' + fmtPoints(team.points) + '<span>PTS</span></span>' +
+      '</li>';
+    }).join("");
+  }
+
+  function renderDrivers() {
+    const host = $("#driver-list");
+    const meta = $("#drivers-meta");
+    if (!host) return;
+    const drivers = state.data.drivers || [];
+    if (meta) meta.textContent = standingsMeta();
+
+    host.innerHTML = drivers.map((driver) => {
+      const colors = teamColors(driver.teamId);
+      const medal = driver.pos <= 3 ? " is-p" + driver.pos : "";
+      const sub = [teamNameFor(driver.teamId, driver.team), winsText(driver.wins)].filter(Boolean).join(" · ");
+      return '<li class="driver" style="--team-dark:' + colors.dark + ';--team-light:' + colors.light + '">' +
+        '<span class="driver__pos' + medal + '">' + driver.pos + '</span>' +
+        '<span class="driver__edge" aria-hidden="true"></span>' +
+        '<span class="driver__main">' +
+          '<span class="driver__name"><span>' + esc(driver.name) + '</span>' + (driver.code ? '<span class="driver__code">' + esc(driver.code) + '</span>' : "") + '</span>' +
+          '<span class="driver__sub">' + esc(sub) + '</span>' +
+        '</span>' +
+        '<span class="driver__pts">' + fmtPoints(driver.points) + '<span>PTS</span></span>' +
+      '</li>';
+    }).join("");
+  }
+
+  /* ----------------------------------------------------------- status / UI */
+  function renderStatus() {
+    const status = $("#status");
+    const label = $("#status-text");
+    if (!status || !label) return;
+
+    const stamp = state.lastFetch || state.savedAt;
+    let mode = "live";
+    let text = "Live";
+
+    if (state.loading) {
+      mode = "syncing";
+      text = "Syncing…";
+    } else if (!state.data) {
+      mode = "offline";
+      text = "No data";
+    } else if (state.stale) {
+      mode = "offline";
+      text = "Offline · " + relTime(stamp);
+    } else if (state.source === "live") {
+      mode = "live";
+      text = "Live · " + relTime(stamp);
+    } else if (state.source === "cache") {
+      mode = "cache";
+      text = "Saved · " + relTime(stamp);
+    } else if (state.source === "file") {
+      mode = "cache";
+      text = "Snapshot · " + fmtShortStamp(stamp);
+    } else {
+      mode = "sample";
+      text = "Sample data";
+    }
+
+    status.dataset.state = mode;
+    label.textContent = text;
+    status.setAttribute("aria-label", text + " — refresh data");
+    status.title = state.data ? "Last update " + fmtFullStamp(stamp) + " · click to refresh" : "Click to retry";
+  }
+
+  function renderFooter() {
+    const meta = $("#foot-meta");
+    if (!meta) return;
+    const stamp = state.lastFetch || state.savedAt;
+    meta.textContent = "Last updated " + fmtFullStamp(stamp) + " · Europe/Prague";
+  }
+
+  /* ------------------------------------------------------------- countdown */
+  function updateCountdown(host, ms) {
+    const parts = cdParts(ms);
+    for (const unit of ["d", "h", "m", "s"]) {
+      const el = host.querySelector('[data-cd="' + unit + '"]');
+      if (!el) continue;
+      const value = pad2(parts[unit]);
+      if (el.textContent === value) continue;
+      el.textContent = value;
+      if (reduce.matches) continue;
+      el.classList.remove("is-tick");
+      void el.offsetWidth;
+      el.classList.add("is-tick");
+    }
+  }
+
+  function tick() {
+    const next = nextRace();
+    const heroCd = $("#hero-cd");
+    if (heroCd && next) updateCountdown(heroCd, raceStart(next).getTime() - Date.now());
+
+    for (const el of $$("[data-cd-until]")) {
+      const target = el.querySelector("[data-cd-text]");
+      if (!target) continue;
+      const distance = new Date(el.dataset.cdUntil).getTime() - Date.now();
+      const text = distance > 0 ? "Starts in " + cardCdText(distance) : "Lights out";
+      if (target.textContent !== text) target.textContent = text;
+    }
+  }
+
+  /* ------------------------------------------------------------------ views */
+  const VIEWS = ["schedule", "teams", "drivers"];
+
+  function viewFromHash() {
+    const value = (location.hash || "").replace("#", "");
+    return VIEWS.indexOf(value) !== -1 ? value : "schedule";
+  }
+
+  function showView(view, options) {
+    const settings = options || {};
+    const next = VIEWS.indexOf(view) !== -1 ? view : "schedule";
+    state.view = next;
+    document.body.dataset.view = next;
+
+    for (const panel of $$(".view")) {
+      const active = panel.id === "view-" + next;
+      panel.hidden = !active;
+      if (active && settings.animate !== false) {
+        panel.classList.remove("is-entering");
+        void panel.offsetWidth;
+        panel.classList.add("is-entering");
+      }
+    }
+
+    for (const tab of $$(".tab")) {
+      const active = tab.dataset.view === next;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+    }
+
+    if (settings.scroll !== false) {
+      window.scrollTo({ top: 0, behavior: reduce.matches ? "auto" : "smooth" });
+    }
+  }
+
+  function navigate(view) {
+    if (state.view !== view) {
+      try { history.pushState(null, "", "#" + view); } catch (error) { /* file:// */ }
+    }
+    showView(view);
+  }
+
+  /* ----------------------------------------------------------------- themes */
+  const themeGrid = $("#theme-grid");
+  const palettePanel = $("#palette");
+  const paletteBtn = $("#palette-btn");
+
+  function currentTheme() {
+    return document.documentElement.dataset.theme || "tonal-spot";
+  }
+
+  function currentMode() {
+    return document.documentElement.dataset.mode === "dark" ? "dark" : "light";
+  }
+
+  function themeDots(key) {
+    const theme = THEMES[key];
+    if (!theme) return "";
+    const palette = theme.light;
+    return ["primary", "tertiary", "secondary"].map((name) =>
+      '<i style="background:' + palette[name] + '"></i>'
+    ).join("");
+  }
+
+  function buildThemeGrid() {
+    if (!themeGrid) return;
+    themeGrid.innerHTML = THEME_ORDER.map((key) => {
+      const theme = THEMES[key];
+      if (!theme) return "";
+      return '<button class="tile" type="button" data-theme-key="' + key + '" aria-pressed="false" aria-label="' + esc(theme.label) + ' colour theme">' +
+        '<span class="tile__dots" aria-hidden="true">' + themeDots(key) + '</span>' +
+        '<span class="tile__name">' + esc(theme.label) + '</span>' +
+        '<span class="tile__check" aria-hidden="true">✓</span>' +
+      '</button>';
+    }).join("");
+    syncThemeUI();
+  }
+
+  function syncThemeUI() {
+    if (!themeGrid) return;
+    const theme = currentTheme();
+    const mode = currentMode();
+    for (const tile of $$(".tile", themeGrid)) {
+      const active = tile.dataset.themeKey === theme;
+      tile.classList.toggle("is-active", active);
+      tile.setAttribute("aria-pressed", String(active));
+    }
+    for (const btn of $$(".mode button")) {
+      btn.setAttribute("aria-pressed", String(btn.dataset.mode === mode));
+    }
+  }
+
+  let themeTimer = 0;
+
+  function applyThemeChoice(theme, mode) {
+    const root = document.documentElement;
+    root.classList.add("theming");
+    window.F1_applyTheme(theme, mode);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+      localStorage.setItem(MODE_KEY, mode);
+    } catch (error) { /* storage may be unavailable */ }
+    syncThemeUI();
+    window.clearTimeout(themeTimer);
+    themeTimer = window.setTimeout(() => root.classList.remove("theming"), 360);
+  }
+
+  function openPalette() {
+    if (!palettePanel || !paletteBtn) return;
+    palettePanel.hidden = false;
+    paletteBtn.setAttribute("aria-expanded", "true");
+    const active = $(".tile.is-active", palettePanel) || $(".mode button", palettePanel);
+    if (active) active.focus({ preventScroll: true });
+  }
+
+  function closePalette(returnFocus) {
+    if (!palettePanel || !paletteBtn || palettePanel.hidden) return;
+    palettePanel.hidden = true;
+    paletteBtn.setAttribute("aria-expanded", "false");
+    if (returnFocus) paletteBtn.focus({ preventScroll: true });
+  }
+
+  /* ------------------------------------------------------------- motion blur */
+  const content = $("#content");
+  const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  const isFirefox = /firefox|fxios/i.test(navigator.userAgent);
+  const MB_MAX = isSafari || isFirefox ? 3.2 : 6;
+
+  let mbRunning = false;
+  let mbApplied = false;
+  let mbBlur = 0;
+  let mbLastY = 0;
+  let mbLastT = 0;
+  let mbLastMove = 0;
+
+  function mbStop() {
+    mbRunning = false;
+    mbBlur = 0;
+    if (mbApplied && content) {
+      content.style.filter = "";
+      mbApplied = false;
+    }
+  }
+
+  function mbFrame(now) {
+    if (!mbRunning) return;
+    if (reduce.matches || !content) { mbStop(); return; }
+
+    const dt = Math.min(64, Math.max(8, now - mbLastT));
+    const y = window.scrollY;
+    const speed = Math.abs(y - mbLastY) / dt;
+    if (speed > 0.04) mbLastMove = now;
+
+    const target = Math.min(MB_MAX, speed * 2.1);
+    const ease = target > mbBlur ? 0.4 : 0.16;
+    mbBlur += (target - mbBlur) * ease;
+
+    if (mbBlur < 0.06 && target === 0) {
+      mbBlur = 0;
+      if (mbApplied) {
+        content.style.filter = "";
+        mbApplied = false;
+      }
+      if (now - mbLastMove > 260) { mbRunning = false; return; }
+    } else {
+      content.style.filter = "blur(" + mbBlur.toFixed(2) + "px)";
+      mbApplied = true;
+    }
+
+    mbLastY = y;
+    mbLastT = now;
+    window.requestAnimationFrame(mbFrame);
+  }
+
+  function mbStart() {
+    if (mbRunning || reduce.matches) return;
+    mbRunning = true;
+    mbLastY = window.scrollY;
+    mbLastT = performance.now();
+    mbLastMove = mbLastT;
+    window.requestAnimationFrame(mbFrame);
+  }
+
+  /* ------------------------------------------------------------------- wiring */
+  function wireUi() {
+    buildThemeGrid();
+
+    for (const tab of $$(".tab")) {
+      tab.addEventListener("click", () => navigate(tab.dataset.view));
+      tab.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+        event.preventDefault();
+        const index = VIEWS.indexOf(tab.dataset.view);
+        const delta = event.key === "ArrowRight" ? 1 : -1;
+        const target = VIEWS[(index + delta + VIEWS.length) % VIEWS.length];
+        navigate(target);
+        const nextTab = $('.tab[data-view="' + target + '"]');
+        if (nextTab) nextTab.focus();
+      });
+    }
+
+    const brand = $(".brand");
+    if (brand) {
+      brand.addEventListener("click", (event) => {
+        event.preventDefault();
+        navigate("schedule");
+      });
+    }
+
+    const strip = $("#weekstrip");
+    if (strip) {
+      strip.addEventListener("click", (event) => {
+        const chip = event.target.closest(".weekchip");
+        if (!chip || chip.dataset.week === state.week) return;
+        state.week = chip.dataset.week;
+        renderWeeks();
+        const panel = $("#weekpanel");
+        if (panel) panel.focus({ preventScroll: true });
+      });
+      strip.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+        const chips = $$(".weekchip", strip);
+        const index = chips.indexOf(event.target.closest(".weekchip"));
+        if (index === -1) return;
+        event.preventDefault();
+        const delta = event.key === "ArrowRight" ? 1 : -1;
+        const chip = chips[(index + delta + chips.length) % chips.length];
+        if (chip) {
+          state.week = chip.dataset.week;
+          renderWeeks();
+          const fresh = $('.weekchip[data-week="' + state.week + '"]', strip);
+          if (fresh) fresh.focus({ preventScroll: true });
+        }
+      });
+    }
+
+    const status = $("#status");
+    if (status) status.addEventListener("click", () => refresh());
+
+    if (paletteBtn) {
+      paletteBtn.addEventListener("click", () => {
+        if (!palettePanel) return;
+        if (palettePanel.hidden) openPalette();
+        else closePalette(true);
+      });
+    }
+
+    if (palettePanel) {
+      palettePanel.addEventListener("click", (event) => {
+        const tile = event.target.closest(".tile");
+        if (tile) {
+          applyThemeChoice(tile.dataset.themeKey, currentMode());
+          return;
+        }
+        const modeBtn = event.target.closest(".mode button");
+        if (modeBtn) applyThemeChoice(currentTheme(), modeBtn.dataset.mode);
+      });
+
+      palettePanel.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closePalette(true);
+        }
+      });
+    }
+
+    document.addEventListener("pointerdown", (event) => {
+      if (!palettePanel || palettePanel.hidden) return;
+      if (palettePanel.contains(event.target) || (paletteBtn && paletteBtn.contains(event.target))) return;
+      closePalette(false);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closePalette(true);
+    });
+
+    window.addEventListener("scroll", mbStart, { passive: true });
+
+    window.addEventListener("hashchange", () => showView(viewFromHash()));
+    window.addEventListener("popstate", () => showView(viewFromHash()));
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) return;
+      tick();
+      if (Date.now() - state.lastAttempt > 30 * 1000) refresh();
+    });
+
+    window.addEventListener("online", () => refresh());
+
+    if (reduce.addEventListener) {
+      reduce.addEventListener("change", () => {
+        if (reduce.matches) mbStop();
+        else mbStart();
+      });
+    }
+  }
+
+  /* --------------------------------------------------------------------- boot */
+  function boot() {
+    wireUi();
+
+    const cached = cache.read();
+    if (cached) {
+      state.data = cached.data;
+      state.savedAt = cached.savedAt || Date.parse(cached.data.fetchedAt) || Date.now();
+      state.source = "cache";
+      state.sig = signature(cached.data);
+      renderAll();
+    } else {
+      renderStatus();
+    }
+
+    showView(viewFromHash(), { animate: false, scroll: false });
+    refresh();
+    tick();
+
+    window.setInterval(tick, 1000);
+    window.setInterval(() => {
+      if (!document.hidden) refresh();
+    }, REFRESH_MS);
+
+    window.setInterval(() => {
+      if (!document.hidden) renderStatus();
+    }, 60 * 1000);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+
 </body>
 </html>
