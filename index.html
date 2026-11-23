@@ -504,15 +504,6 @@ ul, ol { list-style: none; }
   align-items: center;
   gap: 8px 12px;
 }
-.hero__round,
-.hero__season {
-  color: var(--text-3);
-  font-size: 10.5px;
-  font-weight: 650;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
 
 .hero__title {
   margin-top: 10px;
@@ -1273,7 +1264,6 @@ html.theming *::after {
   .status[data-state="syncing"] .status__dot { animation: pulse 1.1s ease-in-out infinite; }
 
   .hero { border-radius: 24px; text-align: center; }
-  .hero__round--done { display: none; }
   .hero__top { justify-content: center; }
   .hero__title { margin-inline: auto; max-width: 100%; font-size: clamp(24px, 9vw, 34px); }
   .hero__meta { margin-inline: auto; font-size: 12.5px; }
@@ -1804,10 +1794,6 @@ html.theming *::after {
     return races.find((race) => !race.winner) || null;
   }
 
-  function completedCount() {
-    return (state.data ? state.data.races : []).filter((race) => race.winner).length;
-  }
-
   function fmtPoints(points) {
     const n = Number(points);
     return Number.isInteger(n) ? String(n) : n.toFixed(1);
@@ -2080,7 +2066,6 @@ html.theming *::after {
     const host = $("#hero");
     if (!host) return;
     const data = state.data;
-    const total = data.races.length;
     const next = nextRace();
 
     if (!next) {
@@ -2094,8 +2079,6 @@ html.theming *::after {
       host.innerHTML =
         '<div class="hero__top">' +
           '<span class="chip chip--done">Season complete</span>' +
-          '<span class="hero__round">' + total + ' of ' + total + ' rounds</span>' +
-          '<span class="hero__season">' + esc(data.season) + ' season</span>' +
         '</div>' +
         '<h1 class="hero__title">That’s a wrap</h1>' +
         '<p class="hero__meta">Every round of the ' + esc(data.season) + ' season has a result. Here is how it ended.</p>' +
@@ -2123,9 +2106,6 @@ html.theming *::after {
     host.innerHTML =
       '<div class="hero__top">' +
         '<span class="chip ' + (started ? "chip--live" : "chip--accent") + '">' + (started ? "Lights out" : "Up next") + '</span>' +
-        '<span class="hero__round">Round ' + next.round + ' of ' + total + '</span>' +
-        '<span class="hero__season">' + esc(data.season) + ' season</span>' +
-        '<span class="hero__round hero__round--done">' + completedCount() + ' completed</span>' +
       '</div>' +
       '<h1 class="hero__title">' + gpTitle(next.name) + '</h1>' +
       '<p class="hero__meta">' + esc(circuit) + '</p>' +
