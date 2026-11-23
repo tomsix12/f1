@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>F1 · Schedule, results &amp; standings</title>
-<meta name="description" content="Live Formula 1 schedule, race winners and championship standings, converted to Europe/Prague time. Data from Jolpica F1.">
+<meta name="description" content="Live Formula 1 calendar with session times, race winners and championship standings, converted to Europe/Prague time. Data from Jolpica F1.">
 <meta name="theme-color" content="#F7F9FE">
 <link rel="canonical" href="https://tomsix.xyz/">
 
@@ -28,13 +28,18 @@
   -----------
   1. API           — API_BASE in the main <script> near the bottom.
   2. Refresh rate  — REFRESH_MS (10 minutes by default) in the same block.
-  3. Team colours  — TEAM_COLORS (dark + light variants) in the main <script>.
-  4. Team names    — TEAM_NAMES (display overrides for API names).
-  5. Themes        — THEMES in the small <script> in <head>; 9 palettes,
+  3. Session lengths — SESSION_DEFS (Jolpica publishes start times only,
+                     so the usual practice / qualifying / race durations are
+                     shown; race ≈ 2 h).
+  4. Team colours  — TEAM_COLORS (dark + light variants) in the main <script>.
+  5. Team names    — TEAM_NAMES (display overrides for API names).
+  6. Themes        — THEMES in the small <script> in <head>; 9 palettes,
                      each with a light and a dark variant.
-  6. Storage keys  — CACHE_KEY, THEME_KEY, MODE_KEY.
-  7. Fallback      — data.json next to this file, plus the inline BOOTSTRAP
+  7. Storage keys  — CACHE_KEY, THEME_KEY, MODE_KEY.
+  8. Fallback      — data.json next to this file, plus the inline BOOTSTRAP
                      snapshot (search for "F1_BOOTSTRAP").
+  9. Flags         — inline SVG flags in the FLAGS map (country → ISO code in
+                     COUNTRY_CODES); unknown countries get a neutral globe.
 
   Data flow: localStorage cache (with timestamp) → Jolpica F1 API every
   REFRESH_MS and whenever the tab becomes visible again → data.json →
@@ -424,14 +429,14 @@ html[data-mode="dark"] .mode button[aria-pressed="true"] {
 }
 .tile.is-active:hover { transform: none; }
 
-.tile__dots { display: flex; gap: 4px; }
+.tile__dots { display: flex; gap: 6px; }
 .tile__dots i {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 0 0 1.5px var(--text-3);
 }
-.tile.is-active .tile__dots i { box-shadow: 0 0 0 1.5px var(--on-primary); }
+.tile.is-active .tile__dots i { box-shadow: 0 0 0 2px var(--on-primary); }
 
 .tile__name {
   font-size: 10.5px;
@@ -440,23 +445,6 @@ html[data-mode="dark"] .mode button[aria-pressed="true"] {
   letter-spacing: -0.005em;
   text-align: center;
 }
-
-.tile__check {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  display: none;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--on-primary);
-  color: var(--primary);
-  font-size: 8px;
-  font-weight: 900;
-  line-height: 13px;
-  text-align: center;
-}
-.tile.is-active .tile__check { display: block; }
 
 /* --------------------------------------------------------------------------
    Chips
@@ -692,101 +680,300 @@ html[data-mode="dark"] .mode button[aria-pressed="true"] {
 }
 
 /* --------------------------------------------------------------------------
-   Week picker & race cards
+   Race calendar
    -------------------------------------------------------------------------- */
-.weekstrip {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 2px 12px;
-  margin-inline: -2px;
-  scrollbar-width: thin;
-  scroll-snap-type: x proximity;
-  scrollbar-color: var(--line) transparent;
-}
-.weekstrip::-webkit-scrollbar { height: 6px; }
-.weekstrip::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
-.weekstrip::-webkit-scrollbar-track { background: transparent; }
-
-.weekchip {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 14px 9px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--text-2);
-  font-size: 12.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  scroll-snap-align: start;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
-}
-.weekchip:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--line)); transform: translateY(-1px); }
-.weekchip[aria-selected="true"] {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--on-primary);
-  transform: none;
-}
-
-.weekchip__r {
-  display: inline-grid;
-  place-items: center;
-  min-width: 26px;
-  height: 24px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-.weekchip[aria-selected="true"] .weekchip__r {
-  background: color-mix(in srgb, var(--on-primary) 20%, transparent);
-  color: var(--on-primary);
-}
-
-.weekpanel {
-  margin-top: 6px;
-  animation: weekIn 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-@keyframes weekIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: none; }
-}
-
-.weekpanel__caption {
-  margin-bottom: 12px;
-  color: var(--text-3);
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
-
-.race-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 14px;
-}
-
-.race {
-  position: relative;
+.calendar {
   display: flex;
   flex-direction: column;
-  padding: 22px;
+  gap: 30px;
+}
+
+.race-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.race-group__title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.race-group__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.race-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.racecard {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-  animation: cardIn 0.44s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 70ms);
+  overflow: hidden;
+  animation: cardIn 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(min(var(--i, 0), 6) * 60ms);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.racecard:hover { border-color: color-mix(in srgb, var(--primary) 34%, var(--line)); }
+.racecard.is-open {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
+}
+
+.racecard__heading { margin: 0; }
+
+.racecard__btn {
+  display: grid;
+  grid-template-columns: 44px 32px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 18px;
+  text-align: left;
+  font-weight: 400;
+  border-radius: inherit;
+}
+
+.racecard__round {
+  color: var(--text-3);
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.flag {
+  display: block;
+  width: 32px;
+  height: 21.34px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+.flag svg { width: 100%; height: 100%; }
+html[data-mode="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+
+.racecard__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.racecard__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  min-width: 0;
+}
+
+.racecard__name {
+  font-size: 16.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  transition: color 0.2s ease;
+}
+.racecard__btn:hover .racecard__name { color: var(--primary); }
+
+.tag--sprint {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.racecard__meta {
+  color: var(--text-3);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.racecard__place {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.35;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.racecard__chev {
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  transition: transform 0.26s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.2s ease;
+}
+.racecard__chev svg { width: 18px; height: 18px; }
+.racecard.is-open .racecard__chev { transform: rotate(90deg); color: var(--primary); }
+
+.racecard__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.racecard.is-open .racecard__panel { grid-template-rows: 1fr; }
+
+.racecard__panel-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 18px;
+}
+
+.racecard__panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 2px 2px;
+  padding: 12px 2px 7px;
+  border-top: 1px solid var(--line);
+  color: var(--text-3);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.session-list { list-style: none; }
+
+.session {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 52px 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  border-top: 1px solid var(--line);
+}
+.session:first-child { border-top: 0; }
+
+.session.is-next {
+  padding-inline: 10px;
+  border-radius: 12px;
+  border-top-color: transparent;
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+}
+.session.is-next + .session { border-top-color: transparent; }
+
+.session__when {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.session__dow { color: var(--text-2); font-size: 11.5px; font-weight: 750; }
+.session__date { color: var(--text-3); font-size: 10px; font-variant-numeric: tabular-nums; }
+
+.session__name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.session__badge {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session__len {
+  color: var(--text-3);
+  font-size: 10.5px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.session__time {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.racecard__winner {
+  --team: var(--team-dark, var(--primary));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  margin: 10px 2px 12px;
+  padding: 10px 13px;
+  border-left: 4px solid var(--team);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+html[data-mode="light"] .racecard__winner { --team: var(--team-light, var(--primary)); }
+
+.racecard__winner-label {
+  color: var(--text-3);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.racecard__winner strong { color: var(--text); font-weight: 700; }
+.racecard__winner-team,
+.racecard__winner-result { color: var(--text-3); }
+
+.racecard__pending {
+  margin: 10px 2px 12px;
+  padding: 10px 13px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.racecard.is-open .session,
+.racecard.is-open .racecard__winner,
+.racecard.is-open .racecard__pending {
+  animation: sessionIn 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
 }
 
 @keyframes cardIn {
@@ -794,92 +981,24 @@ html[data-mode="dark"] .mode button[aria-pressed="true"] {
   to { opacity: 1; transform: none; }
 }
 
-.race__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+@keyframes sessionIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 
-.race__round {
-  color: var(--text-3);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
+@media (max-width: 620px) {
+  .racecard__btn {
+    grid-template-columns: 34px 28px minmax(0, 1fr) 18px;
+    gap: 10px;
+    padding: 13px 14px;
+  }
+  .racecard__round { font-size: 20px; }
+  .flag { width: 28px; height: 18.67px; }
+  .racecard__name { font-size: 15px; }
+  .racecard__panel-inner { padding-inline: 14px; }
+  .session { grid-template-columns: 52px minmax(0, 1fr) 44px 44px; gap: 8px; }
+  .session__name { font-size: 12px; }
 }
-
-.race__name {
-  margin-top: 8px;
-  font-size: 21px;
-  letter-spacing: -0.03em;
-}
-
-.race__circuit {
-  margin-top: 4px;
-  color: var(--text-3);
-  font-size: 12.5px;
-  line-height: 1.45;
-}
-
-.race__when {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  color: var(--text-2);
-  font-size: 13.5px;
-  font-variant-numeric: tabular-nums;
-}
-.race__when svg { width: 15px; height: 15px; color: var(--text-3); flex: 0 0 auto; }
-.race__when strong { font-weight: 650; }
-
-.race__winner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 6px;
-  margin-top: 14px;
-  padding: 11px 14px;
-  border-radius: 14px;
-  border-left: 4px solid var(--team, var(--primary));
-  background: var(--surface-2);
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--text-2);
-}
-.race__winner-label {
-  color: var(--text-3);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.race__winner strong { color: var(--text); font-weight: 700; }
-.race__winner em { font-style: normal; color: var(--text-3); }
-
-.race__pending {
-  margin-top: 14px;
-  padding: 11px 14px;
-  border-radius: 14px;
-  border: 1px dashed var(--line);
-  color: var(--text-3);
-  font-size: 12.5px;
-  font-weight: 550;
-}
-
-.race__cd {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 14px;
-  color: var(--primary);
-  font-size: 12.5px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.race__cd svg { width: 14px; height: 14px; }
 
 /* --------------------------------------------------------------------------
    Standings
@@ -1109,8 +1228,6 @@ html.theming *::after {
   .cd__num { font-size: clamp(24px, 8vw, 30px); }
   .cd__label { font-size: 8.5px; }
   .section { margin-top: 32px; }
-  .race { padding: 18px; border-radius: 22px; }
-  .race__name { font-size: 19px; }
   .team-card { grid-template-columns: 34px 5px minmax(0, 1fr) auto; gap: 11px; padding: 11px 14px 11px 12px; }
   .team-card__pos { width: 32px; height: 32px; font-size: 11.5px; }
   .team-card__pts { font-size: 19px; }
@@ -1292,8 +1409,7 @@ html.theming *::after {
           <h2 class="section__title">Race calendar</h2>
           <p class="section__meta" id="schedule-meta">Loading…</p>
         </div>
-        <div class="weekstrip" id="weekstrip" role="tablist" aria-label="Race weekends"></div>
-        <div class="weekpanel" id="weekpanel" role="tabpanel" tabindex="0" aria-label="Selected race weekend"></div>
+        <div class="calendar" id="calendar"></div>
       </section>
     </section>
 
@@ -1329,746 +1445,7 @@ html.theming *::after {
 <div class="sr-only" id="live" role="status" aria-live="polite"></div>
 <noscript><div class="noscript">This dashboard needs JavaScript to load live Formula 1 data.</div></noscript>
 
-<script>window.F1_BOOTSTRAP = {
-    "season":  "2026",
-    "round":  21,
-    "fetchedAt":  "2026-11-23T19:49:38.2657377Z",
-    "races":  [
-                  {
-                      "round":  1,
-                      "name":  "Australian Grand Prix",
-                      "circuit":  "Albert Park Grand Prix Circuit",
-                      "city":  "Melbourne",
-                      "country":  "Australia",
-                      "date":  "2026-03-08",
-                      "time":  "04:00:00Z",
-                      "start":  "2026-03-08T04:00:00.0000000+00:00",
-                      "weekFrom":  "2026-03-06",
-                      "winner":  {
-                                     "driver":  "George Russell",
-                                     "code":  "RUS",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:23:06.801"
-                                 }
-                  },
-                  {
-                      "round":  2,
-                      "name":  "Chinese Grand Prix",
-                      "circuit":  "Shanghai International Circuit",
-                      "city":  "Shanghai",
-                      "country":  "China",
-                      "date":  "2026-03-15",
-                      "time":  "07:00:00Z",
-                      "start":  "2026-03-15T07:00:00.0000000+00:00",
-                      "weekFrom":  "2026-03-13",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:33:15.607"
-                                 }
-                  },
-                  {
-                      "round":  3,
-                      "name":  "Japanese Grand Prix",
-                      "circuit":  "Suzuka Circuit",
-                      "city":  "Suzuka",
-                      "country":  "Japan",
-                      "date":  "2026-03-29",
-                      "time":  "05:00:00Z",
-                      "start":  "2026-03-29T05:00:00.0000000+00:00",
-                      "weekFrom":  "2026-03-27",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:28:03.403"
-                                 }
-                  },
-                  {
-                      "round":  4,
-                      "name":  "Miami Grand Prix",
-                      "circuit":  "Miami International Autodrome",
-                      "city":  "Miami",
-                      "country":  "USA",
-                      "date":  "2026-05-03",
-                      "time":  "20:00:00Z",
-                      "start":  "2026-05-03T20:00:00.0000000+00:00",
-                      "weekFrom":  "2026-05-01",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:33:19.273"
-                                 }
-                  },
-                  {
-                      "round":  5,
-                      "name":  "Canadian Grand Prix",
-                      "circuit":  "Circuit Gilles Villeneuve",
-                      "city":  "Montreal",
-                      "country":  "Canada",
-                      "date":  "2026-05-24",
-                      "time":  "20:00:00Z",
-                      "start":  "2026-05-24T20:00:00.0000000+00:00",
-                      "weekFrom":  "2026-05-22",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:28:15.758"
-                                 }
-                  },
-                  {
-                      "round":  6,
-                      "name":  "Monaco Grand Prix",
-                      "circuit":  "Circuit de Monaco",
-                      "city":  "Monte Carlo",
-                      "country":  "Monaco",
-                      "date":  "2026-06-07",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-06-07T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-06-05",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "2:23:31.243"
-                                 }
-                  },
-                  {
-                      "round":  7,
-                      "name":  "Barcelona Grand Prix",
-                      "circuit":  "Circuit de Barcelona-Catalunya",
-                      "city":  "Barcelona",
-                      "country":  "Spain",
-                      "date":  "2026-06-14",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-06-14T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-06-12",
-                      "winner":  {
-                                     "driver":  "Lewis Hamilton",
-                                     "code":  "HAM",
-                                     "teamId":  "ferrari",
-                                     "team":  "Ferrari",
-                                     "result":  "1:32:28.105"
-                                 }
-                  },
-                  {
-                      "round":  8,
-                      "name":  "Austrian Grand Prix",
-                      "circuit":  "Red Bull Ring",
-                      "city":  "Spielberg",
-                      "country":  "Austria",
-                      "date":  "2026-06-28",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-06-28T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-06-26",
-                      "winner":  {
-                                     "driver":  "George Russell",
-                                     "code":  "RUS",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:26:37.979"
-                                 }
-                  },
-                  {
-                      "round":  9,
-                      "name":  "British Grand Prix",
-                      "circuit":  "Silverstone Circuit",
-                      "city":  "Silverstone",
-                      "country":  "UK",
-                      "date":  "2026-07-05",
-                      "time":  "14:00:00Z",
-                      "start":  "2026-07-05T14:00:00.0000000+00:00",
-                      "weekFrom":  "2026-07-03",
-                      "winner":  {
-                                     "driver":  "Charles Leclerc",
-                                     "code":  "LEC",
-                                     "teamId":  "ferrari",
-                                     "team":  "Ferrari",
-                                     "result":  "1:27:11.335"
-                                 }
-                  },
-                  {
-                      "round":  10,
-                      "name":  "Belgian Grand Prix",
-                      "circuit":  "Circuit de Spa-Francorchamps",
-                      "city":  "Spa",
-                      "country":  "Belgium",
-                      "date":  "2026-07-19",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-07-19T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-07-17",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:24:42.479"
-                                 }
-                  },
-                  {
-                      "round":  11,
-                      "name":  "Hungarian Grand Prix",
-                      "circuit":  "Hungaroring",
-                      "city":  "Budapest",
-                      "country":  "Hungary",
-                      "date":  "2026-07-26",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-07-26T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-07-24",
-                      "winner":  {
-                                     "driver":  "Lando Norris",
-                                     "code":  "NOR",
-                                     "teamId":  "mclaren",
-                                     "team":  "McLaren",
-                                     "result":  "1:39:56.180"
-                                 }
-                  },
-                  {
-                      "round":  12,
-                      "name":  "Dutch Grand Prix",
-                      "circuit":  "Circuit Park Zandvoort",
-                      "city":  "Zandvoort",
-                      "country":  "Netherlands",
-                      "date":  "2026-08-23",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-08-23T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-08-21",
-                      "winner":  {
-                                     "driver":  "Lando Norris",
-                                     "code":  "NOR",
-                                     "teamId":  "mclaren",
-                                     "team":  "McLaren",
-                                     "result":  "2:04:44.859"
-                                 }
-                  },
-                  {
-                      "round":  13,
-                      "name":  "Italian Grand Prix",
-                      "circuit":  "Autodromo Nazionale di Monza",
-                      "city":  "Monza",
-                      "country":  "Italy",
-                      "date":  "2026-09-06",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-09-06T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-09-04",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:51:15.281"
-                                 }
-                  },
-                  {
-                      "round":  14,
-                      "name":  "Spanish Grand Prix",
-                      "circuit":  "Madring",
-                      "city":  "Madrid",
-                      "country":  "Spain",
-                      "date":  "2026-09-13",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-09-13T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-09-11",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:34:23.754"
-                                 }
-                  },
-                  {
-                      "round":  15,
-                      "name":  "Azerbaijan Grand Prix",
-                      "circuit":  "Baku City Circuit",
-                      "city":  "Baku",
-                      "country":  "Azerbaijan",
-                      "date":  "2026-09-26",
-                      "time":  "11:00:00Z",
-                      "start":  "2026-09-26T11:00:00.0000000+00:00",
-                      "weekFrom":  "2026-09-24",
-                      "winner":  {
-                                     "driver":  "George Russell",
-                                     "code":  "RUS",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:38:02.143"
-                                 }
-                  },
-                  {
-                      "round":  16,
-                      "name":  "Bahrain Grand Prix in Malaysia",
-                      "circuit":  "Sepang International Circuit",
-                      "city":  "Kuala Lumpur",
-                      "country":  "Malaysia",
-                      "date":  "2026-10-04",
-                      "time":  "07:00:00Z",
-                      "start":  "2026-10-04T07:00:00.0000000+00:00",
-                      "weekFrom":  "2026-10-02",
-                      "winner":  {
-                                     "driver":  "Max Verstappen",
-                                     "code":  "VER",
-                                     "teamId":  "red_bull",
-                                     "team":  "Red Bull",
-                                     "result":  "1:47:14.808"
-                                 }
-                  },
-                  {
-                      "round":  17,
-                      "name":  "Singapore Grand Prix",
-                      "circuit":  "Marina Bay Street Circuit",
-                      "city":  "Marina Bay",
-                      "country":  "Singapore",
-                      "date":  "2026-10-11",
-                      "time":  "12:00:00Z",
-                      "start":  "2026-10-11T12:00:00.0000000+00:00",
-                      "weekFrom":  "2026-10-09",
-                      "winner":  {
-                                     "driver":  "Max Verstappen",
-                                     "code":  "VER",
-                                     "teamId":  "red_bull",
-                                     "team":  "Red Bull",
-                                     "result":  "1:42:00.785"
-                                 }
-                  },
-                  {
-                      "round":  18,
-                      "name":  "United States Grand Prix",
-                      "circuit":  "Circuit of the Americas",
-                      "city":  "Austin",
-                      "country":  "USA",
-                      "date":  "2026-10-25",
-                      "time":  "20:00:00Z",
-                      "start":  "2026-10-25T20:00:00.0000000+00:00",
-                      "weekFrom":  "2026-10-23",
-                      "winner":  {
-                                     "driver":  "Andrea Kimi Antonelli",
-                                     "code":  "ANT",
-                                     "teamId":  "mercedes",
-                                     "team":  "Mercedes",
-                                     "result":  "1:35:16.650"
-                                 }
-                  },
-                  {
-                      "round":  19,
-                      "name":  "Mexico City Grand Prix",
-                      "circuit":  "AutÃ³dromo Hermanos RodrÃ­guez",
-                      "city":  "Mexico City",
-                      "country":  "Mexico",
-                      "date":  "2026-11-01",
-                      "time":  "20:00:00Z",
-                      "start":  "2026-11-01T20:00:00.0000000+00:00",
-                      "weekFrom":  "2026-10-30",
-                      "winner":  {
-                                     "driver":  "Max Verstappen",
-                                     "code":  "VER",
-                                     "teamId":  "red_bull",
-                                     "team":  "Red Bull",
-                                     "result":  "2:20:28.772"
-                                 }
-                  },
-                  {
-                      "round":  20,
-                      "name":  "Brazilian Grand Prix",
-                      "circuit":  "AutÃ³dromo JosÃ© Carlos Pace",
-                      "city":  "SÃ£o Paulo",
-                      "country":  "Brazil",
-                      "date":  "2026-11-08",
-                      "time":  "17:00:00Z",
-                      "start":  "2026-11-08T17:00:00.0000000+00:00",
-                      "weekFrom":  "2026-11-06",
-                      "winner":  {
-                                     "driver":  "Lando Norris",
-                                     "code":  "NOR",
-                                     "teamId":  "mclaren",
-                                     "team":  "McLaren",
-                                     "result":  "1:35:23.504"
-                                 }
-                  },
-                  {
-                      "round":  21,
-                      "name":  "Las Vegas Grand Prix",
-                      "circuit":  "Las Vegas Strip Street Circuit",
-                      "city":  "Las Vegas",
-                      "country":  "USA",
-                      "date":  "2026-11-22",
-                      "time":  "04:00:00Z",
-                      "start":  "2026-11-22T04:00:00.0000000+00:00",
-                      "weekFrom":  "2026-11-20",
-                      "winner":  {
-                                     "driver":  "Max Verstappen",
-                                     "code":  "VER",
-                                     "teamId":  "red_bull",
-                                     "team":  "Red Bull",
-                                     "result":  "1:27:39.624"
-                                 }
-                  },
-                  {
-                      "round":  22,
-                      "name":  "Qatar Grand Prix",
-                      "circuit":  "Lusail International Circuit",
-                      "city":  "Lusail",
-                      "country":  "Qatar",
-                      "date":  "2026-11-29",
-                      "time":  "16:00:00Z",
-                      "start":  "2026-11-29T16:00:00.0000000+00:00",
-                      "weekFrom":  "2026-11-27",
-                      "winner":  null
-                  },
-                  {
-                      "round":  23,
-                      "name":  "Abu Dhabi Grand Prix",
-                      "circuit":  "Yas Marina Circuit",
-                      "city":  "Abu Dhabi",
-                      "country":  "UAE",
-                      "date":  "2026-12-06",
-                      "time":  "13:00:00Z",
-                      "start":  "2026-12-06T13:00:00.0000000+00:00",
-                      "weekFrom":  "2026-12-04",
-                      "winner":  null
-                  }
-              ],
-    "drivers":  [
-                    {
-                        "pos":  1,
-                        "name":  "Andrea Kimi Antonelli",
-                        "code":  "ANT",
-                        "teamId":  "mercedes",
-                        "team":  "Mercedes",
-                        "points":  402,
-                        "wins":  9,
-                        "nat":  "Italian"
-                    },
-                    {
-                        "pos":  2,
-                        "name":  "Max Verstappen",
-                        "code":  "VER",
-                        "teamId":  "red_bull",
-                        "team":  "Red Bull",
-                        "points":  304,
-                        "wins":  4,
-                        "nat":  "Dutch"
-                    },
-                    {
-                        "pos":  3,
-                        "name":  "Lewis Hamilton",
-                        "code":  "HAM",
-                        "teamId":  "ferrari",
-                        "team":  "Ferrari",
-                        "points":  267,
-                        "wins":  1,
-                        "nat":  "British"
-                    },
-                    {
-                        "pos":  4,
-                        "name":  "George Russell",
-                        "code":  "RUS",
-                        "teamId":  "mercedes",
-                        "team":  "Mercedes",
-                        "points":  264,
-                        "wins":  3,
-                        "nat":  "British"
-                    },
-                    {
-                        "pos":  5,
-                        "name":  "Lando Norris",
-                        "code":  "NOR",
-                        "teamId":  "mclaren",
-                        "team":  "McLaren",
-                        "points":  264,
-                        "wins":  3,
-                        "nat":  "British"
-                    },
-                    {
-                        "pos":  6,
-                        "name":  "Charles Leclerc",
-                        "code":  "LEC",
-                        "teamId":  "ferrari",
-                        "team":  "Ferrari",
-                        "points":  250,
-                        "wins":  1,
-                        "nat":  "Monegasque"
-                    },
-                    {
-                        "pos":  7,
-                        "name":  "Oscar Piastri",
-                        "code":  "PIA",
-                        "teamId":  "mclaren",
-                        "team":  "McLaren",
-                        "points":  167,
-                        "wins":  0,
-                        "nat":  "Australian"
-                    },
-                    {
-                        "pos":  8,
-                        "name":  "Isack Hadjar",
-                        "code":  "HAD",
-                        "teamId":  "red_bull",
-                        "team":  "Red Bull",
-                        "points":  122,
-                        "wins":  0,
-                        "nat":  "French"
-                    },
-                    {
-                        "pos":  9,
-                        "name":  "Liam Lawson",
-                        "code":  "LAW",
-                        "teamId":  "red_bull",
-                        "team":  "Red Bull",
-                        "points":  89,
-                        "wins":  0,
-                        "nat":  "New Zealander"
-                    },
-                    {
-                        "pos":  10,
-                        "name":  "Pierre Gasly",
-                        "code":  "GAS",
-                        "teamId":  "alpine",
-                        "team":  "Alpine F1 Team",
-                        "points":  52,
-                        "wins":  0,
-                        "nat":  "French"
-                    },
-                    {
-                        "pos":  11,
-                        "name":  "Arvid Lindblad",
-                        "code":  "LIN",
-                        "teamId":  "rb",
-                        "team":  "RB F1 Team",
-                        "points":  38,
-                        "wins":  0,
-                        "nat":  "British"
-                    },
-                    {
-                        "pos":  12,
-                        "name":  "Franco Colapinto",
-                        "code":  "COL",
-                        "teamId":  "alpine",
-                        "team":  "Alpine F1 Team",
-                        "points":  35,
-                        "wins":  0,
-                        "nat":  "Argentine"
-                    },
-                    {
-                        "pos":  13,
-                        "name":  "Oliver Bearman",
-                        "code":  "BEA",
-                        "teamId":  "haas",
-                        "team":  "Haas F1 Team",
-                        "points":  23,
-                        "wins":  0,
-                        "nat":  "British"
-                    },
-                    {
-                        "pos":  14,
-                        "name":  "Gabriel Bortoleto",
-                        "code":  "BOR",
-                        "teamId":  "audi",
-                        "team":  "Audi",
-                        "points":  14,
-                        "wins":  0,
-                        "nat":  "Brazilian"
-                    },
-                    {
-                        "pos":  15,
-                        "name":  "Nico HÃ¼lkenberg",
-                        "code":  "HUL",
-                        "teamId":  "audi",
-                        "team":  "Audi",
-                        "points":  14,
-                        "wins":  0,
-                        "nat":  "German"
-                    },
-                    {
-                        "pos":  16,
-                        "name":  "Carlos Sainz",
-                        "code":  "SAI",
-                        "teamId":  "williams",
-                        "team":  "Williams",
-                        "points":  11,
-                        "wins":  0,
-                        "nat":  "Spanish"
-                    },
-                    {
-                        "pos":  17,
-                        "name":  "Esteban Ocon",
-                        "code":  "OCO",
-                        "teamId":  "haas",
-                        "team":  "Haas F1 Team",
-                        "points":  7,
-                        "wins":  0,
-                        "nat":  "French"
-                    },
-                    {
-                        "pos":  18,
-                        "name":  "Fernando Alonso",
-                        "code":  "ALO",
-                        "teamId":  "aston_martin",
-                        "team":  "Aston Martin",
-                        "points":  7,
-                        "wins":  0,
-                        "nat":  "Spanish"
-                    },
-                    {
-                        "pos":  19,
-                        "name":  "Alexander Albon",
-                        "code":  "ALB",
-                        "teamId":  "williams",
-                        "team":  "Williams",
-                        "points":  5,
-                        "wins":  0,
-                        "nat":  "Thai"
-                    },
-                    {
-                        "pos":  20,
-                        "name":  "Yuki Tsunoda",
-                        "code":  "TSU",
-                        "teamId":  "rb",
-                        "team":  "RB F1 Team",
-                        "points":  1,
-                        "wins":  0,
-                        "nat":  "Japanese"
-                    },
-                    {
-                        "pos":  21,
-                        "name":  "Ryo Hirakawa",
-                        "code":  "HIR",
-                        "teamId":  "haas",
-                        "team":  "Haas F1 Team",
-                        "points":  1,
-                        "wins":  0,
-                        "nat":  "Japanese"
-                    },
-                    {
-                        "pos":  22,
-                        "name":  "Lance Stroll",
-                        "code":  "STR",
-                        "teamId":  "aston_martin",
-                        "team":  "Aston Martin",
-                        "points":  0,
-                        "wins":  0,
-                        "nat":  "Canadian"
-                    },
-                    {
-                        "pos":  23,
-                        "name":  "Valtteri Bottas",
-                        "code":  "BOT",
-                        "teamId":  "cadillac",
-                        "team":  "Cadillac F1 Team",
-                        "points":  0,
-                        "wins":  0,
-                        "nat":  "Finnish"
-                    },
-                    {
-                        "pos":  24,
-                        "name":  "Sergio PÃ©rez",
-                        "code":  "PER",
-                        "teamId":  "cadillac",
-                        "team":  "Cadillac F1 Team",
-                        "points":  0,
-                        "wins":  0,
-                        "nat":  "Mexican"
-                    },
-                    {
-                        "pos":  25,
-                        "name":  "Rafael Camara",
-                        "code":  "CAM",
-                        "teamId":  "haas",
-                        "team":  "Haas F1 Team",
-                        "points":  0,
-                        "wins":  0,
-                        "nat":  "Brazilian"
-                    }
-                ],
-    "teams":  [
-                  {
-                      "pos":  1,
-                      "id":  "mercedes",
-                      "name":  "Mercedes",
-                      "points":  666,
-                      "wins":  12
-                  },
-                  {
-                      "pos":  2,
-                      "id":  "ferrari",
-                      "name":  "Ferrari",
-                      "points":  517,
-                      "wins":  2
-                  },
-                  {
-                      "pos":  3,
-                      "id":  "red_bull",
-                      "name":  "Red Bull",
-                      "points":  440,
-                      "wins":  4
-                  },
-                  {
-                      "pos":  4,
-                      "id":  "mclaren",
-                      "name":  "McLaren",
-                      "points":  431,
-                      "wins":  3
-                  },
-                  {
-                      "pos":  5,
-                      "id":  "rb",
-                      "name":  "RB F1 Team",
-                      "points":  114,
-                      "wins":  0
-                  },
-                  {
-                      "pos":  6,
-                      "id":  "alpine",
-                      "name":  "Alpine F1 Team",
-                      "points":  87,
-                      "wins":  0
-                  },
-                  {
-                      "pos":  7,
-                      "id":  "haas",
-                      "name":  "Haas F1 Team",
-                      "points":  31,
-                      "wins":  0
-                  },
-                  {
-                      "pos":  8,
-                      "id":  "audi",
-                      "name":  "Audi",
-                      "points":  28,
-                      "wins":  0
-                  },
-                  {
-                      "pos":  9,
-                      "id":  "williams",
-                      "name":  "Williams",
-                      "points":  16,
-                      "wins":  0
-                  },
-                  {
-                      "pos":  10,
-                      "id":  "aston_martin",
-                      "name":  "Aston Martin",
-                      "points":  7,
-                      "wins":  0
-                  },
-                  {
-                      "pos":  11,
-                      "id":  "cadillac",
-                      "name":  "Cadillac F1 Team",
-                      "points":  0,
-                      "wins":  0
-                  }
-              ]
-};</script>
+<script>window.F1_BOOTSTRAP = {"season":"2026","round":21,"fetchedAt":"2026-11-23T20:58:24.365Z","races":[{"round":1,"name":"Australian Grand Prix","circuit":"Albert Park Grand Prix Circuit","city":"Melbourne","country":"Australia","date":"2026-03-08","time":"04:00:00Z","start":"2026-03-08T04:00:00Z","weekFrom":"2026-03-06","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-03-06T01:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-03-06T05:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-03-07T01:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-03-07T05:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-03-08T04:00:00Z","minutes":120}],"winner":{"driver":"George Russell","code":"RUS","teamId":"mercedes","team":"Mercedes","result":"1:23:06.801"}},{"round":2,"name":"Chinese Grand Prix","circuit":"Shanghai International Circuit","city":"Shanghai","country":"China","date":"2026-03-15","time":"07:00:00Z","start":"2026-03-15T07:00:00Z","weekFrom":"2026-03-13","sprint":true,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-03-13T03:30:00Z","minutes":60},{"name":"Sprint Qualifying","type":"sprint-qualifying","start":"2026-03-13T07:30:00Z","minutes":44},{"name":"Sprint","type":"sprint","start":"2026-03-14T03:00:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-03-14T07:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-03-15T07:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:33:15.607"}},{"round":3,"name":"Japanese Grand Prix","circuit":"Suzuka Circuit","city":"Suzuka","country":"Japan","date":"2026-03-29","time":"05:00:00Z","start":"2026-03-29T05:00:00Z","weekFrom":"2026-03-27","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-03-27T02:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-03-27T06:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-03-28T02:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-03-28T06:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-03-29T05:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:28:03.403"}},{"round":4,"name":"Miami Grand Prix","circuit":"Miami International Autodrome","city":"Miami","country":"USA","date":"2026-05-03","time":"20:00:00Z","start":"2026-05-03T20:00:00Z","weekFrom":"2026-05-01","sprint":true,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-05-01T16:00:00Z","minutes":60},{"name":"Sprint Qualifying","type":"sprint-qualifying","start":"2026-05-01T20:30:00Z","minutes":44},{"name":"Sprint","type":"sprint","start":"2026-05-02T16:00:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-05-02T20:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-05-03T20:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:33:19.273"}},{"round":5,"name":"Canadian Grand Prix","circuit":"Circuit Gilles Villeneuve","city":"Montreal","country":"Canada","date":"2026-05-24","time":"20:00:00Z","start":"2026-05-24T20:00:00Z","weekFrom":"2026-05-22","sprint":true,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-05-22T16:30:00Z","minutes":60},{"name":"Sprint Qualifying","type":"sprint-qualifying","start":"2026-05-22T20:30:00Z","minutes":44},{"name":"Sprint","type":"sprint","start":"2026-05-23T16:00:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-05-23T20:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-05-24T20:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:28:15.758"}},{"round":6,"name":"Monaco Grand Prix","circuit":"Circuit de Monaco","city":"Monte Carlo","country":"Monaco","date":"2026-06-07","time":"13:00:00Z","start":"2026-06-07T13:00:00Z","weekFrom":"2026-06-05","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-06-05T11:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-06-05T15:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-06-06T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-06-06T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-06-07T13:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"2:23:31.243"}},{"round":7,"name":"Barcelona Grand Prix","circuit":"Circuit de Barcelona-Catalunya","city":"Barcelona","country":"Spain","date":"2026-06-14","time":"13:00:00Z","start":"2026-06-14T13:00:00Z","weekFrom":"2026-06-12","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-06-12T11:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-06-12T15:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-06-13T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-06-13T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-06-14T13:00:00Z","minutes":120}],"winner":{"driver":"Lewis Hamilton","code":"HAM","teamId":"ferrari","team":"Ferrari","result":"1:32:28.105"}},{"round":8,"name":"Austrian Grand Prix","circuit":"Red Bull Ring","city":"Spielberg","country":"Austria","date":"2026-06-28","time":"13:00:00Z","start":"2026-06-28T13:00:00Z","weekFrom":"2026-06-26","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-06-26T11:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-06-26T15:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-06-27T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-06-27T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-06-28T13:00:00Z","minutes":120}],"winner":{"driver":"George Russell","code":"RUS","teamId":"mercedes","team":"Mercedes","result":"1:26:37.979"}},{"round":9,"name":"British Grand Prix","circuit":"Silverstone Circuit","city":"Silverstone","country":"UK","date":"2026-07-05","time":"14:00:00Z","start":"2026-07-05T14:00:00Z","weekFrom":"2026-07-03","sprint":true,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-07-03T11:30:00Z","minutes":60},{"name":"Sprint Qualifying","type":"sprint-qualifying","start":"2026-07-03T15:30:00Z","minutes":44},{"name":"Sprint","type":"sprint","start":"2026-07-04T11:00:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-07-04T15:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-07-05T14:00:00Z","minutes":120}],"winner":{"driver":"Charles Leclerc","code":"LEC","teamId":"ferrari","team":"Ferrari","result":"1:27:11.335"}},{"round":10,"name":"Belgian Grand Prix","circuit":"Circuit de Spa-Francorchamps","city":"Spa","country":"Belgium","date":"2026-07-19","time":"13:00:00Z","start":"2026-07-19T13:00:00Z","weekFrom":"2026-07-17","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-07-17T11:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-07-17T15:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-07-18T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-07-18T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-07-19T13:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:24:42.479"}},{"round":11,"name":"Hungarian Grand Prix","circuit":"Hungaroring","city":"Budapest","country":"Hungary","date":"2026-07-26","time":"13:00:00Z","start":"2026-07-26T13:00:00Z","weekFrom":"2026-07-24","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-07-24T11:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-07-24T15:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-07-25T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-07-25T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-07-26T13:00:00Z","minutes":120}],"winner":{"driver":"Lando Norris","code":"NOR","teamId":"mclaren","team":"McLaren","result":"1:39:56.180"}},{"round":12,"name":"Dutch Grand Prix","circuit":"Circuit Park Zandvoort","city":"Zandvoort","country":"Netherlands","date":"2026-08-23","time":"13:00:00Z","start":"2026-08-23T13:00:00Z","weekFrom":"2026-08-21","sprint":true,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-08-21T10:30:00Z","minutes":60},{"name":"Sprint Qualifying","type":"sprint-qualifying","start":"2026-08-21T14:30:00Z","minutes":44},{"name":"Sprint","type":"sprint","start":"2026-08-22T10:00:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-08-22T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-08-23T13:00:00Z","minutes":120}],"winner":{"driver":"Lando Norris","code":"NOR","teamId":"mclaren","team":"McLaren","result":"2:04:44.859"}},{"round":13,"name":"Italian Grand Prix","circuit":"Autodromo Nazionale di Monza","city":"Monza","country":"Italy","date":"2026-09-06","time":"13:00:00Z","start":"2026-09-06T13:00:00Z","weekFrom":"2026-09-04","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-09-04T10:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-09-04T14:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-09-05T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-09-05T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-09-06T13:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:51:15.281"}},{"round":14,"name":"Spanish Grand Prix","circuit":"Madring","city":"Madrid","country":"Spain","date":"2026-09-13","time":"13:00:00Z","start":"2026-09-13T13:00:00Z","weekFrom":"2026-09-11","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-09-11T11:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-09-11T15:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-09-12T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-09-12T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-09-13T13:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:34:23.754"}},{"round":15,"name":"Azerbaijan Grand Prix","circuit":"Baku City Circuit","city":"Baku","country":"Azerbaijan","date":"2026-09-26","time":"11:00:00Z","start":"2026-09-26T11:00:00Z","weekFrom":"2026-09-24","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-09-24T08:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-09-24T12:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-09-25T08:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-09-25T12:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-09-26T11:00:00Z","minutes":120}],"winner":{"driver":"George Russell","code":"RUS","teamId":"mercedes","team":"Mercedes","result":"1:38:02.143"}},{"round":16,"name":"Bahrain Grand Prix in Malaysia","circuit":"Sepang International Circuit","city":"Kuala Lumpur","country":"Malaysia","date":"2026-10-04","time":"07:00:00Z","start":"2026-10-04T07:00:00Z","weekFrom":"2026-10-02","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-10-02T04:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-10-02T08:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-10-03T04:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-10-03T08:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-10-04T07:00:00Z","minutes":120}],"winner":{"driver":"Max Verstappen","code":"VER","teamId":"red_bull","team":"Red Bull","result":"1:47:14.808"}},{"round":17,"name":"Singapore Grand Prix","circuit":"Marina Bay Street Circuit","city":"Marina Bay","country":"Singapore","date":"2026-10-11","time":"12:00:00Z","start":"2026-10-11T12:00:00Z","weekFrom":"2026-10-09","sprint":true,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-10-09T08:30:00Z","minutes":60},{"name":"Sprint Qualifying","type":"sprint-qualifying","start":"2026-10-09T12:30:00Z","minutes":44},{"name":"Sprint","type":"sprint","start":"2026-10-10T09:00:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-10-10T13:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-10-11T12:00:00Z","minutes":120}],"winner":{"driver":"Max Verstappen","code":"VER","teamId":"red_bull","team":"Red Bull","result":"1:42:00.785"}},{"round":18,"name":"United States Grand Prix","circuit":"Circuit of the Americas","city":"Austin","country":"USA","date":"2026-10-25","time":"20:00:00Z","start":"2026-10-25T20:00:00Z","weekFrom":"2026-10-23","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-10-23T17:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-10-23T21:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-10-24T17:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-10-24T21:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-10-25T20:00:00Z","minutes":120}],"winner":{"driver":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","result":"1:35:16.650"}},{"round":19,"name":"Mexico City Grand Prix","circuit":"Autódromo Hermanos Rodríguez","city":"Mexico City","country":"Mexico","date":"2026-11-01","time":"20:00:00Z","start":"2026-11-01T20:00:00Z","weekFrom":"2026-10-30","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-10-30T18:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-10-30T22:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-10-31T17:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-10-31T21:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-11-01T20:00:00Z","minutes":120}],"winner":{"driver":"Max Verstappen","code":"VER","teamId":"red_bull","team":"Red Bull","result":"2:20:28.772"}},{"round":20,"name":"Brazilian Grand Prix","circuit":"Autódromo José Carlos Pace","city":"São Paulo","country":"Brazil","date":"2026-11-08","time":"17:00:00Z","start":"2026-11-08T17:00:00Z","weekFrom":"2026-11-06","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-11-06T15:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-11-06T19:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-11-07T14:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-11-07T18:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-11-08T17:00:00Z","minutes":120}],"winner":{"driver":"Lando Norris","code":"NOR","teamId":"mclaren","team":"McLaren","result":"1:35:23.504"}},{"round":21,"name":"Las Vegas Grand Prix","circuit":"Las Vegas Strip Street Circuit","city":"Las Vegas","country":"USA","date":"2026-11-22","time":"04:00:00Z","start":"2026-11-22T04:00:00Z","weekFrom":"2026-11-20","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-11-20T00:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-11-20T04:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-11-21T00:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-11-21T04:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-11-22T04:00:00Z","minutes":120}],"winner":{"driver":"Max Verstappen","code":"VER","teamId":"red_bull","team":"Red Bull","result":"1:27:39.624"}},{"round":22,"name":"Qatar Grand Prix","circuit":"Lusail International Circuit","city":"Lusail","country":"Qatar","date":"2026-11-29","time":"16:00:00Z","start":"2026-11-29T16:00:00Z","weekFrom":"2026-11-27","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-11-27T13:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-11-27T17:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-11-28T14:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-11-28T18:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-11-29T16:00:00Z","minutes":120}],"winner":null},{"round":23,"name":"Abu Dhabi Grand Prix","circuit":"Yas Marina Circuit","city":"Abu Dhabi","country":"UAE","date":"2026-12-06","time":"13:00:00Z","start":"2026-12-06T13:00:00Z","weekFrom":"2026-12-04","sprint":false,"sessions":[{"name":"Practice 1","type":"practice","start":"2026-12-04T09:30:00Z","minutes":60},{"name":"Practice 2","type":"practice","start":"2026-12-04T13:00:00Z","minutes":60},{"name":"Practice 3","type":"practice","start":"2026-12-05T10:30:00Z","minutes":60},{"name":"Qualifying","type":"qualifying","start":"2026-12-05T14:00:00Z","minutes":60},{"name":"Race","type":"race","start":"2026-12-06T13:00:00Z","minutes":120}],"winner":null}],"drivers":[{"pos":1,"name":"Andrea Kimi Antonelli","code":"ANT","teamId":"mercedes","team":"Mercedes","points":402,"wins":9},{"pos":2,"name":"Max Verstappen","code":"VER","teamId":"red_bull","team":"Red Bull","points":304,"wins":4},{"pos":3,"name":"Lewis Hamilton","code":"HAM","teamId":"ferrari","team":"Ferrari","points":267,"wins":1},{"pos":4,"name":"George Russell","code":"RUS","teamId":"mercedes","team":"Mercedes","points":264,"wins":3},{"pos":5,"name":"Lando Norris","code":"NOR","teamId":"mclaren","team":"McLaren","points":264,"wins":3},{"pos":6,"name":"Charles Leclerc","code":"LEC","teamId":"ferrari","team":"Ferrari","points":250,"wins":1},{"pos":7,"name":"Oscar Piastri","code":"PIA","teamId":"mclaren","team":"McLaren","points":167,"wins":0},{"pos":8,"name":"Isack Hadjar","code":"HAD","teamId":"red_bull","team":"Red Bull","points":122,"wins":0},{"pos":9,"name":"Liam Lawson","code":"LAW","teamId":"red_bull","team":"Red Bull","points":89,"wins":0},{"pos":10,"name":"Pierre Gasly","code":"GAS","teamId":"alpine","team":"Alpine F1 Team","points":52,"wins":0},{"pos":11,"name":"Arvid Lindblad","code":"LIN","teamId":"rb","team":"RB F1 Team","points":38,"wins":0},{"pos":12,"name":"Franco Colapinto","code":"COL","teamId":"alpine","team":"Alpine F1 Team","points":35,"wins":0},{"pos":13,"name":"Oliver Bearman","code":"BEA","teamId":"haas","team":"Haas F1 Team","points":23,"wins":0},{"pos":14,"name":"Gabriel Bortoleto","code":"BOR","teamId":"audi","team":"Audi","points":14,"wins":0},{"pos":15,"name":"Nico Hülkenberg","code":"HUL","teamId":"audi","team":"Audi","points":14,"wins":0},{"pos":16,"name":"Carlos Sainz","code":"SAI","teamId":"williams","team":"Williams","points":11,"wins":0},{"pos":17,"name":"Esteban Ocon","code":"OCO","teamId":"haas","team":"Haas F1 Team","points":7,"wins":0},{"pos":18,"name":"Fernando Alonso","code":"ALO","teamId":"aston_martin","team":"Aston Martin","points":7,"wins":0},{"pos":19,"name":"Alexander Albon","code":"ALB","teamId":"williams","team":"Williams","points":5,"wins":0},{"pos":20,"name":"Yuki Tsunoda","code":"TSU","teamId":"rb","team":"RB F1 Team","points":1,"wins":0},{"pos":21,"name":"Ryo Hirakawa","code":"HIR","teamId":"haas","team":"Haas F1 Team","points":1,"wins":0},{"pos":22,"name":"Lance Stroll","code":"STR","teamId":"aston_martin","team":"Aston Martin","points":0,"wins":0},{"pos":23,"name":"Valtteri Bottas","code":"BOT","teamId":"cadillac","team":"Cadillac F1 Team","points":0,"wins":0},{"pos":24,"name":"Sergio Pérez","code":"PER","teamId":"cadillac","team":"Cadillac F1 Team","points":0,"wins":0},{"pos":25,"name":"Rafael Camara","code":"CAM","teamId":"haas","team":"Haas F1 Team","points":0,"wins":0}],"teams":[{"pos":1,"id":"mercedes","name":"Mercedes","points":666,"wins":12},{"pos":2,"id":"ferrari","name":"Ferrari","points":517,"wins":2},{"pos":3,"id":"red_bull","name":"Red Bull","points":440,"wins":4},{"pos":4,"id":"mclaren","name":"McLaren","points":431,"wins":3},{"pos":5,"id":"rb","name":"RB F1 Team","points":114,"wins":0},{"pos":6,"id":"alpine","name":"Alpine F1 Team","points":87,"wins":0},{"pos":7,"id":"haas","name":"Haas F1 Team","points":31,"wins":0},{"pos":8,"id":"audi","name":"Audi","points":28,"wins":0},{"pos":9,"id":"williams","name":"Williams","points":16,"wins":0},{"pos":10,"id":"aston_martin","name":"Aston Martin","points":7,"wins":0},{"pos":11,"id":"cadillac","name":"Cadillac F1 Team","points":0,"wins":0}]};</script>
 
 <script>
 /* ===========================================================================
@@ -2090,11 +1467,22 @@ html.theming *::after {
   const API_BASE = "https://api.jolpi.ca/ergast/f1";
   const REFRESH_MS = 10 * 60 * 1000;
   const FETCH_TIMEOUT = 20000;
-  const CACHE_KEY = "f1.dashboard.cache.v1";
+  const CACHE_KEY = "f1.dashboard.cache.v2";
   const THEME_KEY = "f1.theme";
   const MODE_KEY = "f1.mode";
   const TZ = "Europe/Prague";
   const FALLBACK_FILE = "data.json";
+
+  /* Jolpica only publishes session start times, so durations are the usual
+     Formula 1 session lengths (race ≈ 2 h). */
+  const SESSION_DEFS = [
+    ["FirstPractice", "Practice 1", "practice", 60],
+    ["SecondPractice", "Practice 2", "practice", 60],
+    ["ThirdPractice", "Practice 3", "practice", 60],
+    ["SprintQualifying", "Sprint Qualifying", "sprint-qualifying", 44],
+    ["Sprint", "Sprint", "sprint", 60],
+    ["Qualifying", "Qualifying", "qualifying", 60]
+  ];
 
   const TEAM_COLORS = {
     mercedes:     { dark: "#2EE6D0", light: "#00857A" },
@@ -2124,6 +1512,39 @@ html.theming *::after {
     audi: "Audi"
   };
 
+  /* Inline country flags keep the page self-contained. They are intentionally
+     simplified (no coats of arms) so they stay crisp at 32 × 21 px. */
+  const FLAGS = {
+    au: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#00247D"/><svg x="0" y="0" width="15" height="10"><rect width="15" height="10" fill="#00247D"/><g stroke="#fff" stroke-width="2"><path d="M0 0l15 10M15 0L0 10"/></g><g stroke="#C8102E" stroke-width="1"><path d="M0 0l15 10M15 0L0 10"/></g><path d="M6 0h3v10H6zM0 3.5h15v3H0z" fill="#fff"/><path d="M6.75 0h1.5v10h-1.5zM0 4.25h15v1.5H0z" fill="#C8102E"/></svg><g fill="#fff"><circle cx="22" cy="5" r=".85"/><circle cx="26" cy="9" r=".85"/><circle cx="20.5" cy="12" r=".85"/><circle cx="24.5" cy="15.5" r=".85"/><circle cx="23" cy="10" r=".55"/><circle cx="7.5" cy="15" r="1.3"/></g></svg>',
+    at: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#ED2939"/><rect y="6.67" width="30" height="6.66" fill="#fff"/></svg>',
+    az: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#00B5E2"/><rect y="6.67" width="30" height="6.66" fill="#E4002B"/><rect y="13.33" width="30" height="6.67" fill="#00AF66"/><circle cx="14" cy="10" r="2.4" fill="#fff"/><circle cx="15" cy="10" r="2" fill="#E4002B"/><polygon points="18.4,8.3 18.8,9.4 20,9.4 19.1,10.1 19.4,11.3 18.4,10.6 17.4,11.3 17.7,10.1 16.8,9.4 18,9.4" fill="#fff"/></svg>',
+    be: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="20" fill="#000"/><rect x="10" width="10" height="20" fill="#FDDA24"/><rect x="20" width="10" height="20" fill="#EF3340"/></svg>',
+    br: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#009B3A"/><path d="M15 2.4L27 10 15 17.6 3 10z" fill="#FEDF00"/><circle cx="15" cy="10" r="4.1" fill="#002776"/><path d="M11 9.1c2.7.5 5.7 1 8 2.4" stroke="#fff" stroke-width=".9" fill="none"/><g fill="#fff"><circle cx="13" cy="8.4" r=".35"/><circle cx="16.4" cy="7.7" r=".35"/><circle cx="18" cy="10.4" r=".35"/></g></svg>',
+    ca: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><rect width="7.5" height="20" fill="#D52B1E"/><rect x="22.5" width="7.5" height="20" fill="#D52B1E"/><path d="M15 3.8l1.1 2.3 1.9-.6-.5 2 1.7.9-1.8 1.2.4 2-2-.8-.8 2.1h-1.8l-.8-2.1-2 .8.4-2-1.8-1.2 1.7-.9-.5-2 1.9.6z" fill="#D52B1E"/></svg>',
+    cn: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#DE2910"/><polygon points="6,2.5 6.71,4.53 8.85,4.57 7.14,5.87 7.76,7.93 6,6.7 4.24,7.93 4.86,5.87 3.15,4.57 5.29,4.53" fill="#FFDE00"/><g fill="#FFDE00"><circle cx="10.5" cy="3.1" r=".7"/><circle cx="12" cy="5.2" r=".7"/><circle cx="12" cy="7.6" r=".7"/><circle cx="10.5" cy="9.3" r=".7"/></g></svg>',
+    es: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/></svg>',
+    gb: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#012169"/><g stroke="#fff" stroke-width="4"><path d="M0 0l30 20M30 0L0 20"/></g><g stroke="#C8102E" stroke-width="2"><path d="M0 0l30 20M30 0L0 20"/></g><path d="M12 0h6v20h-6zM0 7h30v6H0z" fill="#fff"/><path d="M13.5 0h3v20h-3zM0 8.5h30v3H0z" fill="#C8102E"/></svg>',
+    hu: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#CE2939"/><rect y="6.67" width="30" height="6.66" fill="#fff"/><rect y="13.33" width="30" height="6.67" fill="#477050"/></svg>',
+    it: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#CE2B37"/></svg>',
+    jp: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="4.2" fill="#BC002D"/></svg>',
+    mc: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="10" fill="#CE1126"/><rect y="10" width="30" height="10" fill="#fff"/></svg>',
+    mx: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="20" fill="#006847"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#CE1126"/><path d="M15 8.2c1.7 0 2.8 1.3 2.4 3l1.1.7-1.3.6.3 1.4-1.3-.7-1.2.9-.2-1.4-1.4-.2.9-1.1c-.6-1.4.1-3.2 2.7-3.2z" fill="#7A4B22"/></svg>',
+    my: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><g fill="#CC0001"><rect width="30" height="1.43"/><rect y="2.86" width="30" height="1.43"/><rect y="5.71" width="30" height="1.43"/><rect y="8.57" width="30" height="1.43"/><rect y="11.43" width="30" height="1.43"/><rect y="14.29" width="30" height="1.43"/><rect y="17.14" width="30" height="1.43"/></g><rect width="15" height="10" fill="#010066"/><circle cx="6" cy="5" r="2.6" fill="#FFCC00"/><circle cx="7.1" cy="5" r="2.2" fill="#010066"/><polygon points="10.5,2.6 11,3.7 12.1,3.8 11.3,4.5 11.5,5.6 10.5,5 9.5,5.6 9.7,4.5 8.9,3.8 10,3.7" fill="#FFCC00"/></svg>',
+    nl: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#AE1C28"/><rect y="6.67" width="30" height="6.66" fill="#fff"/><rect y="13.33" width="30" height="6.67" fill="#21468B"/></svg>',
+    qa: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#8A1538"/><path d="M0 0h7l2 1.11-2 1.11 2 1.11-2 1.11 2 1.11-2 1.11 2 1.11-2 1.11 2 1.11-2 1.11 2 1.11-2 1.11 2 1.11-2 1.11 2 1.11-2 1.11 2 1.11-2 1.11V20H0z" fill="#fff"/></svg>',
+    sg: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><rect width="30" height="10" fill="#ED2939"/><circle cx="8" cy="5" r="2.8" fill="#fff"/><circle cx="9.3" cy="5" r="2.4" fill="#ED2939"/><g fill="#fff"><circle cx="12.8" cy="2.6" r=".6"/><circle cx="14.4" cy="4.1" r=".6"/><circle cx="13.8" cy="6.1" r=".6"/><circle cx="11.8" cy="6.1" r=".6"/><circle cx="11.2" cy="4.1" r=".6"/></g></svg>',
+    us: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><g fill="#B22234"><rect width="30" height="1.54"/><rect y="3.08" width="30" height="1.54"/><rect y="6.15" width="30" height="1.54"/><rect y="9.23" width="30" height="1.54"/><rect y="12.31" width="30" height="1.54"/><rect y="15.38" width="30" height="1.54"/><rect y="18.46" width="30" height="1.54"/></g><rect width="13.5" height="10.77" fill="#3C3B6E"/><g fill="#fff"><circle cx="2.2" cy="2" r=".55"/><circle cx="5.2" cy="2" r=".55"/><circle cx="8.2" cy="2" r=".55"/><circle cx="11.2" cy="2" r=".55"/><circle cx="3.7" cy="4.4" r=".55"/><circle cx="6.7" cy="4.4" r=".55"/><circle cx="9.7" cy="4.4" r=".55"/><circle cx="2.2" cy="6.8" r=".55"/><circle cx="5.2" cy="6.8" r=".55"/><circle cx="8.2" cy="6.8" r=".55"/><circle cx="11.2" cy="6.8" r=".55"/><circle cx="3.7" cy="9.1" r=".55"/><circle cx="6.7" cy="9.1" r=".55"/><circle cx="9.7" cy="9.1" r=".55"/></g></svg>',
+    ae: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><rect width="30" height="6.67" fill="#00732F"/><rect y="13.33" width="30" height="6.67" fill="#000"/><rect width="7.5" height="20" fill="#FF0000"/></svg>'
+  };
+
+  const COUNTRY_CODES = {
+    Australia: "au", China: "cn", Japan: "jp", USA: "us", "United States": "us",
+    Canada: "ca", Monaco: "mc", Spain: "es", Austria: "at", UK: "gb",
+    "United Kingdom": "gb", Belgium: "be", Hungary: "hu", Netherlands: "nl",
+    Italy: "it", Azerbaijan: "az", Malaysia: "my", Singapore: "sg", Mexico: "mx",
+    Brazil: "br", Qatar: "qa", UAE: "ae", "United Arab Emirates": "ae"
+  };
+
   const NEUTRAL_TEAM = { dark: "#C4C8CC", light: "#5F6368" };
   const THEMES = window.F1_THEMES || {};
   const THEME_ORDER = ["intense", "tonal-spot", "content", "fidelity", "vibrant", "expressive", "fruit-salad", "rainbow", "neutral"];
@@ -2136,7 +1557,6 @@ html.theming *::after {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[ch]));
 
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   const state = {
@@ -2149,7 +1569,8 @@ html.theming *::after {
     lastAttempt: 0,
     sig: "",
     view: "schedule",
-    week: null
+    open: new Set(),
+    nextSession: undefined
   };
 
   const warnedTeams = new Set();
@@ -2167,6 +1588,8 @@ html.theming *::after {
 
   /* ---------------------------------------------------------------- dates */
   const dayFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
+  const dayMonthFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric", month: "short" });
+  const weekdayFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short" });
   const dayYearFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short", year: "numeric" });
   const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false });
   const stampFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
@@ -2180,11 +1603,6 @@ html.theming *::after {
   function raceStart(race) {
     if (race.start) return new Date(race.start);
     return new Date(race.date + "T" + (race.time || "12:00:00Z"));
-  }
-
-  function parseDateOnly(value) {
-    const parts = String(value || "").split("-").map(Number);
-    return new Date(Date.UTC(parts[0], (parts[1] || 1) - 1, parts[2] || 1, 12));
   }
 
   function fmtRaceWhen(race) {
@@ -2214,52 +1632,41 @@ html.theming *::after {
     return fmtShortStamp(ts);
   }
 
-  /* --------------------------------------------------------------- weeks */
-  function isoWeekKey(value) {
-    const parts = String(value).split("-").map(Number);
-    const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-    const day = date.getUTCDay() || 7;
-    date.setUTCDate(date.getUTCDate() + 4 - day);
-    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-    const week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
-    return date.getUTCFullYear() + "-W" + String(week).padStart(2, "0");
+  /* --------------------------------------------------------- race weekend */
+  function dmParts(date) {
+    const parts = dayMonthFmt.formatToParts(date);
+    const day = parts.find((part) => part.type === "day");
+    const month = parts.find((part) => part.type === "month");
+    return { day: day ? day.value : "", month: month ? month.value : "" };
   }
 
-  function weekGroups() {
-    const races = state.data ? state.data.races : [];
-    const map = new Map();
-    for (const race of races) {
-      const key = isoWeekKey(race.date);
-      if (!map.has(key)) map.set(key, { key, races: [] });
-      map.get(key).races.push(race);
+  function sessionsOf(race) {
+    if (Array.isArray(race.sessions) && race.sessions.length) return race.sessions;
+    return [{ name: "Race", type: "race", start: raceStart(race).toISOString(), minutes: 120 }];
+  }
+
+  function sessionLength(minutes) {
+    const n = Number(minutes) || 0;
+    return n >= 120 ? "≈ 2 h" : n + " min";
+  }
+
+  function raceDateRange(race) {
+    const list = sessionsOf(race)
+      .map((session) => new Date(session.start))
+      .filter((date) => !Number.isNaN(date.getTime()));
+    if (!list.length) list.push(raceStart(race));
+    let from = list[0];
+    let to = list[0];
+    for (const date of list) {
+      if (date < from) from = date;
+      if (date > to) to = date;
     }
-    return Array.from(map.values()).sort((a, b) => a.races[0].round - b.races[0].round);
-  }
-
-  function groupRange(group) {
-    const first = group.races[0];
-    const last = group.races[group.races.length - 1];
-    const from = parseDateOnly(first.weekFrom || first.date);
-    const to = parseDateOnly(last.date);
-    const sameMonth = from.getUTCMonth() === to.getUTCMonth();
-    const left = from.getUTCDate() + (sameMonth ? "–" : " " + MONTHS[from.getUTCMonth()] + " – ");
-    return left + to.getUTCDate() + " " + MONTHS[to.getUTCMonth()];
-  }
-
-  function groupLongRange(group) {
-    const first = group.races[0];
-    const last = group.races[group.races.length - 1];
-    const from = parseDateOnly(first.weekFrom || first.date);
-    const to = parseDateOnly(last.date);
-    const left = from.getUTCDate() + " " + MONTHS[from.getUTCMonth()];
-    const right = to.getUTCDate() + " " + MONTHS[to.getUTCMonth()];
-    return (left === right ? left : left + " – " + right) + " " + to.getUTCFullYear();
-  }
-
-  function groupRoundLabel(group) {
-    const rounds = group.races.map((race) => race.round);
-    if (rounds.length === 1) return "R" + rounds[0];
-    return "R" + rounds[0] + "–" + rounds[rounds.length - 1];
+    const a = dmParts(from);
+    const b = dmParts(to);
+    if (a.month === b.month) {
+      return (a.day === b.day ? a.day : a.day + "–" + b.day) + " " + b.month;
+    }
+    return a.day + " " + a.month + " – " + b.day + " " + b.month;
   }
 
   /* ----------------------------------------------------------- countdown */
@@ -2339,6 +1746,28 @@ html.theming *::after {
     };
   }
 
+  function sessionsFrom(race) {
+    const sessions = [];
+    for (const [key, name, type, minutes] of SESSION_DEFS) {
+      const slot = race[key];
+      if (!slot || !slot.date) continue;
+      sessions.push({
+        name,
+        type,
+        start: slot.date + "T" + (slot.time || "12:00:00Z"),
+        minutes
+      });
+    }
+    sessions.push({
+      name: "Race",
+      type: "race",
+      start: race.date + "T" + (race.time || "12:00:00Z"),
+      minutes: 120
+    });
+    sessions.sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
+    return sessions;
+  }
+
   function normalize(calendar, winners, driversPayload, teamsPayload) {
     const raceTable = calendar && calendar.MRData && calendar.MRData.RaceTable;
     if (!raceTable || !Array.isArray(raceTable.Races) || !raceTable.Races.length) {
@@ -2362,6 +1791,8 @@ html.theming *::after {
       time: race.time || "",
       start: race.date + "T" + (race.time || "12:00:00Z"),
       weekFrom: (race.FirstPractice && race.FirstPractice.date) || race.date,
+      sprint: !!race.Sprint,
+      sessions: sessionsFrom(race),
       winner: winnerByRound.get(String(race.round)) || null
     }));
 
@@ -2504,7 +1935,7 @@ html.theming *::after {
     if (!state.data) return;
     renderSeason();
     renderHero();
-    renderWeeks();
+    renderSchedule();
     renderTeams();
     renderDrivers();
     renderStatus();
@@ -2592,118 +2023,156 @@ html.theming *::after {
     return TEAM_NAMES[id] || fallback || "Unknown team";
   }
 
-  function weekAria(group) {
-    const label = groupRoundLabel(group) + " " + groupRange(group);
-    const races = group.races.map((race) => "Round " + race.round + ", " + race.name).join("; ");
-    return label + " — " + races + ", " + groupLongRange(group);
+  function flagFor(country) {
+    const code = COUNTRY_CODES[country];
+    const svg = code ? FLAGS[code] : "";
+    if (!svg) {
+      return '<span class="flag flag--unknown" aria-hidden="true">' +
+        '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">' +
+          '<rect width="30" height="20" fill="#7C858D"/>' +
+          '<circle cx="15" cy="10" r="4.6" fill="none" stroke="#fff" stroke-width="1.2"/>' +
+          '<path d="M10.4 10h9.2M15 5.4c2 3 2 6.2 0 9.2M15 5.4c-2 3-2 6.2 0 9.2" fill="none" stroke="#fff" stroke-width="1"/>' +
+        '</svg></span>';
+    }
+    return '<span class="flag" aria-hidden="true">' + svg + '</span>';
   }
 
-  function weekCardCount(group) {
-    return group.races.length === 1 ? "1 race" : group.races.length + " races";
-  }
+  function renderSchedule() {
+    const host = $("#calendar");
+    if (!host) return;
+    const races = state.data.races.slice().sort((a, b) => a.round - b.round);
+    const upcoming = races.filter((race) => !race.winner);
+    const completed = races.filter((race) => race.winner);
+    const total = races.length;
 
-  function renderWeeks() {
-    const strip = $("#weekstrip");
-    const panel = $("#weekpanel");
-    if (!strip || !panel) return;
-
-    const groups = weekGroups();
-    if (!groups.length) return;
-
-    if (!state.week || !groups.some((group) => group.key === state.week)) {
-      const next = nextRace();
-      const match = next ? groups.find((group) => group.races.some((race) => race.round === next.round)) : null;
-      state.week = (match || groups[groups.length - 1]).key;
+    const meta = $("#schedule-meta");
+    if (meta) {
+      meta.textContent = total + " rounds · " + completed.length + " completed · " +
+        upcoming.length + " remaining";
     }
 
-    strip.innerHTML = groups.map((group) => {
-      const selected = group.key === state.week;
-      return '<button class="weekchip" type="button" role="tab" aria-selected="' + selected + '" data-week="' + group.key + '" title="' + esc(weekAria(group)) + '">' +
-        '<span class="weekchip__r">' + groupRoundLabel(group) + '</span>' +
-        '<span class="weekchip__label">' + esc(groupRange(group)) + '</span>' +
-      '</button>';
-    }).join("");
+    host.innerHTML =
+      raceGroup("calendar-upcoming", "Upcoming races", upcoming) +
+      raceGroup("calendar-completed", "Completed races", completed);
 
-    const completed = completedCount();
-    const total = state.data.races.length;
-    $("#schedule-meta").textContent = total + " rounds · " + completed + " completed · " + (total - completed) + " remaining";
-
-    renderWeekPanel(groups);
-
-    const active = $('.weekchip[aria-selected="true"]', strip);
-    if (active) {
-      strip.scrollLeft = Math.max(0, active.offsetLeft - strip.clientWidth / 2 + active.offsetWidth / 2);
-    }
+    markNextSession(true);
   }
 
-  function renderWeekPanel(groups) {
-    const panel = $("#weekpanel");
-    const group = groups.find((item) => item.key === state.week);
-    if (!group) return;
-
-    panel.setAttribute("aria-label", "Races of " + groupLongRange(group));
-    const cards = group.races.map((race, index) => raceCard(race, index)).join("");
-    panel.innerHTML =
-      '<p class="weekpanel__caption">' + esc(groupLongRange(group)) + ' · ' + weekCardCount(group) + '</p>' +
-      '<div class="race-grid">' + cards + '</div>';
+  function raceGroup(id, title, races) {
+    if (!races.length) return "";
+    return '<section class="race-group" aria-labelledby="' + id + '">' +
+      '<h3 class="race-group__title" id="' + id + '">' + title +
+        ' <span class="race-group__count">' + races.length + '</span>' +
+      '</h3>' +
+      '<div class="race-list">' + races.map(raceCard).join("") + '</div>' +
+    '</section>';
   }
 
   function raceCard(race, index) {
-    const done = !!race.winner;
-    const start = raceStart(race);
-    const started = start.getTime() <= Date.now();
-    const colors = done ? teamColors(race.winner.teamId) : null;
+    const open = state.open.has(race.round);
+    const panelId = "race-panel-" + race.round;
+    const btnId = "race-btn-" + race.round;
+    const sessions = sessionsOf(race);
+    const place = [race.circuit, [race.city, race.country].filter(Boolean).join(", ")]
+      .filter(Boolean).join(" · ");
 
-    let badge = '<span class="chip">Upcoming</span>';
-    if (done) badge = '<span class="chip chip--done">Completed</span>';
-    else if (started) badge = '<span class="chip chip--live">Lights out</span>';
-
-    let status = "";
-    if (done) {
-      status =
-        '<p class="race__winner" style="--team-dark:' + colors.dark + ';--team-light:' + colors.light + '">' +
-          '<span class="race__winner-label">Winner</span>' +
-          '<strong>' + esc(race.winner.driver) + '</strong>' +
-          '<em>(' + esc(teamNameFor(race.winner.teamId, race.winner.team)) + ')</em>' +
-          '<span>· ' + esc(race.winner.result) + '</span>' +
-        '</p>';
-    } else if (!started) {
-      status = '<p class="race__pending">Not raced yet</p>';
-    }
-
-    let countdown = "";
-    if (!done && !started) {
-      countdown =
-        '<p class="race__cd" data-cd-until="' + esc(start.toISOString()) + '">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>' +
-          '<span data-cd-text>Starts in ' + cardCdText(start.getTime() - Date.now()) + '</span>' +
-        '</p>';
-    } else if (!done && started) {
-      countdown = '<p class="race__cd"><span>Lights out · awaiting results</span></p>';
-    }
-
-    const location = [race.city, race.country].filter(Boolean).join(", ");
-
-    return '<article class="race" style="--i:' + index + '">' +
-      '<div class="race__top">' +
-        '<span class="race__round">Round ' + race.round + '</span>' +
-        badge +
+    return '<article class="racecard' + (open ? " is-open" : "") + '" data-round="' + race.round + '" style="--i:' + Math.min(index, 6) + '">' +
+      '<h4 class="racecard__heading">' +
+        '<button class="racecard__btn" type="button" id="' + btnId + '" aria-expanded="' + open + '" aria-controls="' + panelId + '">' +
+          '<span class="racecard__round"><span class="sr-only">Round </span>' + pad2(race.round) + '</span>' +
+          flagFor(race.country) +
+          '<span class="racecard__body">' +
+            '<span class="racecard__title">' +
+              '<span class="racecard__name">' + esc(race.name) + '</span>' +
+              (race.sprint ? '<span class="tag tag--sprint">Sprint</span>' : "") +
+            '</span>' +
+            '<span class="racecard__meta">' + esc(raceDateRange(race)) + ' · ' +
+              sessions.length + (sessions.length === 1 ? ' session' : ' sessions') + '</span>' +
+            '<span class="racecard__place">' + esc(place) + '</span>' +
+          '</span>' +
+          '<span class="racecard__chev" aria-hidden="true">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>' +
+          '</span>' +
+        '</button>' +
+      '</h4>' +
+      '<div class="racecard__panel" id="' + panelId + '" role="region" aria-labelledby="' + btnId + '"' +
+        (open ? "" : ' aria-hidden="true"') + '>' +
+        '<div class="racecard__panel-inner">' +
+          '<div class="racecard__panel-head"><span>Weekend schedule</span><span>Europe/Prague</span></div>' +
+          '<ol class="session-list">' + sessions.map(sessionRow).join("") + '</ol>' +
+          raceResult(race, sessions.length) +
+        '</div>' +
       '</div>' +
-      '<h3 class="race__name">' + esc(race.name) + '</h3>' +
-      '<p class="race__circuit">' + esc([race.circuit, location].filter(Boolean).join(" · ")) + '</p>' +
-      '<p class="race__when">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3.5v3M16 3.5v3M3.5 10h17"/></svg>' +
-        '<strong>' + esc(fmtRaceWhen(race)) + '</strong>' +
-      '</p>' +
-      status + countdown +
     '</article>';
   }
 
-  function cardCdText(ms) {
-    const parts = cdParts(ms);
-    if (parts.d > 0) return parts.d + " d " + pad2(parts.h) + " h";
-    if (parts.h > 0) return parts.h + " h " + pad2(parts.m) + " min";
-    return parts.m + " min " + pad2(parts.s) + " s";
+  function sessionRow(session, index) {
+    const start = new Date(session.start);
+    return '<li class="session" data-start="' + esc(start.toISOString()) + '" style="--i:' + index + '">' +
+      '<span class="session__when">' +
+        '<span class="session__dow">' + esc(weekdayFmt.format(start)) + '</span>' +
+        '<span class="session__date">' + esc(dayMonthFmt.format(start)) + '</span>' +
+      '</span>' +
+      '<span class="session__name">' + esc(session.name) +
+        '<span class="session__badge" data-next-session hidden>Next</span>' +
+      '</span>' +
+      '<span class="session__len">' + esc(sessionLength(session.minutes)) + '</span>' +
+      '<span class="session__time">' + esc(timeFmt.format(start)) + '</span>' +
+    '</li>';
+  }
+
+  function raceResult(race, index) {
+    if (!race.winner) {
+      return '<p class="racecard__pending" style="--i:' + index + '">Not raced yet</p>';
+    }
+    const colors = teamColors(race.winner.teamId);
+    return '<p class="racecard__winner" style="--team-dark:' + colors.dark +
+      ';--team-light:' + colors.light + ';--i:' + index + '">' +
+      '<span class="racecard__winner-label">Winner:</span>' +
+      '<strong>' + esc(race.winner.driver) + '</strong>' +
+      '<span class="racecard__winner-team">(' + esc(teamNameFor(race.winner.teamId, race.winner.team)) + ')</span>' +
+      '<span class="racecard__winner-result">· ' + esc(race.winner.result) + '</span>' +
+    '</p>';
+  }
+
+  function toggleRace(button) {
+    const card = button.closest(".racecard");
+    if (!card) return;
+    const round = Number(card.dataset.round);
+    const open = !card.classList.contains("is-open");
+    card.classList.toggle("is-open", open);
+    button.setAttribute("aria-expanded", String(open));
+    const panel = $("#" + button.getAttribute("aria-controls"));
+    if (panel) panel.setAttribute("aria-hidden", String(!open));
+    if (open) state.open.add(round);
+    else state.open.delete(round);
+  }
+
+  function nextSessionTime() {
+    if (!state.data) return null;
+    const now = Date.now();
+    let next = null;
+    for (const race of state.data.races) {
+      for (const session of sessionsOf(race)) {
+        const time = Date.parse(session.start);
+        if (!Number.isNaN(time) && time > now && (next === null || time < next)) next = time;
+      }
+    }
+    return next;
+  }
+
+  function markNextSession(force) {
+    const host = $("#calendar");
+    if (!host) return;
+    const next = nextSessionTime();
+    if (!force && next === state.nextSession) return;
+    state.nextSession = next;
+    for (const row of $$(".session", host)) {
+      const isNext = next !== null && Date.parse(row.dataset.start) === next;
+      row.classList.toggle("is-next", isNext);
+      const badge = $("[data-next-session]", row);
+      if (badge) badge.hidden = !isNext;
+    }
   }
 
   /* -------------------------------------------------------------- standings */
@@ -2825,14 +2294,7 @@ html.theming *::after {
     const next = nextRace();
     const heroCd = $("#hero-cd");
     if (heroCd && next) updateCountdown(heroCd, raceStart(next).getTime() - Date.now());
-
-    for (const el of $$("[data-cd-until]")) {
-      const target = el.querySelector("[data-cd-text]");
-      if (!target) continue;
-      const distance = new Date(el.dataset.cdUntil).getTime() - Date.now();
-      const text = distance > 0 ? "Starts in " + cardCdText(distance) : "Lights out";
-      if (target.textContent !== text) target.textContent = text;
-    }
+    markNextSession(false);
   }
 
   /* ------------------------------------------------------------------ views */
@@ -2893,10 +2355,9 @@ html.theming *::after {
   function themeDots(key) {
     const theme = THEMES[key];
     if (!theme) return "";
-    const palette = theme.light;
-    return ["primary", "tertiary", "secondary"].map((name) =>
-      '<i style="background:' + palette[name] + '"></i>'
-    ).join("");
+    const palette = theme[currentMode() === "dark" ? "dark" : "light"];
+    return '<i style="background:' + palette.primary + '"></i>' +
+      '<i style="background:' + palette["primary-container"] + '"></i>';
   }
 
   function buildThemeGrid() {
@@ -2907,7 +2368,6 @@ html.theming *::after {
       return '<button class="tile" type="button" data-theme-key="' + key + '" aria-pressed="false" aria-label="' + esc(theme.label) + ' colour theme">' +
         '<span class="tile__dots" aria-hidden="true">' + themeDots(key) + '</span>' +
         '<span class="tile__name">' + esc(theme.label) + '</span>' +
-        '<span class="tile__check" aria-hidden="true">✓</span>' +
       '</button>';
     }).join("");
     syncThemeUI();
@@ -2921,6 +2381,8 @@ html.theming *::after {
       const active = tile.dataset.themeKey === theme;
       tile.classList.toggle("is-active", active);
       tile.setAttribute("aria-pressed", String(active));
+      const dots = $(".tile__dots", tile);
+      if (dots) dots.innerHTML = themeDots(tile.dataset.themeKey);
     }
     for (const btn of $$(".mode button")) {
       btn.setAttribute("aria-pressed", String(btn.dataset.mode === mode));
@@ -3044,30 +2506,11 @@ html.theming *::after {
       });
     }
 
-    const strip = $("#weekstrip");
-    if (strip) {
-      strip.addEventListener("click", (event) => {
-        const chip = event.target.closest(".weekchip");
-        if (!chip || chip.dataset.week === state.week) return;
-        state.week = chip.dataset.week;
-        renderWeeks();
-        const panel = $("#weekpanel");
-        if (panel) panel.focus({ preventScroll: true });
-      });
-      strip.addEventListener("keydown", (event) => {
-        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-        const chips = $$(".weekchip", strip);
-        const index = chips.indexOf(event.target.closest(".weekchip"));
-        if (index === -1) return;
-        event.preventDefault();
-        const delta = event.key === "ArrowRight" ? 1 : -1;
-        const chip = chips[(index + delta + chips.length) % chips.length];
-        if (chip) {
-          state.week = chip.dataset.week;
-          renderWeeks();
-          const fresh = $('.weekchip[data-week="' + state.week + '"]', strip);
-          if (fresh) fresh.focus({ preventScroll: true });
-        }
+    const calendar = $("#calendar");
+    if (calendar) {
+      calendar.addEventListener("click", (event) => {
+        const button = event.target.closest(".racecard__btn");
+        if (button) toggleRace(button);
       });
     }
 

@@ -28,14 +28,24 @@ f1/
 - **Odpočet do dalšího závodu** v časovém pásmu `Europe/Prague`, s jemnou
   animací měnících se číslic. Závod se počítá jako dokončený, jakmile má
   výsledky; do té doby karta ukazuje „Not raced yet“ a odpočet.
-- **Kalendář po víkendech** – přepínač týdnů a karty závodů s názvem GP,
-  okruhem, datem a časem. U dokončených závodů je vítěz, tým a čas / stav.
+- **Kalendář v jednom sloupci** – všechny závody seřazené podle čísla kola,
+  rozdělené do sekcí „Upcoming races“ a „Completed races“ s počtem závodů
+  v nadpisu. Karta ukazuje číslo kola, vlajku země, název Grand Prix, štítek
+  Sprint, datum závodu, okruh, město a zemi, počet sessioní a chevron.
+- **Rozbalovací rozvrh** – kliknutím na kartu se plynule rozbalí session
+  (Practice 1–3, Sprint Qualifying, Sprint, Qualifying, Race) s dnem, délkou
+  a časem v `Europe/Prague`. Nejbližší session má odznak NEXT. U dokončených
+  závodů je pod rozvrhem řádek „Winner: …“ s jezdcem, týmem a časem / stavem;
+  u nadcházejících „Not raced yet“. Položky se objevují postupně (50 ms).
+- **Vlajky zemí** – kreslené inline SVG přímo v `index.html`, takže zůstává
+  jediným souborem. Neznámá země dostane neutrální glóbus.
 - **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
   kruhy pro první tři, pruhem v barvě týmu a podílovým barevným přechodem.
 - **Devět motivů** – Intense, Tonal spot, Content, Fidelity, Vibrant,
   Expressive, Fruit salad, Rainbow a Neutral, každý ve světlé i tmavé
-  variantě. Volba se pamatuje, přepnutí barev je plynulé.
-- **Pohyb** – jemné najíždění karet, přechod mezi týdny, rozostření obsahu
+  variantě. Dlaždice ukazují přesně dvě tečky (primární barva + její
+  kontejner), volba se pamatuje a přepnutí barev je plynulé.
+- **Pohyb** – jemné najíždění karet, rozbalování rozvrhu, rozostření obsahu
   podle rychlosti scrollování. Vše respektuje `prefers-reduced-motion`.
 - Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
@@ -46,6 +56,11 @@ Vše důležité je v komentáři na začátku `index.html` a v hlavním `<scrip
 
 - **API** – konstanta `API_BASE` (výchozí `https://api.jolpi.ca/ergast/f1`).
 - **Interval obnovy** – `REFRESH_MS` (výchozích 10 minut).
+- **Délky sessioní** – `SESSION_DEFS`; Jolpica posílá jen začátky, proto se
+  zobrazují obvyklé délky (tréninky a kvalifikace 60 min, sprint 60 min,
+  sprintová kvalifikace 44 min, závod ≈ 2 h).
+- **Vlajky** – mapa `FLAGS` (inline SVG) a `COUNTRY_CODES` (název země →
+  kód). Pro novou zemi stačí doplnit obojí.
 - **Barvy týmů** – `TEAM_COLORS` s variantami `dark` a `light` pro každý
   `constructorId`. Neznámý tým dostane neutrální šedou a upozornění v konzoli.
 - **Názvy týmů** – `TEAM_NAMES` přepisuje názvy z API (např. „RB F1 Team“ →
