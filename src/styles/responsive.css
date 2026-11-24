@@ -38,7 +38,6 @@
 
 @media (max-width: 620px) {
   .wrap { width: min(var(--wrap), 100% - 24px); }
-  .brand__mark { width: 34px; height: 34px; border-radius: 11px; font-size: 13.5px; }
   .brand__text span { display: none; }
 
   .hero { border-radius: 24px; text-align: center; }

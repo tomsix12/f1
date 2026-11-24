@@ -37,7 +37,6 @@ html.theming *::after {
    few surfaces that use them fade their box-shadow locally instead. */
 html.theming .hero,
 html.theming .racecard,
-html.theming .brand__mark,
 html.theming .tabs__indicator,
 html.theming .palette {
   transition: box-shadow var(--theme-duration) var(--ease-theme) !important;
@@ -55,7 +54,6 @@ html.theming .themebtn svg {
   html.theming,
   html.theming .hero,
   html.theming .racecard,
-  html.theming .brand__mark,
   html.theming .tabs__indicator,
   html.theming .palette,
   html.theming .themebtn svg {
