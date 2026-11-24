@@ -1,6 +1,16 @@
 /* --------------------------------------------------------------------------
    Motion
    -------------------------------------------------------------------------- */
+/* SVG filter definition for the directional scroll blur; zero-sized and
+   hidden from layout, but not display:none so the filter stays referenceable. */
+.motion-blur-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 /* A theme switch adds `theming` to <html> for one transition window. The
    neutral and accent colours are registered <color> properties (tokens.css),
    so animating them on the root makes every var() consumer read the

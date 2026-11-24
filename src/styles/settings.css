@@ -241,3 +241,76 @@
   color: var(--primary);
 }
 .switch[aria-checked="true"] .switch__thumb svg { opacity: 1; transform: none; }
+
+/* Motion-blur amount slider (shown only while the effect is on). */
+.range {
+  margin-top: 14px;
+  animation: rangeIn 0.28s var(--ease-standard);
+}
+.range[hidden] { display: none; }
+
+@keyframes rangeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.range__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.range__label { color: var(--text-2); font-size: 11.5px; font-weight: 600; }
+.range__value {
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.range__input {
+  --fill: 25%;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 32px;
+  background: transparent;
+  cursor: pointer;
+}
+.range__input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--primary) var(--fill), var(--surface-3) var(--fill));
+}
+.range__input::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s var(--ease-standard);
+}
+.range__input:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.range__input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--primary) var(--fill), var(--surface-3) var(--fill));
+}
+.range__input::-moz-range-progress { background: transparent; }
+.range__input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+}

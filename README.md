@@ -88,8 +88,8 @@ f1/
 - **Nastavení v M3 Expressive stylu** – ozubené kolečko vedle tlačítka
   se sluncem/měsícem otevírá animovaný panel (pružinový nájezd, na mobilu pod
   celou hlavičkou). Nabízí segmentované volby tématu (System / Light / Dark),
-  písma (Sans / Serif / Mono) a vypínač motion blur; dále osm akcentů a výběr
-  oblíbeného jezdce a týmu. Oblíbený řádek se v bodování zvýrazní akcentovým
+  písma (Sans / Serif / Mono) a vypínač motion blur s posuvníkem
+  intenzity (0.5–2.5×); dále osm akcentů a výběr oblíbeného jezdce a týmu. Oblíbený řádek se v bodování zvýrazní akcentovým
   rámečkem a hvězdičkou. Volby se ukládají do `localStorage`.
 - **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
   plochy s černým textem. Z osmi akcentů (Red, Blue, Green, Teal, Amber, Pink,
@@ -105,8 +105,13 @@ f1/
 - **Pohyb** – jemné, déle plynoucí najíždění karet, rozbalování rozvrhu
   s postupným odkrýváním řádků a plynulý přechod všech barev (~650 ms) při
   změně motivu: barvy jsou registrované CSS tokeny, takže plochy, text i
-  akcent tónují společně. Vše respektuje `prefers-reduced-motion`; motion
-  blur navíc jde vypnout v nastavení.
+  akcent tónují společně. **Motion blur** je směrový – bluruje jen po ose
+  scrollu, ne do stran. Vychází z AGSL modulu v
+  [sameerasw/essentials](https://github.com/sameerasw/essentials) (MIT):
+  rychlost se vzorkuje po snímcích, vyhlazuje poměrem 35/65, po zastavení
+  odeznívá a na webu ji vykresluje SVG `feGaussianBlur` s vertikálním
+  `stdDeviation`. Intenzita jde v nastavení měnit v rozsahu 0.5–2.5×.
+  Vše respektuje `prefers-reduced-motion`; motion blur jde vypnout.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku
   nebo v režimu širokého viewportu) ho nahrazuje kruhové tlačítko s ikonou

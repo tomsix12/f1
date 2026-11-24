@@ -5,12 +5,14 @@ import { $, $$, esc } from "../lib/dom";
 import {
   PREFS_EVENT,
   applyFont,
+  getBlurScale,
   getFavDriver,
   getFavTeam,
   getFont,
   getMotionBlur,
   isFontChoice,
   onFavouritesChange,
+  setBlurScale,
   setFavDriver,
   setFavTeam,
   setFont,
@@ -35,6 +37,9 @@ let accentGrid: HTMLElement | null = null;
 let themeSeg: HTMLElement | null = null;
 let fontSeg: HTMLElement | null = null;
 let motionSwitch: HTMLElement | null = null;
+let motionAmountRow: HTMLElement | null = null;
+let motionAmount: HTMLInputElement | null = null;
+let motionAmountValue: HTMLElement | null = null;
 let driverSelect: HTMLSelectElement | null = null;
 let teamSelect: HTMLSelectElement | null = null;
 
@@ -121,7 +126,15 @@ function syncFontUI(): void {
 }
 
 function syncMotionUI(): void {
-  motionSwitch?.setAttribute("aria-checked", String(getMotionBlur()));
+  const on = getMotionBlur();
+  const amount = getBlurScale();
+  motionSwitch?.setAttribute("aria-checked", String(on));
+  if (motionAmountRow) motionAmountRow.hidden = !on;
+  if (motionAmount) {
+    motionAmount.value = String(amount);
+    motionAmount.style.setProperty("--fill", (((amount - 0.5) / 2) * 100).toFixed(1) + "%");
+  }
+  if (motionAmountValue) motionAmountValue.textContent = amount.toFixed(1) + "×";
 }
 
 function placeSettings(): void {
@@ -167,6 +180,9 @@ export function initSettings(): void {
   themeSeg = $("#theme-seg");
   fontSeg = $("#font-seg");
   motionSwitch = $("#motion-switch");
+  motionAmountRow = $("#motion-amount-row");
+  motionAmount = $("#motion-amount") as HTMLInputElement | null;
+  motionAmountValue = $("#motion-amount-value");
   driverSelect = $("#fav-driver") as HTMLSelectElement | null;
   teamSelect = $("#fav-team") as HTMLSelectElement | null;
 
@@ -202,7 +218,9 @@ export function initSettings(): void {
     if (isFontChoice(item?.dataset.font)) setFont(item.dataset.font);
   });
 
+  const amountEl = motionAmount;
   motionSwitch?.addEventListener("click", () => setMotionBlur(!getMotionBlur()));
+  amountEl?.addEventListener("input", () => setBlurScale(Number(amountEl.value)));
 
   panel?.addEventListener("click", (event) => {
     const target = event.target;

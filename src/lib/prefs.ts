@@ -6,6 +6,7 @@ export const PREFS_EVENT = "f1:prefs";
 export const FAVOURITES_EVENT = "f1:favourites";
 
 const MOTION_KEY = "f1.motion";
+const BLUR_SCALE_KEY = "f1.blur.scale";
 const FONT_KEY = "f1.font";
 const FAV_DRIVER_KEY = "f1.fav.driver";
 const FAV_TEAM_KEY = "f1.fav.team";
@@ -20,6 +21,19 @@ export function getMotionBlur(): boolean {
 
 export function setMotionBlur(on: boolean): void {
   writeStored(MOTION_KEY, on ? "on" : "off");
+  notify("motion");
+}
+
+/** Blur strength multiplier, mirroring the 0.5–2.5 range in Essentials. */
+export function getBlurScale(): number {
+  const raw = Number(readStored(BLUR_SCALE_KEY));
+  if (!Number.isFinite(raw) || raw < 0.5 || raw > 2.5) return 1;
+  return Math.round(raw * 10) / 10;
+}
+
+export function setBlurScale(value: number): void {
+  const clamped = Math.min(2.5, Math.max(0.5, Math.round(value * 10) / 10));
+  writeStored(BLUR_SCALE_KEY, String(clamped));
   notify("motion");
 }
 
