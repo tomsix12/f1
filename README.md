@@ -46,15 +46,19 @@ f1/
 - **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
   plochy s černým textem. Z osmi akcentů (Red, Blue, Green, Teal, Amber, Pink,
   Violet, Graphite) jde vybrat jeden; mění se jen primární barva, nikdy
-  neutrální plochy. Při prvním otevření se režim řídí systémovým nastavením
-  (bez preference je výchozí tmavý). Přepínač Light / Dark i mřížka akcentů
-  jsou segmentované ovládací prvky, volba se pamatuje a přechod barev je
-  plynulý. Tlačítko vzhledu sedí vedle navigace (na mobilu nad kalendářem).
+  neutrální plochy. V hlavičce je kruhové tlačítko se sluncem/měsícem, které
+  přepíná světlý a tmavý režim; ikona se při přepnutí plynule otočí a prohodí.
+  Při prvním otevření se režim řídí systémovým nastavením
+  (bez preference je výchozí tmavý), volba se ukládá do `localStorage` a do
+  stránky se aplikuje inline skriptem v `<head>` ještě před vykreslením těla,
+  takže neproblikne špatné téma. Přepínač Light / Dark i mřížka akcentů
+  v panelu vzhledu zůstávají; tlačítko vzhledu sedí vedle navigace (na mobilu
+  nad kalendářem).
 - **M3 Expressive navigace** – segmentovaný seznam s ikonami a posuvným
   indikátorem aktivní položky (bez zaškrtávací ikony).
 - **Pohyb** – jemné, déle plynoucí najíždění karet, rozbalování rozvrhu
-  s postupným odkrýváním řádků a měkké přechody barev při změně motivu.
-  Vše respektuje `prefers-reduced-motion`.
+  s postupným odkrýváním řádků a měkký přechod všech barev (~460 ms) při
+  změně motivu. Vše respektuje `prefers-reduced-motion`.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku
   nebo v režimu širokého viewportu) ho nahrazuje kruhové tlačítko s ikonou

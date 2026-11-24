@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="tonal-spot" data-mode="dark">
+<html lang="en" data-accent="red" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>F1 · Schedule, results &amp; standings</title>
 <meta name="description" content="Live Formula 1 calendar with session times, race winners and championship standings. Data from Jolpica F1.">
-<meta name="theme-color" content="#F7F9FE">
+<meta name="theme-color" content="#0B0B0C">
+<meta name="color-scheme" content="dark light">
 <link rel="canonical" href="https://tomsix.xyz/">
 
 <meta property="og:type" content="website">
@@ -81,11 +82,38 @@
   --ease-spring: cubic-bezier(0.22, 1.28, 0.36, 1);
 }
 
-html[data-mode="dark"] {
+html[data-theme="dark"] {
   color-scheme: dark;
+  --bg: #0B0B0C;
+  --surface: #141416;
+  --surface-2: #1E1E21;
+  --surface-3: #29292D;
+  --text: #FAFAFB;
+  --text-2: #C6C6CA;
+  --text-3: #8E8E94;
+  --line: #2E2E32;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.6);
 }
+
+/* Accent palettes — driven by data-accent on <html>; dark variants combine
+   with data-theme="dark" so every colour has a single CSS source of truth. */
+html[data-accent="blue"] { --primary: #1565C0; --on-primary: #FFFFFF; --primary-container: #D6E3FF; --on-primary-container: #001B3E; }
+html[data-accent="green"] { --primary: #2E7D32; --on-primary: #FFFFFF; --primary-container: #C8E6C9; --on-primary-container: #002105; }
+html[data-accent="teal"] { --primary: #00695C; --on-primary: #FFFFFF; --primary-container: #B2DFDB; --on-primary-container: #00201C; }
+html[data-accent="amber"] { --primary: #8A4F00; --on-primary: #FFFFFF; --primary-container: #FFE0B2; --on-primary-container: #2B1700; }
+html[data-accent="pink"] { --primary: #B0005C; --on-primary: #FFFFFF; --primary-container: #FFD9E2; --on-primary-container: #3E001D; }
+html[data-accent="violet"] { --primary: #6A3DB8; --on-primary: #FFFFFF; --primary-container: #EADDFF; --on-primary-container: #23005C; }
+html[data-accent="graphite"] { --primary: #2E2E32; --on-primary: #FFFFFF; --primary-container: #E4E4E7; --on-primary-container: #1B1B1E; }
+
+html[data-theme="dark"][data-accent="red"] { --primary: #FFB4AB; --on-primary: #690005; --primary-container: #93000A; --on-primary-container: #FFDAD6; }
+html[data-theme="dark"][data-accent="blue"] { --primary: #A9C7FF; --on-primary: #003063; --primary-container: #00468B; --on-primary-container: #D6E3FF; }
+html[data-theme="dark"][data-accent="green"] { --primary: #8FD694; --on-primary: #00390F; --primary-container: #00531B; --on-primary-container: #C8E6C9; }
+html[data-theme="dark"][data-accent="teal"] { --primary: #6FD8C8; --on-primary: #00382F; --primary-container: #005144; --on-primary-container: #B2DFDB; }
+html[data-theme="dark"][data-accent="amber"] { --primary: #FFB95C; --on-primary: #4A2800; --primary-container: #6A3B00; --on-primary-container: #FFE0B2; }
+html[data-theme="dark"][data-accent="pink"] { --primary: #FFB1C8; --on-primary: #64002F; --primary-container: #8E0046; --on-primary-container: #FFD9E2; }
+html[data-theme="dark"][data-accent="violet"] { --primary: #D0BCFF; --on-primary: #3A1D71; --primary-container: #513A87; --on-primary-container: #EADDFF; }
+html[data-theme="dark"][data-accent="graphite"] { --primary: #E4E4E7; --on-primary: #1B1B1E; --primary-container: #3C3C40; --on-primary-container: #E4E4E7; }
 
 /* --------------------------------------------------------------------------
    Reset & base
@@ -297,6 +325,39 @@ ul, ol { list-style: none; }
 .navbtn:hover { background: var(--surface-3); color: var(--text); transform: translateY(-2px); }
 .navbtn[aria-expanded="true"] { background: var(--primary); border-color: transparent; color: var(--on-primary); }
 .navbtn svg { width: 20px; height: 20px; }
+
+.themebtn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+  transition:
+    background-color 0.25s var(--ease-standard),
+    color 0.25s var(--ease-standard),
+    border-color 0.25s var(--ease-standard),
+    transform 0.3s var(--ease-spring);
+}
+.themebtn:hover { background: var(--surface-3); color: var(--text); transform: translateY(-2px); }
+.themebtn:active { transform: scale(0.94); }
+
+.themebtn__icons { position: relative; display: block; width: 20px; height: 20px; }
+.themebtn svg {
+  position: absolute;
+  inset: 0;
+  width: 20px;
+  height: 20px;
+  transition: opacity 0.3s var(--ease-standard), transform 0.5s var(--ease-spring);
+}
+.themebtn__sun { opacity: 1; transform: rotate(0deg) scale(1); }
+.themebtn__moon { opacity: 0; transform: rotate(-100deg) scale(0.45); }
+html[data-theme="dark"] .themebtn__sun { opacity: 0; transform: rotate(100deg) scale(0.45); }
+html[data-theme="dark"] .themebtn__moon { opacity: 1; transform: rotate(0deg) scale(1); }
 
 .topbar__right {
   margin-left: auto;
@@ -557,7 +618,7 @@ ul, ol { list-style: none; }
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
-html[data-mode="dark"] .cd__num { color: var(--primary); }
+html[data-theme="dark"] .cd__num { color: var(--primary); }
 .cd__num.is-tick { animation: tick 0.42s var(--ease-emphasized); }
 
 @keyframes tick {
@@ -757,7 +818,7 @@ html[data-mode="dark"] .cd__num { color: var(--primary); }
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
-html[data-mode="light"] .racecard__round { color: var(--text); }
+html[data-theme="light"] .racecard__round { color: var(--text); }
 
 .flag {
   display: block;
@@ -769,7 +830,7 @@ html[data-mode="light"] .racecard__round { color: var(--text); }
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 .flag svg { width: 100%; height: 100%; }
-html[data-mode="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
+html[data-theme="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22); }
 
 .racecard__body {
   display: flex;
@@ -929,7 +990,7 @@ html[data-mode="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0
   font-size: 12.5px;
   line-height: 1.45;
 }
-html[data-mode="light"] .racecard__winner { --team: var(--team-light, var(--primary)); }
+html[data-theme="light"] .racecard__winner { --team: var(--team-light, var(--primary)); }
 
 .racecard__winner-label {
   color: var(--text-3);
@@ -1008,7 +1069,7 @@ html[data-mode="light"] .racecard__winner { --team: var(--team-light, var(--prim
   transition: border-color 0.25s var(--ease-standard), transform 0.32s var(--ease-spring);
 }
 .team-card:hover { border-color: color-mix(in srgb, var(--team) 45%, var(--line)); }
-html[data-mode="light"] .team-card { --team: var(--team-light, var(--text-3)); }
+html[data-theme="light"] .team-card { --team: var(--team-light, var(--text-3)); }
 
 .team-card::before {
   content: "";
@@ -1089,7 +1150,7 @@ html[data-mode="light"] .team-card { --team: var(--team-light, var(--text-3)); }
   transition: border-color 0.2s ease;
 }
 .driver:hover { border-color: color-mix(in srgb, var(--team) 40%, var(--line)); }
-html[data-mode="light"] .driver { --team: var(--team-light, var(--text-3)); }
+html[data-theme="light"] .driver { --team: var(--team-light, var(--text-3)); }
 
 .driver__pos { width: 28px; height: 28px; font-size: 11px; }
 
@@ -1350,22 +1411,9 @@ html.theming *::after {
   window.F1_applyTheme = function (accentKey, mode) {
     var selectedMode = mode === "dark" ? "dark" : "light";
     var key = Object.prototype.hasOwnProperty.call(ACCENTS, accentKey) ? accentKey : DEFAULT_ACCENT;
-    var palette = {};
-    var name;
-    for (name in NEUTRALS[selectedMode]) {
-      if (Object.prototype.hasOwnProperty.call(NEUTRALS[selectedMode], name)) palette[name] = NEUTRALS[selectedMode][name];
-    }
-    for (name in ACCENTS[key][selectedMode]) {
-      if (Object.prototype.hasOwnProperty.call(ACCENTS[key][selectedMode], name)) palette[name] = ACCENTS[key][selectedMode][name];
-    }
     var root = document.documentElement;
-    root.dataset.theme = key;
-    root.dataset.mode = selectedMode;
-    for (name in palette) {
-      if (Object.prototype.hasOwnProperty.call(palette, name)) {
-        root.style.setProperty("--" + name, palette[name]);
-      }
-    }
+    root.dataset.accent = key;
+    root.dataset.theme = selectedMode;
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", NEUTRALS[selectedMode].bg);
   };
@@ -1422,6 +1470,12 @@ html.theming *::after {
     </div>
 
     <div class="topbar__right">
+      <button class="themebtn" id="theme-toggle" type="button" aria-label="Dark theme — switch to light" aria-pressed="true" title="Switch to light theme">
+        <span class="themebtn__icons" aria-hidden="true">
+          <svg class="themebtn__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.6v2.3M12 19.1v2.3M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.6 12h2.3M19.1 12h2.3M4.4 19.6l1.6-1.6M18 6l1.6-1.6"/></svg>
+          <svg class="themebtn__moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5 8.6 8.6 0 1 0 20.5 14.2Z"/></svg>
+        </span>
+      </button>
       <button class="status" id="status" type="button" data-state="syncing" title="Refresh data" aria-label="Refresh data">
         <span class="status__dot" aria-hidden="true"></span>
         <span id="status-text">Loading…</span>
@@ -2374,11 +2428,11 @@ html.theming *::after {
   const accentGrid = $("#accent-grid");
 
   function currentMode() {
-    return document.documentElement.dataset.mode === "dark" ? "dark" : "light";
+    return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
   }
 
   function currentAccent() {
-    const key = document.documentElement.dataset.theme;
+    const key = document.documentElement.dataset.accent;
     return Object.prototype.hasOwnProperty.call(ACCENTS, key) ? key : (window.F1_DEFAULT_ACCENT || "red");
   }
 
@@ -2387,6 +2441,13 @@ html.theming *::after {
     const accent = currentAccent();
     for (const btn of $$(".mode button")) {
       btn.setAttribute("aria-pressed", String(btn.dataset.mode === mode));
+    }
+    const themeToggle = $("#theme-toggle");
+    if (themeToggle) {
+      const dark = mode === "dark";
+      themeToggle.setAttribute("aria-pressed", String(dark));
+      themeToggle.setAttribute("aria-label", dark ? "Dark theme — switch to light" : "Light theme — switch to dark");
+      themeToggle.title = dark ? "Switch to light theme" : "Switch to dark theme";
     }
     for (const btn of $$(".accent", accentGrid)) {
       const swatch = ACCENTS[btn.dataset.accent];
@@ -2568,6 +2629,13 @@ html.theming *::after {
         status.classList.add("is-spinning");
         window.setTimeout(() => status.classList.remove("is-spinning"), 900);
         refresh();
+      });
+    }
+
+    const themeToggle = $("#theme-toggle");
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        applyMode(currentMode() === "dark" ? "light" : "dark");
       });
     }
 
