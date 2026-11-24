@@ -6,6 +6,24 @@
    container tokens change, never the neutral surfaces, so the theme stays
    recognisably monochrome apart from one selectable colour.
    -------------------------------------------------------------------------- */
+/* Registering the palette as real <color> properties makes the tokens
+   interpolable. A theme switch can then animate the tokens themselves on
+   <html>, and every element that reads var(--text) or var(--bg) fades along
+   with them — including gradients such as the radial tint in body::before,
+   which cannot be transitioned directly. */
+@property --primary { syntax: "<color>"; inherits: true; initial-value: #D32F2F; }
+@property --on-primary { syntax: "<color>"; inherits: true; initial-value: #FFFFFF; }
+@property --primary-container { syntax: "<color>"; inherits: true; initial-value: #FFDAD6; }
+@property --on-primary-container { syntax: "<color>"; inherits: true; initial-value: #410002; }
+@property --bg { syntax: "<color>"; inherits: true; initial-value: #F6F6F7; }
+@property --surface { syntax: "<color>"; inherits: true; initial-value: #FFFFFF; }
+@property --surface-2 { syntax: "<color>"; inherits: true; initial-value: #EFEFF1; }
+@property --surface-3 { syntax: "<color>"; inherits: true; initial-value: #E4E4E7; }
+@property --text { syntax: "<color>"; inherits: true; initial-value: #0B0B0C; }
+@property --text-2 { syntax: "<color>"; inherits: true; initial-value: #3C3C40; }
+@property --text-3 { syntax: "<color>"; inherits: true; initial-value: #68686E; }
+@property --line { syntax: "<color>"; inherits: true; initial-value: #DDDDE0; }
+
 :root {
   color-scheme: light;
   --primary: #D32F2F;
@@ -31,6 +49,8 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
   --ease-spring: cubic-bezier(0.22, 1.28, 0.36, 1);
+  --ease-theme: cubic-bezier(0.4, 0, 0.2, 1);
+  --theme-duration: 650ms;
 }
 
 html[data-theme="dark"] {

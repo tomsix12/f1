@@ -1,17 +1,64 @@
 /* --------------------------------------------------------------------------
    Motion
    -------------------------------------------------------------------------- */
-/* Temporary class added while a theme switch is in flight so every surface,
-   border, icon and shadow cross-fades instead of snapping. */
-html.theming,
+/* A theme switch adds `theming` to <html> for one transition window. The
+   neutral and accent colours are registered <color> properties (tokens.css),
+   so animating them on the root makes every var() consumer read the
+   interpolated value on each frame: surfaces, type, borders, icons and the
+   radial accent tint all move together.
+
+   Descendant transitions are switched off for that window on purpose. A
+   transition on a var()-driven property would restart on every frame because
+   its computed value keeps changing, which leaves it lagging behind the token
+   animation and snapping at the end. */
+html.theming {
+  transition:
+    --primary var(--theme-duration) var(--ease-theme),
+    --on-primary var(--theme-duration) var(--ease-theme),
+    --primary-container var(--theme-duration) var(--ease-theme),
+    --on-primary-container var(--theme-duration) var(--ease-theme),
+    --bg var(--theme-duration) var(--ease-theme),
+    --surface var(--theme-duration) var(--ease-theme),
+    --surface-2 var(--theme-duration) var(--ease-theme),
+    --surface-3 var(--theme-duration) var(--ease-theme),
+    --text var(--theme-duration) var(--ease-theme),
+    --text-2 var(--theme-duration) var(--ease-theme),
+    --text-3 var(--theme-duration) var(--ease-theme),
+    --line var(--theme-duration) var(--ease-theme);
+}
+
 html.theming *,
 html.theming *::before,
 html.theming *::after {
+  transition: none !important;
+}
+
+/* Shadows are stored as plain values rather than registered colours, so the
+   few surfaces that use them fade their box-shadow locally instead. */
+html.theming .hero,
+html.theming .racecard,
+html.theming .brand__mark,
+html.theming .tabs__indicator,
+html.theming .palette {
+  transition: box-shadow var(--theme-duration) var(--ease-theme) !important;
+}
+
+/* The header toggle keeps its own sun/moon cross-fade and rotation while the
+   rest of the page fades between themes. */
+html.theming .themebtn svg {
   transition:
-    background-color 0.46s var(--ease-emphasized),
-    color 0.46s var(--ease-emphasized),
-    border-color 0.46s var(--ease-emphasized),
-    fill 0.46s var(--ease-emphasized),
-    stroke 0.46s var(--ease-emphasized),
-    box-shadow 0.46s var(--ease-emphasized) !important;
+    opacity 0.4s var(--ease-standard),
+    transform 0.68s var(--ease-spring) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theming,
+  html.theming .hero,
+  html.theming .racecard,
+  html.theming .brand__mark,
+  html.theming .tabs__indicator,
+  html.theming .palette,
+  html.theming .themebtn svg {
+    transition: none !important;
+  }
 }

@@ -78,7 +78,9 @@ export function commitTheme(nextAccent: AccentKey, nextMode: ThemeMode): void {
   writeStored(MODE_KEY, mode);
   notify();
   window.clearTimeout(themeTimer);
-  themeTimer = window.setTimeout(() => root.classList.remove("theming"), 520);
+  // CSS fades colours for --theme-duration (650 ms); keep the class a little
+  // longer so the last frame is not cut off.
+  themeTimer = window.setTimeout(() => root.classList.remove("theming"), 720);
 }
 
 export function setMode(nextMode: ThemeMode): void {
