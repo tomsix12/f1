@@ -6,10 +6,12 @@
   "description": "Static Formula 1 schedule, results and standings dashboard built with Vite and TypeScript.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/publish-root.mjs",
+    "build:dist": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "sync:snapshot": "node scripts/sync-snapshot.mjs"
+    "sync:snapshot": "node scripts/sync-snapshot.mjs",
+    "publish:root": "node scripts/publish-root.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

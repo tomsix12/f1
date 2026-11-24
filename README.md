@@ -13,18 +13,28 @@ web – žádný server ani runtime.
 
 ```bash
 npm install
-npm run dev        # vývojový server s HMR
-npm run typecheck  # kontrola typů (tsc --noEmit)
-npm run build      # typecheck + produkční build do dist/
-npm run preview    # náhled produkčního buildu
+npm run dev           # vývojový server s HMR
+npm run typecheck     # kontrola typů (tsc --noEmit)
+npm run build         # typecheck + build + publikace do kořene repa
+npm run build:dist    # jen build do dist/
+npm run preview       # náhled dist/
+npm run publish:root  # zkopíruje hotový dist/ do kořene
 ```
+
+Zdrojový kód se edituje v `src/`. Po každé změně spusť `npm run build` –
+kromě `dist/` přepíše i statické soubory v kořeni repozitáře, které se
+commitují a které Vercel servíruje bez buildu.
 
 ## Struktura
 
 ```
 f1/
-├─ index.html              – statická kostra: hlavička, panely, patička
+├─ index.html              – hotový build (generovaný, needitovat)
+├─ assets/                 – JS a CSS buildu (generované)
+├─ data.json               – kopie public/data.json (generovaná)
+├─ img/, robots.txt, sitemap.xml – kopie z public/ (generované)
 ├─ src/
+│  ├─ index.html           – šablona stránky (zdroj pro build)
 │  ├─ main.ts              – vstupní bod, boot, časovače a obnova dat
 │  ├─ config.ts            – API_BASE, REFRESH_MS, SESSION_DEFS, TZ, klíče
 │  ├─ types.ts             – typy sdílené datovou vrstvou a UI
@@ -39,13 +49,16 @@ f1/
 │  ├─ img/og.png           – náhled pro sociální sítě (1200×630)
 │  ├─ robots.txt
 │  └─ sitemap.xml
-├─ scripts/sync-snapshot.mjs
+├─ scripts/
+│  ├─ publish-root.mjs     – kopíruje dist/ do kořene repa
+│  └─ sync-snapshot.mjs    – drží snapshot v src/data v souladu s public/
 ├─ vite.config.ts
 └─ tsconfig.json
 ```
 
-`public/` se celý kopíruje do `dist/`, takže cesty v prohlížeči zůstávají
-`/data.json`, `/img/og.png` atd.
+`public/` se kopíruje do buildu, takže cesty v prohlížeči zůstávají
+`/data.json`, `/img/og.png` atd. Kořenové kopie (`index.html`, `assets/`,
+`data.json`, `img/`) vznikají při `npm run build` a neupravují se ručně.
 
 ## Co stránka umí
 
@@ -126,21 +139,25 @@ jen tlačítko s ikonou, plný text je v jeho popisku pro čtečky).
 
 ## Nasazení
 
-Web běží na Vercelu a nasazuje se z tohoto repozitáře. `npm run build`
-vytvoří `dist/` s čistě statickými soubory.
+Web běží na Vercelu a nasazuje se z tohoto repozitáře. Kořen repozitáře
+obsahuje hotový statický build (`index.html`, `assets/`, `data.json`, …), takže
+Vercel nemusí spouštět žádný build – stačí mu servírovat kořen.
 
-V nastavení Vercel projektu (**Settings → Build & Development Settings**) musí
-být:
+Po úpravě zdrojů proto vždy:
 
-- **Framework Preset:** Vite
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-- **Install Command:** `npm install` (výchozí)
+```bash
+npm run build
+git add -A
+git commit -m "Update build"
+git push
+```
 
-Vercel u Vite tyhle hodnoty obvykle rozpozná sám. Pokud projekt vznikl ještě
-jako statická verze bez buildu, zkontroluj, že tam není ručně nastavené
-`Other` a výstup `.`. Po pushi do `main` se nová verze nasadí automaticky.
-Pro doménu `tomsix.xyz` nech nastavené odpovídající DNS záznamy.
+Vercel po pushi nasadí novou verzi automaticky. Pro doménu `tomsix.xyz` nech
+nastavené odpovídající DNS záznamy.
+
+Volitelně může Vercel build spouštět sám (Framework Preset `Vite`, Build
+Command `npm run build`, Output Directory `dist`) – obě cesty vedou ke stejnému
+výsledku, protože `npm run build` plní i kořen repozitáře.
 
 ## Poznámky
 
