@@ -3,7 +3,7 @@ import { $, $$ } from "../lib/dom";
 import { prefersReducedMotion } from "../lib/motion";
 import type { ViewName } from "../types";
 
-export const VIEWS: ViewName[] = ["schedule", "teams", "drivers"];
+export const VIEWS: ViewName[] = ["schedule", "drivers", "teams"];
 
 function asView(value: string | undefined): ViewName {
   return VIEWS.includes(value as ViewName) ? (value as ViewName) : "schedule";

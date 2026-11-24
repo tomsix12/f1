@@ -31,12 +31,14 @@ export function renderDrivers(): void {
   if (!host || !state.data) return;
 
   const drivers = state.data.drivers || [];
+  const leader = Math.max(1, drivers.length ? drivers[0].points : 1);
 
   host.innerHTML = drivers.map((driver) => {
     const colors = teamColors(driver.teamId);
+    const pct = Math.max(1.5, Math.round((driver.points / leader) * 1000) / 10);
     const medal = driver.pos <= 3 ? " is-p" + driver.pos : "";
     const sub = [teamNameFor(driver.teamId, driver.team), winsText(driver.wins)].filter(Boolean).join(" · ");
-    return '<li class="driver" style="--team-dark:' + colors.dark + ";--team-light:" + colors.light + '">' +
+    return '<li class="driver" style="--team-dark:' + colors.dark + ";--team-light:" + colors.light + ";--pct:" + pct + '%">' +
       '<span class="driver__pos' + medal + '">' + driver.pos + "</span>" +
       '<span class="driver__edge" aria-hidden="true"></span>' +
       '<span class="driver__main">' +

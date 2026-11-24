@@ -93,6 +93,7 @@ html[data-theme="light"] .team-card { --team: var(--team-light, var(--text-3)); 
 
 .driver {
   --team: var(--team-dark, var(--text-3));
+  position: relative;
   display: grid;
   grid-template-columns: 32px 4px minmax(0, 1fr) auto;
   align-items: center;
@@ -101,10 +102,22 @@ html[data-theme="light"] .team-card { --team: var(--team-light, var(--text-3)); 
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
+  overflow: hidden;
+  isolation: isolate;
   transition: border-color 0.2s ease;
 }
 .driver:hover { border-color: color-mix(in srgb, var(--team) 40%, var(--line)); }
 html[data-theme="light"] .driver { --team: var(--team-light, var(--text-3)); }
+
+.driver::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: var(--pct, 4%);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  pointer-events: none;
+}
 
 .driver__pos { width: 28px; height: 28px; font-size: 11px; }
 
