@@ -1,4 +1,3 @@
-import { $ } from "../lib/dom";
 import { prefersReducedMotion } from "../lib/motion";
 import { PREFS_EVENT, getBlurScale, getMotionBlur } from "../lib/prefs";
 
@@ -10,14 +9,27 @@ import { PREFS_EVENT, getBlurScale, getMotionBlur } from "../lib/prefs";
  * vertical stdDeviation, so the effect stays cheap and text keeps its edges
  * horizontally.
  *
+ * The filter is applied to the individual cards and headings rather than to
+ * the whole `#content` wrapper on purpose. Filtering one tall scroll container
+ * forces the browser to keep re-rasterising one very large render surface as
+ * `stdDeviation` changes, which makes newly scrolled-in content stay blank for
+ * a moment on slow or software rasterisers. Small per-item surfaces are only
+ * rasterised while visible and cost almost nothing, while looking the same
+ * because almost all detail lives inside the cards.
+ *
  * Safari and Firefox cap the radius lower because their compositors handle
  * large filter surfaces differently.
  */
+const BLUR_CLASS = "motion-blurring";
+/** Rounding step for stdDeviation so tiny per-frame changes don't re-blur. */
+const BLUR_STEP = 0.25;
+/** Minimum time between filter updates, in ms (~30 Hz is plenty for a blur). */
+const PAINT_INTERVAL = 28;
+
 export function initMotionBlur(): void {
-  const host = $("#content");
   const gaussianNode = document.getElementById("scroll-motion-blur-gaussian");
-  if (!host || !(gaussianNode instanceof SVGFEGaussianBlurElement)) return;
-  const content = host;
+  if (!(gaussianNode instanceof SVGFEGaussianBlurElement)) return;
+  if (!document.getElementById("content")) return;
   const gaussian: SVGFEGaussianBlurElement = gaussianNode;
 
   const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
@@ -25,6 +37,7 @@ export function initMotionBlur(): void {
   const MAX_VELOCITY = 3;
   const MAX_BLUR = isSafari || isFirefox ? 3 : 6;
   const VELOCITY_TO_BLUR = 2.8;
+  const root = document.documentElement;
 
   let enabled = getMotionBlur();
   let scale = getBlurScale();
@@ -35,26 +48,34 @@ export function initMotionBlur(): void {
   let lastT = 0;
   let lastMove = 0;
   let appliedBlur = -1;
+  let lastPaint = 0;
 
   function clear(): void {
     if (!applied) return;
-    content.style.filter = "";
+    root.classList.remove(BLUR_CLASS);
+    gaussian.setAttribute("stdDeviation", "0 0");
     applied = false;
     appliedBlur = -1;
+    lastPaint = 0;
   }
 
-  function showBlur(blur: number): void {
-    if (blur < 0.3) {
+  function showBlur(blur: number, now: number): void {
+    // Quantise so a sub-pixel change does not restart the blur pass for every
+    // filtered element on the next frame.
+    const stepped = Math.round(blur / BLUR_STEP) * BLUR_STEP;
+    if (stepped < 0.3) {
       clear();
       return;
     }
-    if (Math.abs(blur - appliedBlur) > 0.01) {
-      gaussian.setAttribute("stdDeviation", "0 " + blur.toFixed(2));
-      appliedBlur = blur;
-    }
     if (!applied) {
-      content.style.filter = 'url("#scroll-motion-blur")';
+      root.classList.add(BLUR_CLASS);
       applied = true;
+      lastPaint = 0;
+    }
+    if (stepped !== appliedBlur && now - lastPaint >= PAINT_INTERVAL) {
+      gaussian.setAttribute("stdDeviation", "0 " + stepped.toFixed(2));
+      appliedBlur = stepped;
+      lastPaint = now;
     }
   }
 
@@ -66,7 +87,7 @@ export function initMotionBlur(): void {
 
   function frame(now: number): void {
     if (!running) return;
-    if (!enabled || prefersReducedMotion.matches) {
+    if (!enabled || prefersReducedMotion.matches || document.hidden) {
       stop();
       return;
     }
@@ -83,10 +104,11 @@ export function initMotionBlur(): void {
       if (Math.abs(velocity) < 0.01) velocity = 0;
     }
 
-    showBlur(Math.min(MAX_BLUR, Math.abs(velocity) * VELOCITY_TO_BLUR * scale));
+    showBlur(Math.min(MAX_BLUR, Math.abs(velocity) * VELOCITY_TO_BLUR * scale), now);
 
     if (velocity === 0 && now - lastMove > 180) {
       running = false;
+      clear();
       return;
     }
 
@@ -119,5 +141,10 @@ export function initMotionBlur(): void {
   prefersReducedMotion.addEventListener("change", () => {
     if (prefersReducedMotion.matches) stop();
     else start();
+  });
+
+  // Never leave a paused tab blurred when it comes back to the foreground.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stop();
   });
 }

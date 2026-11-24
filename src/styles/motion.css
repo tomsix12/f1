@@ -11,6 +11,21 @@
   pointer-events: none;
 }
 
+/* Directional blur targets. Deliberately *not* `#content`: filtering the tall
+   scroll container creates one huge render surface, so on slow rasterisers
+   freshly scrolled-in cards stay blank until the scroll stops. Per-card
+   surfaces are small, only rasterised while visible, and carry nearly all of
+   the page detail, so the effect looks the same while staying smooth. */
+html.motion-blurring .hero,
+html.motion-blurring .racecard,
+html.motion-blurring .driver,
+html.motion-blurring .team-card,
+html.motion-blurring .section__head,
+html.motion-blurring .race-group__title,
+html.motion-blurring .foot__inner {
+  filter: url("#scroll-motion-blur");
+}
+
 /* A theme switch adds `theming` to <html> for one transition window. The
    neutral and accent colours are registered <color> properties (tokens.css),
    so animating them on the root makes every var() consumer read the
