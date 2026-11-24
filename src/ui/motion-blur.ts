@@ -1,5 +1,6 @@
 import { $ } from "../lib/dom";
 import { prefersReducedMotion } from "../lib/motion";
+import { PREFS_EVENT, getMotionBlur } from "../lib/prefs";
 
 /**
  * Subtle motion blur while the content moves fast. Safari and Firefox cap it
@@ -67,7 +68,7 @@ export function initMotionBlur(): void {
   }
 
   function start(): void {
-    if (running || prefersReducedMotion.matches) return;
+    if (running || prefersReducedMotion.matches || !getMotionBlur()) return;
     running = true;
     lastY = window.scrollY;
     lastT = performance.now();
@@ -79,5 +80,8 @@ export function initMotionBlur(): void {
   prefersReducedMotion.addEventListener("change", () => {
     if (prefersReducedMotion.matches) stop();
     else start();
+  });
+  document.addEventListener(PREFS_EVENT, (event) => {
+    if ((event as CustomEvent<string>).detail === "motion" && !getMotionBlur()) stop();
   });
 }

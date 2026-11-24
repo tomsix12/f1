@@ -85,3 +85,14 @@ html[data-theme="dark"][data-accent="amber"] { --primary: #FFB95C; --on-primary:
 html[data-theme="dark"][data-accent="pink"] { --primary: #FFB1C8; --on-primary: #64002F; --primary-container: #8E0046; --on-primary-container: #FFD9E2; }
 html[data-theme="dark"][data-accent="violet"] { --primary: #D0BCFF; --on-primary: #3A1D71; --primary-container: #513A87; --on-primary-container: #EADDFF; }
 html[data-theme="dark"][data-accent="graphite"] { --primary: #E4E4E7; --on-primary: #1B1B1E; --primary-container: #3C3C40; --on-primary-container: #E4E4E7; }
+
+/* Typeface choice — local stacks only, applied through data-font on <html>.
+   The default (sans) keeps the Inter / Plus Jakarta stacks above. */
+html[data-font="serif"] {
+  --font: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+}
+html[data-font="mono"] {
+  --font: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  --font-display: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+}

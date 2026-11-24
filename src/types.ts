@@ -1,6 +1,8 @@
 /** Domain model shared by the data layer and the UI. */
 
-export type ThemeMode = "dark" | "light";
+export type ThemeMode = "system" | "dark" | "light";
+
+export type FontChoice = "sans" | "serif" | "mono";
 
 export type AccentKey =
   | "red"

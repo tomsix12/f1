@@ -1,0 +1,243 @@
+/* --------------------------------------------------------------------------
+   Settings popover (Material 3 Expressive)
+   -------------------------------------------------------------------------- */
+.settings {
+  position: fixed;
+  top: 66px;
+  right: 16px;
+  z-index: 71;
+  width: min(372px, calc(100vw - 24px));
+  max-height: calc(100dvh - 96px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  transform-origin: top right;
+  scrollbar-width: thin;
+  animation: settingsIn 0.42s var(--ease-spring);
+}
+.settings[hidden] { display: none; }
+
+/* Emphasised M3 entrance: anchored under the gear, slightly scaled down. */
+@keyframes settingsIn {
+  from { opacity: 0; transform: translateY(-14px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+.settings__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.settings__title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.settings__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: var(--text-3);
+  transition: background-color 0.22s var(--ease-standard), color 0.22s var(--ease-standard), transform 0.28s var(--ease-spring);
+}
+.settings__close:hover { background: var(--surface-2); color: var(--text); }
+.settings__close:active { transform: scale(0.92); }
+.settings__close svg { width: 17px; height: 17px; }
+
+.settings__group + .settings__group { margin-top: 18px; }
+
+.settings__label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.settings__note {
+  margin-top: 16px;
+  color: var(--text-3);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+/* Segmented button — one clear selected pill per row. */
+.segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.segmented__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  transition:
+    background-color 0.25s var(--ease-standard),
+    color 0.25s var(--ease-standard),
+    transform 0.3s var(--ease-spring);
+}
+.segmented__item svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.segmented__item:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+.segmented__item:active { transform: scale(0.97); }
+.segmented__item[aria-pressed="true"] {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Accent swatches: the neutral surfaces stay put, only the accent changes. */
+.accents {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.accent {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  transition: border-color 0.25s var(--ease-standard), box-shadow 0.25s var(--ease-standard), transform 0.3s var(--ease-spring);
+}
+.accent:hover { border-color: color-mix(in srgb, var(--sw) 55%, var(--line)); transform: translateY(-2px); }
+.accent__dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sw);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.accent__dot svg { width: 13px; height: 13px; color: var(--sw-on); opacity: 0; transition: opacity 0.22s var(--ease-standard); }
+.accent[aria-pressed="true"] { border-color: var(--sw); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sw) 32%, transparent); }
+.accent[aria-pressed="true"] .accent__dot svg { opacity: 1; }
+
+/* Favourite driver / team selects */
+.fields { display: flex; flex-direction: column; gap: 10px; }
+
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+.field__label { color: var(--text-2); font-size: 11.5px; font-weight: 600; }
+
+.select { position: relative; display: flex; align-items: center; }
+
+.select__input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 38px 9px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-standard), background-color 0.2s var(--ease-standard);
+}
+.select__input:hover { border-color: color-mix(in srgb, var(--text) 22%, var(--line)); }
+.select__input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.select__input option { background: var(--surface); color: var(--text); }
+
+.select__chevron {
+  position: absolute;
+  right: 13px;
+  width: 15px;
+  height: 15px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+/* Motion blur switch */
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.set-row__text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.set-row__title { font-size: 13px; font-weight: 650; }
+.set-row__desc { color: var(--text-3); font-size: 11px; }
+
+.switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-3);
+  transition: background-color 0.25s var(--ease-standard), border-color 0.25s var(--ease-standard);
+}
+.switch:hover { border-color: color-mix(in srgb, var(--text) 20%, var(--line)); }
+
+.switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--text-3);
+  transition:
+    left 0.32s var(--ease-spring),
+    top 0.2s var(--ease-standard),
+    width 0.2s var(--ease-standard),
+    height 0.2s var(--ease-standard),
+    background-color 0.25s var(--ease-standard),
+    color 0.2s var(--ease-standard);
+}
+.switch__thumb svg {
+  width: 13px;
+  height: 13px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.18s var(--ease-standard), transform 0.26s var(--ease-spring);
+}
+
+.switch[aria-checked="true"] {
+  border-color: color-mix(in srgb, var(--primary) 70%, var(--line));
+  background: var(--primary);
+}
+.switch[aria-checked="true"] .switch__thumb {
+  top: 2px;
+  left: 23px;
+  width: 26px;
+  height: 26px;
+  background: var(--on-primary);
+  color: var(--primary);
+}
+.switch[aria-checked="true"] .switch__thumb svg { opacity: 1; transform: none; }

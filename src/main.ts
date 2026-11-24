@@ -1,7 +1,7 @@
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/header.css";
-import "./styles/palette.css";
+import "./styles/settings.css";
 import "./styles/chips.css";
 import "./styles/hero.css";
 import "./styles/sections.css";
@@ -18,7 +18,7 @@ import { tick } from "./app/tick";
 import { REFRESH_MS } from "./config";
 import { cache } from "./lib/storage";
 import { initTheme } from "./lib/theme";
-import { initAppearance } from "./ui/appearance";
+import { initSettings } from "./ui/settings";
 import { initCalendar } from "./ui/calendar";
 import { initHero } from "./ui/hero";
 import { initMotionBlur } from "./ui/motion-blur";
@@ -27,7 +27,7 @@ import { initStatus, renderStatus } from "./ui/status";
 
 function boot(): void {
   initTheme();
-  initAppearance();
+  initSettings();
   initNav();
   initCalendar();
   initHero();

@@ -38,7 +38,7 @@ html.theming *::after {
 html.theming .hero,
 html.theming .racecard,
 html.theming .tabs__indicator,
-html.theming .palette {
+html.theming .settings {
   transition: box-shadow var(--theme-duration) var(--ease-theme) !important;
 }
 
@@ -55,7 +55,7 @@ html.theming .themebtn svg {
   html.theming .hero,
   html.theming .racecard,
   html.theming .tabs__indicator,
-  html.theming .palette,
+  html.theming .settings,
   html.theming .themebtn svg {
     transition: none !important;
   }

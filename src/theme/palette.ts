@@ -30,7 +30,7 @@ export interface NeutralPalette {
  * mirrored by the CSS custom properties in src/styles/tokens.css and are used
  * at runtime only for the browser theme-color and the accent swatches.
  */
-export const NEUTRALS: Record<ThemeMode, NeutralPalette> = {
+export const NEUTRALS: Record<"dark" | "light", NeutralPalette> = {
   light: {
     bg: "#F6F6F7",
     surface: "#FFFFFF",
@@ -114,5 +114,5 @@ export function isAccentKey(value: unknown): value is AccentKey {
 }
 
 export function isThemeMode(value: unknown): value is ThemeMode {
-  return value === "dark" || value === "light";
+  return value === "system" || value === "dark" || value === "light";
 }

@@ -7,6 +7,9 @@ import { renderStatus } from "../ui/status";
 import { state } from "./state";
 import { tick } from "./tick";
 
+/** Fired after a full render so panels can reload data-derived options. */
+export const DATA_EVENT = "f1:data";
+
 export function renderAll(): void {
   if (!state.data) return;
   renderSeason();
@@ -17,6 +20,7 @@ export function renderAll(): void {
   renderStatus();
   renderFooter();
   tick();
+  document.dispatchEvent(new Event(DATA_EVENT));
 }
 
 function renderSeason(): void {

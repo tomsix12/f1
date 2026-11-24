@@ -85,23 +85,28 @@ f1/
   dostane neutrální glóbus.
 - **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
   kruhy pro první tři, pruhem v barvě týmu a podílovým neutrálním pruhem.
+- **Nastavení v M3 Expressive stylu** – ozubené kolečko vedle tlačítka
+  se sluncem/měsícem otevírá animovaný panel (pružinový nájezd, na mobilu pod
+  celou hlavičkou). Nabízí segmentované volby tématu (System / Light / Dark),
+  písma (Sans / Serif / Mono) a vypínač motion blur; dále osm akcentů a výběr
+  oblíbeného jezdce a týmu. Oblíbený řádek se v bodování zvýrazní akcentovým
+  rámečkem a hvězdičkou. Volby se ukládají do `localStorage`.
 - **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
   plochy s černým textem. Z osmi akcentů (Red, Blue, Green, Teal, Amber, Pink,
   Violet, Graphite) jde vybrat jeden; mění se jen primární barva, nikdy
-  neutrální plochy. Tlačítko vzhledu (paleta) sedí hned nalevo od kruhového
-  tlačítka se sluncem/měsícem v hlavičce a otevírá panel s akcenty; na mobilu
-  zůstává ve skupině vpravo nahoře. Slunce/měsíc přepíná světlý a tmavý režim
+  neutrální plochy. Slunce/měsíc v hlavičce přepíná světlý a tmavý režim
   a ikona se při přepnutí plynule otočí a prohodí. Při prvním otevření je
-  výchozí tmavý (černo-bílý) režim; světlý se zapne, až když ho návštěvník
-  přepne. Volba se ukládá do `localStorage` a do stránky se aplikuje inline
-  skriptem v `<head>` ještě před vykreslením těla, takže neproblikne špatné
-  téma.
+  výchozí tmavý (černo-bílý) režim; systémová volba sleduje nastavení OS.
+  Volba se ukládá do `localStorage` a do stránky se aplikuje inline skriptem
+  v `<head>` ještě před vykreslením těla, takže neproblikne špatné téma
+  ani písmo.
 - **M3 Expressive navigace** – segmentovaný seznam s ikonami a posuvným
   indikátorem aktivní položky (bez zaškrtávací ikony).
 - **Pohyb** – jemné, déle plynoucí najíždění karet, rozbalování rozvrhu
   s postupným odkrýváním řádků a plynulý přechod všech barev (~650 ms) při
   změně motivu: barvy jsou registrované CSS tokeny, takže plochy, text i
-  akcent tónují společně. Vše respektuje `prefers-reduced-motion`.
+  akcent tónují společně. Vše respektuje `prefers-reduced-motion`; motion
+  blur navíc jde vypnout v nastavení.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku
   nebo v režimu širokého viewportu) ho nahrazuje kruhové tlačítko s ikonou

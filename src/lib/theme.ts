@@ -13,11 +13,18 @@ type ThemeListener = () => void;
 
 const root = document.documentElement;
 const listeners = new Set<ThemeListener>();
+const systemQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 /** First visit starts in the dark design; the choice is remembered afterwards. */
 let mode: ThemeMode = "dark";
 let accent: AccentKey = DEFAULT_ACCENT;
 let themeTimer = 0;
+
+/** "system" follows the OS; the data-theme attribute only ever gets light/dark. */
+function resolveMode(nextMode: ThemeMode): "dark" | "light" {
+  if (nextMode !== "system") return nextMode;
+  return systemQuery.matches ? "dark" : "light";
+}
 
 function storedMode(): ThemeMode {
   const saved = readStored(MODE_KEY);
@@ -31,20 +38,28 @@ function storedAccent(): AccentKey {
 
 /** Writes the data-attributes that drive every token in tokens.css. */
 export function applyTheme(nextAccent: AccentKey, nextMode: ThemeMode): void {
+  const resolved = resolveMode(nextMode);
   root.dataset.accent = nextAccent;
-  root.dataset.theme = nextMode;
+  root.dataset.theme = resolved;
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", NEUTRALS[nextMode].bg);
+  if (meta) meta.setAttribute("content", NEUTRALS[resolved].bg);
 }
 
 export function initTheme(): void {
   mode = storedMode();
   accent = storedAccent();
   applyTheme(accent, mode);
+  systemQuery.addEventListener("change", () => {
+    if (mode === "system") commitTheme(accent, mode);
+  });
 }
 
 export function getMode(): ThemeMode {
   return mode;
+}
+
+export function getResolvedMode(): "dark" | "light" {
+  return resolveMode(mode);
 }
 
 export function getAccent(): AccentKey {
@@ -92,5 +107,5 @@ export function setAccent(nextAccent: AccentKey): void {
 }
 
 export function toggleMode(): void {
-  setMode(mode === "dark" ? "light" : "dark");
+  setMode(resolveMode(mode) === "dark" ? "light" : "dark");
 }
