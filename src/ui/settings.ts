@@ -29,7 +29,6 @@ import {
   onThemeChange,
   setAccent,
   setMode,
-  toggleMode,
 } from "../lib/theme";
 import { ACCENTS, ACCENT_ORDER, isAccentKey } from "../theme/palette";
 import type { ThemeMode } from "../types";
@@ -101,14 +100,6 @@ function syncThemeUI(): void {
   const mode = getMode();
   const resolved = getResolvedMode();
   const accent = getAccent();
-
-  const themeToggle = $("#theme-toggle");
-  if (themeToggle) {
-    const dark = resolved === "dark";
-    themeToggle.setAttribute("aria-pressed", String(dark));
-    themeToggle.setAttribute("aria-label", dark ? "Dark theme — switch to light" : "Light theme — switch to dark");
-    themeToggle.title = dark ? "Switch to light theme" : "Switch to dark theme";
-  }
 
   if (themeSeg) {
     for (const item of $$<HTMLButtonElement>(".segmented__item", themeSeg)) {
@@ -260,8 +251,6 @@ export function initSettings(): void {
   syncMotionUI();
   syncTimeZoneUI();
   onThemeChange(syncThemeUI);
-
-  $("#theme-toggle")?.addEventListener("click", toggleMode);
 
   settingsBtn?.addEventListener("click", () => {
     if (!panel) return;

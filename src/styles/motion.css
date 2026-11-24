@@ -65,21 +65,12 @@ html.theming .settings {
   transition: box-shadow var(--theme-duration) var(--ease-theme) !important;
 }
 
-/* The header toggle keeps its own sun/moon cross-fade and rotation while the
-   rest of the page fades between themes. */
-html.theming .themebtn svg {
-  transition:
-    opacity 0.4s var(--ease-standard),
-    transform 0.68s var(--ease-spring) !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html.theming,
   html.theming .hero,
   html.theming .racecard,
   html.theming .tabs__indicator,
-  html.theming .settings,
-  html.theming .themebtn svg {
+  html.theming .settings {
     transition: none !important;
   }
 }

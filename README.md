@@ -85,8 +85,8 @@ f1/
   dostane neutrální glóbus.
 - **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
   kruhy pro první tři, pruhem v barvě týmu a podílovým neutrálním pruhem.
-- **Nastavení v M3 Expressive stylu** – ozubené kolečko vedle tlačítka
-  se sluncem/měsícem otevírá animovaný panel (pružinový nájezd, na mobilu pod
+- **Nastavení v M3 Expressive stylu** – ozubené kolečko v hlavičce
+  otevírá animovaný panel (pružinový nájezd, na mobilu pod
   celou hlavičkou). Nabízí segmentované volby tématu (System / Light / Dark),
   písma (Sans / Serif / Mono) a vypínač motion blur s posuvníkem
   intenzity (0.5–2.5×); dále osm akcentů a výběr oblíbeného jezdce a týmu. Oblíbený řádek se v bodování zvýrazní akcentovým
@@ -100,8 +100,10 @@ f1/
 - **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
   plochy s černým textem. Z osmi akcentů (Red, Blue, Green, Teal, Amber, Pink,
   Violet, Graphite) jde vybrat jeden; mění se jen primární barva, nikdy
-  neutrální plochy. Slunce/měsíc v hlavičce přepíná světlý a tmavý režim
-  a ikona se při přepnutí plynule otočí a prohodí. Při prvním otevření je
+  neutrální plochy. Světlý a tmavý režim se přepíná v nastavení (System /
+  Light / Dark) a celá stránka mezi nimi plynule přejde – barvy jsou
+  registrované CSS tokeny, takže se plochy, text i akcent prolínají současně
+  (~900 ms, měkká decelerační křivka). Při prvním otevření je
   výchozí tmavý (černo-bílý) režim; systémová volba sleduje nastavení OS.
   Volba se ukládá do `localStorage` a do stránky se aplikuje inline skriptem
   v `<head>` ještě před vykreslením těla, takže neproblikne špatné téma

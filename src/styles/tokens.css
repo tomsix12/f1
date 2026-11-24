@@ -49,8 +49,8 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
   --ease-spring: cubic-bezier(0.22, 1.28, 0.36, 1);
-  --ease-theme: cubic-bezier(0.4, 0, 0.2, 1);
-  --theme-duration: 650ms;
+  --ease-theme: cubic-bezier(0.33, 0.05, 0.12, 1);
+  --theme-duration: 900ms;
 }
 
 html[data-theme="dark"] {
