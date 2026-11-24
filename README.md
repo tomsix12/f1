@@ -50,8 +50,8 @@ f1/
   (bez preference je výchozí tmavý). Přepínač Light / Dark i mřížka akcentů
   jsou segmentované ovládací prvky, volba se pamatuje a přechod barev je
   plynulý. Tlačítko vzhledu sedí vedle navigace (na mobilu nad kalendářem).
-- **M3 Expressive navigace** – segmentovaný seznam s ikonami, zaškrtnutím
-  aktivní položky a posuvným indikátorem.
+- **M3 Expressive navigace** – segmentovaný seznam s ikonami a posuvným
+  indikátorem aktivní položky (bez zaškrtávací ikony).
 - **Pohyb** – jemné, déle plynoucí najíždění karet, rozbalování rozvrhu
   s postupným odkrýváním řádků a měkké přechody barev při změně motivu.
   Vše respektuje `prefers-reduced-motion`.
