@@ -1,0 +1,17 @@
+/* --------------------------------------------------------------------------
+   Motion
+   -------------------------------------------------------------------------- */
+/* Temporary class added while a theme switch is in flight so every surface,
+   border, icon and shadow cross-fades instead of snapping. */
+html.theming,
+html.theming *,
+html.theming *::before,
+html.theming *::after {
+  transition:
+    background-color 0.46s var(--ease-emphasized),
+    color 0.46s var(--ease-emphasized),
+    border-color 0.46s var(--ease-emphasized),
+    fill 0.46s var(--ease-emphasized),
+    stroke 0.46s var(--ease-emphasized),
+    box-shadow 0.46s var(--ease-emphasized) !important;
+}

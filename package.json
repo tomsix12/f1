@@ -1,0 +1,18 @@
+{
+  "name": "f1-dashboard",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static Formula 1 schedule, results and standings dashboard built with Vite and TypeScript.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "sync:snapshot": "node scripts/sync-snapshot.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}

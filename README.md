@@ -1,24 +1,52 @@
 # F1 dashboard
 
-Jednosouborový přehled formule 1 – kalendář závodů, vítězové, bodování jezdců
-a konstruktérů, odpočet do dalšího závodu a grafitový motiv s volitelným
-akcentem ve stylu Google Material 3 Expressive. Veškerá data se tahají živě z
+Statický přehled formule 1 – kalendář závodů, vítězové, bodování jezdců a
+konstruktérů, odpočet do dalšího závodu a grafitový motiv s volitelným akcentem
+ve stylu Google Material 3 Expressive. Data se tahají živě z
 [Jolpica F1 API](https://api.jolpi.ca/ergast/f1/), takže se stránka sama
 aktualizuje. Rozhraní je pouze v angličtině.
 
-## Otevření
+Postavené na Vite a TypeScriptu. Výsledkem buildu je ale pořád čistě statický
+web – žádný server ani runtime.
 
-Stačí otevřít `index.html` v prohlížeči nebo složku naservírovat libovolným
-statickým serverem.
+## Vývoj
+
+```bash
+npm install
+npm run dev        # vývojový server s HMR
+npm run typecheck  # kontrola typů (tsc --noEmit)
+npm run build      # typecheck + produkční build do dist/
+npm run preview    # náhled produkčního buildu
+```
+
+## Struktura
 
 ```
 f1/
-├─ index.html     – celá stránka (HTML + CSS + JS + záložní snapshot)
-├─ data.json      – záložní data pro první načtení bez API
-├─ img/og.png     – náhled pro sociální sítě (1200×630)
-├─ robots.txt
-└─ sitemap.xml
+├─ index.html              – statická kostra: hlavička, panely, patička
+├─ src/
+│  ├─ main.ts              – vstupní bod, boot, časovače a obnova dat
+│  ├─ config.ts            – API_BASE, REFRESH_MS, SESSION_DEFS, TZ, klíče
+│  ├─ types.ts             – typy sdílené datovou vrstvou a UI
+│  ├─ styles/              – rozdělené CSS (tokeny, hlavička, kalendář…)
+│  ├─ lib/                 – DOM, formátování, localStorage, téma, pohyb
+│  ├─ theme/palette.ts     – ACCENTS, NEUTRALS, výchozí akcent
+│  ├─ data/                – Jolpica, normalizace, týmy, vlajky, snapshot
+│  ├─ app/                 – stav, načítání dat, vykreslení, tik
+│  └─ ui/                  – hero, kalendář, bodování, stav, navigace…
+├─ public/
+│  ├─ data.json            – záložní data pro první načtení bez API
+│  ├─ img/og.png           – náhled pro sociální sítě (1200×630)
+│  ├─ robots.txt
+│  └─ sitemap.xml
+├─ scripts/sync-snapshot.mjs
+├─ vite.config.ts
+├─ tsconfig.json
+└─ .github/workflows/deploy.yml
 ```
+
+`public/` se celý kopíruje do `dist/`, takže cesty v prohlížeči zůstávají
+`/data.json`, `/img/og.png` atd.
 
 ## Co stránka umí
 
@@ -39,8 +67,8 @@ f1/
   a časem v `Europe/Prague`. Nejbližší session má odznak NEXT. U dokončených
   závodů je pod rozvrhem řádek „Winner: …“ s jezdcem, týmem a časem / stavem;
   u nadcházejících „Not raced yet“. Položky se objevují postupně (50 ms).
-- **Vlajky zemí** – kreslené inline SVG přímo v `index.html`, takže zůstává
-  jediným souborem. Neznámá země dostane neutrální glóbus.
+- **Vlajky zemí** – kreslené inline SVG v `src/data/flags.ts`. Neznámá země
+  dostane neutrální glóbus.
 - **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
   kruhy pro první tři, pruhem v barvě týmu a podílovým neutrálním pruhem.
 - **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
@@ -64,47 +92,55 @@ f1/
   nebo v režimu širokého viewportu) ho nahrazuje kruhové tlačítko s ikonou
   refresh. Ta se netočí sama od sebe – roztočí se až po kliknutí (a během
   načítání dat); plný text zůstává v popisku pro čtečky.
-- Bez frameworků, bez buildu, bez externích fontů a analytiky.
+- Bez frameworků, bez externích fontů a analytiky.
 
 ## Úpravy
 
-Vše důležité je v komentáři na začátku `index.html` a v hlavním `<script>`
-(uprostřed souboru):
-
-- **API** – konstanta `API_BASE` (výchozí `https://api.jolpi.ca/ergast/f1`).
-- **Interval obnovy** – `REFRESH_MS` (výchozích 10 minut).
-- **Délky sessioní** – `SESSION_DEFS`; Jolpica posílá jen začátky, proto se
-  zobrazují obvyklé délky (tréninky a kvalifikace 60 min, sprint 60 min,
-  sprintová kvalifikace 44 min, závod ≈ 2 h).
-- **Vlajky** – mapa `FLAGS` (inline SVG) a `COUNTRY_CODES` (název země →
-  kód). Pro novou zemi stačí doplnit obojí.
+- **API** – `API_BASE` v `src/config.ts` (výchozí
+  `https://api.jolpi.ca/ergast/f1`).
+- **Interval obnovy** – `REFRESH_MS` v `src/config.ts` (výchozích 10 minut).
+- **Délky sessioní** – `SESSION_DEFS` v `src/config.ts`; Jolpica posílá jen
+  začátky, proto se zobrazují obvyklé délky (tréninky a kvalifikace 60 min,
+  sprint 60 min, sprintová kvalifikace 44 min, závod ≈ 2 h).
+- **Vlajky** – `FLAGS` (inline SVG) a `COUNTRY_CODES` (název země → kód)
+  v `src/data/flags.ts`. Pro novou zemi stačí doplnit obojí.
 - **Barvy týmů** – `TEAM_COLORS` s variantami `dark` a `light` pro každý
-  `constructorId`. Neznámý tým dostane neutrální šedou a upozornění v konzoli.
-- **Názvy týmů** – `TEAM_NAMES` přepisuje názvy z API (např. „RB F1 Team“ →
-  „Racing Bulls“).
-- **Motiv** – objekt `ACCENTS` a `NEUTRALS` v samostatném `<script>`
-  v hlavičce; neutrální plochy jsou pevné, každý akcent má variantu `light`
-  a `dark` (jedna akcentní barva).
-- **Záložní snapshot** – konstanta `F1_BOOTSTRAP` (hledej `window.F1_BOOTSTRAP`),
-  používaná jen když API i `data.json` selžou (např. při otevření přes `file://`).
+  `constructorId` v `src/data/teams.ts`. Neznámý tým dostane neutrální šedou
+  a upozornění v konzoli.
+- **Názvy týmů** – `TEAM_NAMES` v `src/data/teams.ts` přepisuje názvy z API
+  (např. „RB F1 Team“ → „Racing Bulls“).
+- **Motiv** – `ACCENTS` a `NEUTRALS` v `src/theme/palette.ts`; stejné hodnoty
+  jsou jako CSS proměnné v `src/styles/tokens.css`, odkud je bere celá
+  stránka. Neutrální plochy jsou pevné, každý akcent má variantu `light`
+  a `dark`.
+- **Záložní snapshot** – `public/data.json` se načítá za běhu, když API
+  selže. `src/data/snapshot.json` je stejný payload zabundovaný do JS pro
+  případ, že selže i tento fetch. Oba soubory drží v synchronizaci
+  `npm run sync:snapshot`.
 
 ### Když API neodpovídá
 
-Pořadí zdrojů je: paměť → `localStorage` → `data.json` → inline snapshot.
-Při výpadku API zůstane na obrazovce poslední známý stav a v hlavičce se
-zobrazí „Offline · …“ s časem poslední aktualizace (na mobilu jen tlačítko
-s ikonou, plný text je v jeho popisku pro čtečky).
+Pořadí zdrojů je: paměť → `localStorage` → živé API → `data.json` →
+zabundovaný snapshot. Při výpadku API zůstane na obrazovce poslední známý stav
+a v hlavičce se zobrazí „Offline · …“ s časem poslední aktualizace (na mobilu
+jen tlačítko s ikonou, plný text je v jeho popisku pro čtečky).
 
 ## Nasazení
 
-Čistě statický web – nahraj obsah repozitáře na Cloudflare Pages, Netlify,
-Vercel nebo GitHub Pages. Žádný build krok. Pro doménu `tomsix.xyz` nastav
-odpovídající DNS záznamy.
+`npm run build` vytvoří `dist/` – nahraj ho na Cloudflare Pages, Netlify,
+Vercel nebo GitHub Pages. Pro doménu `tomsix.xyz` nastav odpovídající DNS
+záznamy.
+
+Repozitář obsahuje i workflow `.github/workflows/deploy.yml`, který při pushi
+do `main` spustí build a nasadí `dist/` na GitHub Pages. V nastavení
+repozitáře je potřeba mít **Settings → Pages → Source** nastavené na
+**GitHub Actions**.
 
 ## Poznámky
 
 - Neoficiální fanouškový projekt, není spojený s Formula 1, FIA ani týmy.
 - Časy jsou převáděné do `Europe/Prague`; oficiální harmonogram je vždy
   dobré zkontrolovat.
-- `data.json` i inline snapshot jsou z **23. 11. 2026** (po 21. závodě sezóny
-  2026). Slouží jen jako záloha pro první načtení; živá data mají přednost.
+- `data.json` i zabundovaný snapshot jsou z **23. 11. 2026** (po 21. závodě
+  sezóny 2026). Slouží jen jako záloha pro první načtení; živá data mají
+  přednost. Po aktualizaci snapshotu spusť `npm run sync:snapshot`.

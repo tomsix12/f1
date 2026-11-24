@@ -1,0 +1,67 @@
+/* --------------------------------------------------------------------------
+   Design tokens
+
+   Neutrals are graphite in dark mode and white/grey with black type in light
+   mode. The accent is driven by data-accent on <html>; only primary and
+   container tokens change, never the neutral surfaces, so the theme stays
+   recognisably monochrome apart from one selectable colour.
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --primary: #D32F2F;
+  --on-primary: #FFFFFF;
+  --primary-container: #FFDAD6;
+  --on-primary-container: #410002;
+  --bg: #F6F6F7;
+  --surface: #FFFFFF;
+  --surface-2: #EFEFF1;
+  --surface-3: #E4E4E7;
+  --text: #0B0B0C;
+  --text-2: #3C3C40;
+  --text-3: #68686E;
+  --line: #DDDDE0;
+  --shadow-sm: 0 1px 2px rgba(11, 11, 12, 0.06), 0 8px 24px rgba(11, 11, 12, 0.05);
+  --shadow-lg: 0 18px 50px rgba(11, 11, 12, 0.18);
+  --r-xl: 30px;
+  --r-lg: 24px;
+  --r-md: 18px;
+  --wrap: 1120px;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.22, 1.28, 0.36, 1);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0B0B0C;
+  --surface: #141416;
+  --surface-2: #1E1E21;
+  --surface-3: #29292D;
+  --text: #FAFAFB;
+  --text-2: #C6C6CA;
+  --text-3: #8E8E94;
+  --line: #2E2E32;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.6);
+}
+
+/* Accent palettes — driven by data-accent on <html>; dark variants combine
+   with data-theme="dark" so every colour has a single CSS source of truth. */
+html[data-accent="blue"] { --primary: #1565C0; --on-primary: #FFFFFF; --primary-container: #D6E3FF; --on-primary-container: #001B3E; }
+html[data-accent="green"] { --primary: #2E7D32; --on-primary: #FFFFFF; --primary-container: #C8E6C9; --on-primary-container: #002105; }
+html[data-accent="teal"] { --primary: #00695C; --on-primary: #FFFFFF; --primary-container: #B2DFDB; --on-primary-container: #00201C; }
+html[data-accent="amber"] { --primary: #8A4F00; --on-primary: #FFFFFF; --primary-container: #FFE0B2; --on-primary-container: #2B1700; }
+html[data-accent="pink"] { --primary: #B0005C; --on-primary: #FFFFFF; --primary-container: #FFD9E2; --on-primary-container: #3E001D; }
+html[data-accent="violet"] { --primary: #6A3DB8; --on-primary: #FFFFFF; --primary-container: #EADDFF; --on-primary-container: #23005C; }
+html[data-accent="graphite"] { --primary: #2E2E32; --on-primary: #FFFFFF; --primary-container: #E4E4E7; --on-primary-container: #1B1B1E; }
+
+html[data-theme="dark"][data-accent="red"] { --primary: #FFB4AB; --on-primary: #690005; --primary-container: #93000A; --on-primary-container: #FFDAD6; }
+html[data-theme="dark"][data-accent="blue"] { --primary: #A9C7FF; --on-primary: #003063; --primary-container: #00468B; --on-primary-container: #D6E3FF; }
+html[data-theme="dark"][data-accent="green"] { --primary: #8FD694; --on-primary: #00390F; --primary-container: #00531B; --on-primary-container: #C8E6C9; }
+html[data-theme="dark"][data-accent="teal"] { --primary: #6FD8C8; --on-primary: #00382F; --primary-container: #005144; --on-primary-container: #B2DFDB; }
+html[data-theme="dark"][data-accent="amber"] { --primary: #FFB95C; --on-primary: #4A2800; --primary-container: #6A3B00; --on-primary-container: #FFE0B2; }
+html[data-theme="dark"][data-accent="pink"] { --primary: #FFB1C8; --on-primary: #64002F; --primary-container: #8E0046; --on-primary-container: #FFD9E2; }
+html[data-theme="dark"][data-accent="violet"] { --primary: #D0BCFF; --on-primary: #3A1D71; --primary-container: #513A87; --on-primary-container: #EADDFF; }
+html[data-theme="dark"][data-accent="graphite"] { --primary: #E4E4E7; --on-primary: #1B1B1E; --primary-container: #3C3C40; --on-primary-container: #E4E4E7; }

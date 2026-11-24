@@ -1,0 +1,49 @@
+import { state } from "../app/state";
+import { teamColors, teamNameFor } from "../data/teams";
+import { $, esc } from "../lib/dom";
+import { fmtPoints, winsText } from "../lib/format";
+
+export function renderTeams(): void {
+  const host = $("#team-list");
+  if (!host || !state.data) return;
+
+  const teams = state.data.teams || [];
+  const leader = Math.max(1, teams.length ? teams[0].points : 1);
+
+  host.innerHTML = teams.map((team) => {
+    const colors = teamColors(team.id);
+    const pct = Math.max(1.5, Math.round((team.points / leader) * 1000) / 10);
+    const medal = team.pos <= 3 ? " is-p" + team.pos : "";
+    return '<li class="team-card" style="--team-dark:' + colors.dark + ";--team-light:" + colors.light + ";--pct:" + pct + '%">' +
+      '<span class="team-card__pos' + medal + '">' + team.pos + "</span>" +
+      '<span class="team-card__edge" aria-hidden="true"></span>' +
+      '<span class="team-card__main">' +
+        '<span class="team-card__name">' + esc(teamNameFor(team.id, team.name)) + "</span>" +
+        '<span class="team-card__sub">' + esc(winsText(team.wins)) + "</span>" +
+      "</span>" +
+      '<span class="team-card__pts">' + fmtPoints(team.points) + "<span>PTS</span></span>" +
+    "</li>";
+  }).join("");
+}
+
+export function renderDrivers(): void {
+  const host = $("#driver-list");
+  if (!host || !state.data) return;
+
+  const drivers = state.data.drivers || [];
+
+  host.innerHTML = drivers.map((driver) => {
+    const colors = teamColors(driver.teamId);
+    const medal = driver.pos <= 3 ? " is-p" + driver.pos : "";
+    const sub = [teamNameFor(driver.teamId, driver.team), winsText(driver.wins)].filter(Boolean).join(" · ");
+    return '<li class="driver" style="--team-dark:' + colors.dark + ";--team-light:" + colors.light + '">' +
+      '<span class="driver__pos' + medal + '">' + driver.pos + "</span>" +
+      '<span class="driver__edge" aria-hidden="true"></span>' +
+      '<span class="driver__main">' +
+        '<span class="driver__name"><span>' + esc(driver.name) + "</span>" + (driver.code ? '<span class="driver__code">' + esc(driver.code) + "</span>" : "") + "</span>" +
+        '<span class="driver__sub">' + esc(sub) + "</span>" +
+      "</span>" +
+      '<span class="driver__pts">' + fmtPoints(driver.points) + "<span>PTS</span></span>" +
+    "</li>";
+  }).join("");
+}

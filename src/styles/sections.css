@@ -1,0 +1,30 @@
+/* --------------------------------------------------------------------------
+   Sections & views
+   -------------------------------------------------------------------------- */
+.view { padding-top: clamp(22px, 3.6vw, 34px); }
+
+.section { margin-top: 44px; }
+#view-teams .section__head,
+#view-drivers .section__head { margin-bottom: 18px; }
+
+.section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 18px;
+  margin-bottom: 16px;
+}
+
+.section__title {
+  font-size: clamp(24px, 3vw, 32px);
+  letter-spacing: -0.04em;
+}
+
+.view[hidden] { display: none !important; }
+.view.is-entering { animation: viewIn 0.46s var(--ease-emphasized); }
+
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}

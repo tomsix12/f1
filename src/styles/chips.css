@@ -1,0 +1,20 @@
+/* --------------------------------------------------------------------------
+   Chips
+   -------------------------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.chip--accent { background: var(--primary-container); color: var(--on-primary-container); }
+.chip--live { background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); }
+.chip--done { background: var(--surface-3); color: var(--text-2); }
