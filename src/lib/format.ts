@@ -1,17 +1,66 @@
 import { TZ } from "../config";
 import type { Race, RaceSession } from "../types";
 import { esc } from "./dom";
+import { getTimeZone } from "./prefs";
 
-const dayFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
-const dayMonthFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric", month: "short" });
-const weekdayFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short" });
-const dayYearFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday: "short", day: "numeric", month: "short", year: "numeric" });
-const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false });
-const stampFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
-const zoneFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, timeZoneName: "short" });
+interface Formats {
+  day: Intl.DateTimeFormat;
+  dayMonth: Intl.DateTimeFormat;
+  weekday: Intl.DateTimeFormat;
+  dayYear: Intl.DateTimeFormat;
+  time: Intl.DateTimeFormat;
+  stamp: Intl.DateTimeFormat;
+  zone: Intl.DateTimeFormat;
+}
+
+let activeZone = getTimeZone();
+const formatCache = new Map<string, Formats>();
+
+function buildFormats(zone: string): Formats {
+  const tz = zone ? { timeZone: zone } : {};
+  return {
+    day: new Intl.DateTimeFormat("en-GB", { ...tz, weekday: "short", day: "numeric", month: "short" }),
+    dayMonth: new Intl.DateTimeFormat("en-GB", { ...tz, day: "numeric", month: "short" }),
+    weekday: new Intl.DateTimeFormat("en-GB", { ...tz, weekday: "short" }),
+    dayYear: new Intl.DateTimeFormat("en-GB", { ...tz, weekday: "short", day: "numeric", month: "short", year: "numeric" }),
+    time: new Intl.DateTimeFormat("en-GB", { ...tz, hour: "2-digit", minute: "2-digit", hour12: false }),
+    stamp: new Intl.DateTimeFormat("en-GB", { ...tz, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false }),
+    zone: new Intl.DateTimeFormat("en-GB", { ...tz, timeZoneName: "short" }),
+  };
+}
+
+function safeFormats(zone: string): Formats {
+  if (zone) {
+    try {
+      return buildFormats(zone);
+    } catch {
+      /* fall through to the system zone */
+    }
+  }
+  try {
+    return buildFormats("");
+  } catch {
+    return buildFormats(TZ);
+  }
+}
+
+/** Re-reads the chosen zone; call this after the preference changes. */
+export function syncTimeZone(): void {
+  activeZone = getTimeZone();
+}
+
+function fmts(): Formats {
+  const key = activeZone || "auto";
+  let set = formatCache.get(key);
+  if (!set) {
+    set = safeFormats(activeZone);
+    formatCache.set(key, set);
+  }
+  return set;
+}
 
 export function zoneShort(date: Date): string {
-  const part = zoneFmt.formatToParts(date).find((item) => item.type === "timeZoneName");
+  const part = fmts().zone.formatToParts(date).find((item) => item.type === "timeZoneName");
   return part ? part.value : "CET";
 }
 
@@ -20,25 +69,33 @@ export function raceStart(race: Race): Date {
   return new Date(race.date + "T" + (race.time || "12:00:00Z"));
 }
 
+export function fmtWeekday(date: Date): string {
+  return fmts().weekday.format(date);
+}
+
+export function fmtDayMonth(date: Date): string {
+  return fmts().dayMonth.format(date);
+}
+
 export function fmtSessionTime(date: Date): string {
-  return timeFmt.format(date);
+  return fmts().time.format(date);
 }
 
 export function fmtRaceWhen(race: Race): string {
   const date = raceStart(race);
-  return dayFmt.format(date) + " " + timeFmt.format(date) + " " + zoneShort(date);
+  return fmts().day.format(date) + " " + fmts().time.format(date) + " " + zoneShort(date);
 }
 
 export function fmtFullStamp(timestamp: number): string {
   if (!timestamp) return "—";
   const date = new Date(timestamp);
-  return dayYearFmt.format(date) + ", " + timeFmt.format(date) + " " + zoneShort(date);
+  return fmts().dayYear.format(date) + ", " + fmts().time.format(date) + " " + zoneShort(date);
 }
 
 export function fmtShortStamp(timestamp: number): string {
   if (!timestamp) return "—";
   const date = new Date(timestamp);
-  return stampFmt.format(date) + " " + zoneShort(date);
+  return fmts().stamp.format(date) + " " + zoneShort(date);
 }
 
 export function relTime(timestamp: number): string {
@@ -58,7 +115,7 @@ interface DayMonth {
 }
 
 function dmParts(date: Date): DayMonth {
-  const parts = dayMonthFmt.formatToParts(date);
+  const parts = fmts().dayMonth.formatToParts(date);
   const day = parts.find((part) => part.type === "day");
   const month = parts.find((part) => part.type === "month");
   return { day: day ? day.value : "", month: month ? month.value : "" };
@@ -132,5 +189,3 @@ export function gpTitle(name: string): string {
   const prefix = String(name).slice(0, index).trim();
   return (prefix ? esc(prefix) + " " : "") + "<em>Grand Prix</em>";
 }
-
-export { weekdayFmt, dayMonthFmt };

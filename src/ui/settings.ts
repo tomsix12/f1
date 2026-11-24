@@ -1,6 +1,7 @@
 import { state } from "../app/state";
 import { DATA_EVENT } from "../app/render";
 import { teamNameFor } from "../data/teams";
+import { offsetInZone, searchTimeZones, timeInZone, zoneLabel, type ZoneOption } from "../data/timezones";
 import { $, $$, esc } from "../lib/dom";
 import {
   PREFS_EVENT,
@@ -10,13 +11,16 @@ import {
   getFavTeam,
   getFont,
   getMotionBlur,
+  getTimeZone,
   isFontChoice,
   onFavouritesChange,
+  resolvedTimeZone,
   setBlurScale,
   setFavDriver,
   setFavTeam,
   setFont,
   setMotionBlur,
+  setTimeZone,
 } from "../lib/prefs";
 import {
   getAccent,
@@ -42,6 +46,12 @@ let motionAmount: HTMLInputElement | null = null;
 let motionAmountValue: HTMLElement | null = null;
 let driverSelect: HTMLSelectElement | null = null;
 let teamSelect: HTMLSelectElement | null = null;
+let tzSearch: HTMLInputElement | null = null;
+let tzResults: HTMLElement | null = null;
+let tzCurrent: HTMLElement | null = null;
+let tzCurrentSub: HTMLElement | null = null;
+let tzReset: HTMLElement | null = null;
+let tzHint: HTMLElement | null = null;
 
 function buildAccentGrid(): void {
   if (!accentGrid) return;
@@ -137,6 +147,55 @@ function syncMotionUI(): void {
   if (motionAmountValue) motionAmountValue.textContent = amount.toFixed(1) + "×";
 }
 
+/* ---------------------------------------------------------------- time zone */
+
+function timeZoneRow(option: ZoneOption, now: Date): string {
+  const active = option.zone === resolvedTimeZone();
+  return '<li><button class="tz__option" type="button" data-zone="' + esc(option.zone) + '"' +
+    (active ? ' aria-current="true"' : "") + ">" +
+    '<span class="tz__city">' + esc(option.city) + "</span>" +
+    '<span class="tz__meta">' + esc(option.country) + " · " + esc(zoneLabel(option.zone)) + "</span>" +
+    '<span class="tz__time">' + esc(timeInZone(option.zone, now)) +
+      "<span>" + esc(offsetInZone(option.zone, now)) + "</span></span>" +
+    "</button></li>";
+}
+
+function renderTimeZoneResults(): void {
+  if (!tzResults) return;
+  const query = tzSearch ? tzSearch.value.trim() : "";
+  const results = query ? searchTimeZones(query, 8) : [];
+  const now = new Date();
+
+  tzResults.innerHTML = results.map((option) => timeZoneRow(option, now)).join("");
+  tzResults.hidden = !results.length;
+  if (tzHint) {
+    tzHint.textContent = query && !results.length
+      ? "No capital matches “" + query + "”."
+      : "Every race time follows this zone.";
+  }
+}
+
+/** Keeps the picked zone and its wall clock in sync with the stored value. */
+function syncTimeZoneUI(): void {
+  const custom = getTimeZone();
+  const zone = resolvedTimeZone();
+  if (tzCurrent) tzCurrent.textContent = (custom ? "" : "System · ") + zoneLabel(zone);
+  if (tzCurrentSub) tzCurrentSub.textContent = "Now " + timeInZone(zone) + " · " + offsetInZone(zone);
+  if (tzReset) tzReset.hidden = !custom;
+  renderTimeZoneResults();
+}
+
+/** Focuses the result above/below the current one (or back into the search). */
+function moveTimeZoneFocus(from: Element, direction: 1 | -1): void {
+  if (!tzResults) return;
+  const buttons = $$<HTMLButtonElement>(".tz__option", tzResults);
+  const index = buttons.indexOf(from as HTMLButtonElement);
+  if (index === -1) return;
+  const next = buttons[index + direction];
+  if (next) next.focus();
+  else tzSearch?.focus();
+}
+
 function placeSettings(): void {
   if (!panel || !settingsBtn || panel.hidden) return;
 
@@ -159,6 +218,8 @@ function placeSettings(): void {
 function openSettings(): void {
   if (!panel || !settingsBtn) return;
   fillFavourites();
+  if (tzSearch) tzSearch.value = "";
+  syncTimeZoneUI();
   panel.hidden = false;
   settingsBtn.setAttribute("aria-expanded", "true");
   placeSettings();
@@ -185,12 +246,19 @@ export function initSettings(): void {
   motionAmountValue = $("#motion-amount-value");
   driverSelect = $("#fav-driver") as HTMLSelectElement | null;
   teamSelect = $("#fav-team") as HTMLSelectElement | null;
+  tzSearch = $("#tz-search") as HTMLInputElement | null;
+  tzResults = $("#tz-results");
+  tzCurrent = $("#tz-current");
+  tzCurrentSub = $("#tz-current-sub");
+  tzReset = $("#tz-reset");
+  tzHint = $("#tz-hint");
 
   applyFont();
   buildAccentGrid();
   syncThemeUI();
   syncFontUI();
   syncMotionUI();
+  syncTimeZoneUI();
   onThemeChange(syncThemeUI);
 
   $("#theme-toggle")?.addEventListener("click", toggleMode);
@@ -222,6 +290,74 @@ export function initSettings(): void {
   motionSwitch?.addEventListener("click", () => setMotionBlur(!getMotionBlur()));
   amountEl?.addEventListener("input", () => setBlurScale(Number(amountEl.value)));
 
+  /* --- Time zone search ------------------------------------------------- */
+  const searchEl = tzSearch;
+  searchEl?.addEventListener("input", renderTimeZoneResults);
+  searchEl?.addEventListener("focus", renderTimeZoneResults);
+  searchEl?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      if (searchEl.value) {
+        searchEl.value = "";
+        renderTimeZoneResults();
+      } else {
+        searchEl.blur();
+      }
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      const buttons = tzResults ? $$<HTMLButtonElement>(".tz__option", tzResults) : [];
+      if (!buttons.length) return;
+      event.preventDefault();
+      (event.key === "ArrowDown" ? buttons[0] : buttons[buttons.length - 1]).focus();
+      return;
+    }
+    if (event.key === "Enter") {
+      const first = tzResults?.querySelector<HTMLButtonElement>(".tz__option");
+      if (!first) return;
+      event.preventDefault();
+      first.click();
+    }
+  });
+
+  tzResults?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLElement>(".tz__option");
+    const zone = button?.dataset.zone;
+    if (!zone) return;
+    setTimeZone(zone);
+    if (tzSearch) tzSearch.value = "";
+    renderTimeZoneResults();
+    tzSearch?.focus({ preventScroll: true });
+  });
+
+  tzResults?.addEventListener("keydown", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest(".tz__option");
+    if (!button) return;
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      if (tzSearch) {
+        tzSearch.value = "";
+        renderTimeZoneResults();
+        tzSearch.focus({ preventScroll: true });
+      }
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    moveTimeZoneFocus(button, event.key === "ArrowDown" ? 1 : -1);
+  });
+
+  tzReset?.addEventListener("click", () => {
+    setTimeZone("");
+    if (tzSearch) tzSearch.value = "";
+    renderTimeZoneResults();
+    tzSearch?.focus({ preventScroll: true });
+  });
+
   panel?.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -249,6 +385,7 @@ export function initSettings(): void {
     const detail = (event as CustomEvent<string>).detail;
     if (detail === "font") syncFontUI();
     if (detail === "motion") syncMotionUI();
+    if (detail === "timezone") syncTimeZoneUI();
   });
 
   panel?.addEventListener("keydown", (event) => {

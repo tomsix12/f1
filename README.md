@@ -91,6 +91,12 @@ f1/
   písma (Sans / Serif / Mono) a vypínač motion blur s posuvníkem
   intenzity (0.5–2.5×); dále osm akcentů a výběr oblíbeného jezdce a týmu. Oblíbený řádek se v bodování zvýrazní akcentovým
   rámečkem a hvězdičkou. Volby se ukládají do `localStorage`.
+- **Časové pásmo** – závodní časy se zobrazují v pásmu zvoleném v nastavení.
+  Výchozí je systémové pásmo prohlížeče; hledat jde podle hlavního města
+  (i českého názvu, např. „Praha“ nebo „Tokio“), podle státu nebo podle
+  názvu IANA pásma. Našeptávač ukazuje aktuální čas a offset daného města,
+  tlačítko **System** se vrací k automatické volbě. Volba se ukládá jako
+  `f1.timezone` a po změně se celá stránka překreslí.
 - **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
   plochy s černým textem. Z osmi akcentů (Red, Blue, Green, Teal, Amber, Pink,
   Violet, Graphite) jde vybrat jeden; mění se jen primární barva, nikdy

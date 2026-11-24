@@ -1,10 +1,10 @@
 import { esc } from "../lib/dom";
 import {
-  dayMonthFmt,
+  fmtDayMonth,
   fmtSessionTime,
+  fmtWeekday,
   sessionLength,
   sessionsOf,
-  weekdayFmt,
 } from "../lib/format";
 import type { Race, RaceSession } from "../types";
 
@@ -12,8 +12,8 @@ function sessionRow(session: RaceSession, index: number): string {
   const start = new Date(session.start);
   return '<li class="session" data-start="' + esc(start.toISOString()) + '" style="--i:' + index + '">' +
     '<span class="session__when">' +
-      '<span class="session__dow">' + esc(weekdayFmt.format(start)) + "</span>" +
-      '<span class="session__date">' + esc(dayMonthFmt.format(start)) + "</span>" +
+      '<span class="session__dow">' + esc(fmtWeekday(start)) + "</span>" +
+      '<span class="session__date">' + esc(fmtDayMonth(start)) + "</span>" +
     "</span>" +
     '<span class="session__name">' + esc(session.name) +
       '<span class="session__badge" data-next-session hidden>Next</span>' +

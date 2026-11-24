@@ -16,6 +16,8 @@ import { renderAll } from "./app/render";
 import { signature, state } from "./app/state";
 import { tick } from "./app/tick";
 import { REFRESH_MS } from "./config";
+import { syncTimeZone } from "./lib/format";
+import { PREFS_EVENT } from "./lib/prefs";
 import { cache } from "./lib/storage";
 import { initTheme } from "./lib/theme";
 import { initSettings } from "./ui/settings";
@@ -35,6 +37,14 @@ function boot(): void {
     void refresh();
   });
   initMotionBlur();
+
+  // The time zone changes every formatted date on the page, so rerender once
+  // the stored preference has been updated.
+  document.addEventListener(PREFS_EVENT, (event) => {
+    if ((event as CustomEvent<string>).detail !== "timezone") return;
+    syncTimeZone();
+    renderAll();
+  });
 
   const cached = cache.read();
   if (cached) {

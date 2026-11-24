@@ -136,6 +136,28 @@
   </section>
 
   <section class="settings__group">
+    <p class="settings__label" id="tz-label">Time zone</p>
+    <div class="tz" role="group" aria-labelledby="tz-label">
+      <div class="tz__picked">
+        <svg class="tz__pickedIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v4.8l3.2 1.9"/></svg>
+        <span class="tz__pickedText">
+          <span class="tz__pickedTitle" id="tz-current" aria-live="polite">System time</span>
+          <span class="tz__pickedSub" id="tz-current-sub"></span>
+        </span>
+        <button class="tz__reset" id="tz-reset" type="button" hidden>System</button>
+      </div>
+
+      <div class="tz__search">
+        <svg class="tz__searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></svg>
+        <input class="tz__input" id="tz-search" type="search" placeholder="Search capital city" aria-label="Search time zone by capital city" aria-controls="tz-results" autocomplete="off" spellcheck="false">
+      </div>
+
+      <ul class="tz__results" id="tz-results" aria-label="Matching time zones" hidden></ul>
+      <p class="tz__hint" id="tz-hint">Every race time follows this zone.</p>
+    </div>
+  </section>
+
+  <section class="settings__group">
     <p class="settings__label" id="fav-label">Favourites</p>
     <div class="fields" role="group" aria-labelledby="fav-label">
       <div class="field">

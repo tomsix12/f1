@@ -19,7 +19,7 @@ export const CACHE_KEY = "f1.dashboard.cache.v2";
 export const MODE_KEY = "f1.mode";
 export const ACCENT_KEY = "f1.accent";
 
-/** Times are shown in this timezone; the zone name itself is never printed. */
+/** Fallback zone when the browser cannot resolve one; settings override it. */
 export const TZ = "Europe/Prague";
 
 /** Offline snapshot served next to the built page. */

@@ -8,6 +8,7 @@ export const FAVOURITES_EVENT = "f1:favourites";
 const MOTION_KEY = "f1.motion";
 const BLUR_SCALE_KEY = "f1.blur.scale";
 const FONT_KEY = "f1.font";
+const TIMEZONE_KEY = "f1.timezone";
 const FAV_DRIVER_KEY = "f1.fav.driver";
 const FAV_TEAM_KEY = "f1.fav.team";
 
@@ -54,6 +55,43 @@ export function isFontChoice(value: unknown): value is FontChoice {
 export function getFont(): FontChoice {
   const saved = readStored(FONT_KEY);
   return isFontChoice(saved) ? saved : "sans";
+}
+
+/* ---------------------------------------------------------------- time zone */
+
+/** True when the browser accepts the identifier as an IANA time zone. */
+export function isTimeZone(zone: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-GB", { timeZone: zone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Stored override, or "" when the browser's own zone should be used. */
+export function getTimeZone(): string {
+  const saved = readStored(TIMEZONE_KEY) || "";
+  return saved && isTimeZone(saved) ? saved : "";
+}
+
+/** The zone actually used for formatting: the override or the system zone. */
+export function resolvedTimeZone(): string {
+  const override = getTimeZone();
+  if (override) return override;
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+/** Passing "" restores the automatic system time zone. */
+export function setTimeZone(zone: string): void {
+  if (zone && !isTimeZone(zone)) return;
+  if (zone === getTimeZone()) return;
+  writeStored(TIMEZONE_KEY, zone);
+  notify("timezone");
 }
 
 /** Switches the type stacks through data-font on <html> (see tokens.css). */
