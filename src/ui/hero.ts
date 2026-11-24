@@ -49,9 +49,7 @@ export function renderHero(): void {
       "</div>";
 
   host.innerHTML =
-    '<div class="hero__top">' +
-      '<span class="chip ' + (started ? "chip--live" : "chip--accent") + '">' + (started ? "Lights out" : "Up next") + "</span>" +
-    "</div>" +
+    (started ? '<div class="hero__top"><span class="chip chip--live">Lights out</span></div>' : "") +
     '<h1 class="hero__title">' + gpTitle(next.name) + "</h1>" +
     '<div class="hero__body">' +
       countdown +

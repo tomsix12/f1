@@ -13,14 +13,24 @@ import {
 } from "../lib/format";
 import type { Race, RaceSession } from "../types";
 
+/** Rounds whose card was already opened automatically on first sight. */
+const autoOpened = new Set<number>();
+
 export function renderSchedule(): void {
   const host = $("#calendar");
   if (!host || !state.data) return;
 
   const races = state.data.races.slice().sort((a, b) => a.round - b.round);
   const next = nextRace();
-  const upcoming = races.filter((race) => !race.winner && (!next || race.round !== next.round));
+  const upcoming = races.filter((race) => !race.winner);
   const completed = races.filter((race) => race.winner);
+
+  // The next race opens once, so its weekend schedule is visible right away;
+  // closing it afterwards is remembered for the rest of the session.
+  if (next && !autoOpened.has(next.round)) {
+    autoOpened.add(next.round);
+    state.open.add(next.round);
+  }
 
   host.innerHTML =
     raceGroup("calendar-upcoming", "Upcoming races", upcoming) +
