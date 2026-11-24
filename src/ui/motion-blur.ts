@@ -47,8 +47,11 @@ export function initMotionBlur(): void {
   const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
   const isFirefox = /firefox|fxios/i.test(navigator.userAgent);
   const MAX_VELOCITY = 3;
-  const MAX_BLUR = isSafari || isFirefox ? 3 : coarse ? 4 : 6;
-  const VELOCITY_TO_BLUR = 2.8;
+  const MAX_BLUR = isSafari || isFirefox ? 3 : coarse ? 4 : 7;
+  /* Desktop gets a slightly stronger mapping than the previous 2.8 so the
+     effect reads clearly at everyday scroll speeds without touching the
+     touch-device / Safari caps. */
+  const VELOCITY_TO_BLUR = isSafari || isFirefox || coarse ? 2.8 : 3.2;
   const root = document.documentElement;
 
   let enabled = getMotionBlur();
