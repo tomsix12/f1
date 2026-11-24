@@ -66,15 +66,16 @@ f1/
   Načte se při otevření, obnovuje se každých 10 minut a znovu při návratu
   na kartu. Data se ukládají do `localStorage` i s časem poslední aktualizace.
 - **Odpočet do dalšího závodu** v časovém pásmu `Europe/Prague`, s jemnou
-  animací měnících se číslic. Banner je kompaktní – ukazuje jen název závodu,
-  odpočet a čas startu, bez odznaku a bez rozvrhu víkendu. Závod se počítá
-  jako dokončený, jakmile má výsledky; do té doby banner ukazuje „Lights out“.
+  animací měnících se číslic. Banner ukazuje název závodu, odpočet a čas
+  startu; pod nimi je rozbalovací **Weekend schedule** s celým rozvrhem
+  víkendu, který je po načtení otevřený a jde stejně jako u karet zavřít.
+  Závod se počítá jako dokončený, jakmile má výsledky; do té doby banner
+  ukazuje „Lights out“.
 - **Kalendář v jednom sloupci** – všechny závody seřazené podle čísla kola,
   rozdělené do sekcí „Upcoming races“ a „Completed races“ s počtem závodů
-  v nadpisu. Nejbližší závod je první kartou v seznamu a po načtení se sám
-  rozbalí, takže je hned vidět celý rozvrh víkendu; po ručním zavření zůstane
-  zavřený. Karta ukazuje číslo kola, vlajku země, název Grand Prix, štítek
-  Sprint, datum závodu, počet sessioní a chevron.
+  v nadpisu. Závod z banneru se v seznamu neopakuje. Karta ukazuje číslo
+  kola, vlajku země, název Grand Prix, štítek Sprint, datum závodu, počet
+  sessioní a chevron.
 - **Rozbalovací rozvrh** – kliknutím na kartu se plynule rozbalí session
   (Practice 1–3, Sprint Qualifying, Sprint, Qualifying, Race) s dnem, délkou
   a časem v `Europe/Prague`. Nejbližší session má odznak NEXT. U dokončených

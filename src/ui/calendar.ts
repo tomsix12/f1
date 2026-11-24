@@ -2,19 +2,9 @@ import { nextRace, nextSessionTime, state } from "../app/state";
 import { flagFor } from "../data/flags";
 import { teamColors, teamNameFor } from "../data/teams";
 import { $, $$, esc } from "../lib/dom";
-import {
-  dayMonthFmt,
-  fmtSessionTime,
-  pad2,
-  raceDateRange,
-  sessionLength,
-  sessionsOf,
-  weekdayFmt,
-} from "../lib/format";
-import type { Race, RaceSession } from "../types";
-
-/** Rounds whose card was already opened automatically on first sight. */
-const autoOpened = new Set<number>();
+import { pad2, raceDateRange, sessionsOf } from "../lib/format";
+import type { Race } from "../types";
+import { sessionList } from "./sessions";
 
 export function renderSchedule(): void {
   const host = $("#calendar");
@@ -22,15 +12,8 @@ export function renderSchedule(): void {
 
   const races = state.data.races.slice().sort((a, b) => a.round - b.round);
   const next = nextRace();
-  const upcoming = races.filter((race) => !race.winner);
+  const upcoming = races.filter((race) => !race.winner && (!next || race.round !== next.round));
   const completed = races.filter((race) => race.winner);
-
-  // The next race opens once, so its weekend schedule is visible right away;
-  // closing it afterwards is remembered for the rest of the session.
-  if (next && !autoOpened.has(next.round)) {
-    autoOpened.add(next.round);
-    state.open.add(next.round);
-  }
 
   host.innerHTML =
     raceGroup("calendar-upcoming", "Upcoming races", upcoming) +
@@ -77,26 +60,11 @@ function raceCard(race: Race, index: number): string {
       (open ? "" : ' aria-hidden="true"') + ">" +
       '<div class="racecard__panel-inner">' +
         '<div class="racecard__panel-head"><span>Weekend schedule</span></div>' +
-        '<ol class="session-list">' + sessions.map(sessionRow).join("") + "</ol>" +
+        sessionList(race) +
         raceResult(race, sessions.length) +
       "</div>" +
     "</div>" +
   "</article>";
-}
-
-function sessionRow(session: RaceSession, index: number): string {
-  const start = new Date(session.start);
-  return '<li class="session" data-start="' + esc(start.toISOString()) + '" style="--i:' + index + '">' +
-    '<span class="session__when">' +
-      '<span class="session__dow">' + esc(weekdayFmt.format(start)) + "</span>" +
-      '<span class="session__date">' + esc(dayMonthFmt.format(start)) + "</span>" +
-    "</span>" +
-    '<span class="session__name">' + esc(session.name) +
-      '<span class="session__badge" data-next-session hidden>Next</span>' +
-    "</span>" +
-    '<span class="session__len">' + esc(sessionLength(session.minutes)) + "</span>" +
-    '<span class="session__time">' + esc(fmtSessionTime(start)) + "</span>" +
-  "</li>";
 }
 
 function raceResult(race: Race, index: number): string {

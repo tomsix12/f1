@@ -4,9 +4,13 @@ import { $, esc, replayAnimation } from "../lib/dom";
 import { cdParts, fmtRaceWhen, gpTitle, pad2, raceStart } from "../lib/format";
 import { prefersReducedMotion } from "../lib/motion";
 import type { Race, RaceWinner } from "../types";
+import { sessionList } from "./sessions";
 
 const cdBlock = (unit: string, label: string): string =>
   '<div class="cd"><span class="cd__num" data-cd="' + unit + '">--</span><span class="cd__label">' + label + "</span></div>";
+
+/** Weekend schedule in the banner stays open until the visitor closes it. */
+let weekendOpen = true;
 
 export function renderHero(): void {
   const host = $("#hero");
@@ -58,7 +62,43 @@ export function renderHero(): void {
         "<strong>" + esc(fmtRaceWhen(next)) + "</strong>" +
       "</div>" +
     "</div>" +
+    '<div class="hero__weekend' + (weekendOpen ? " is-open" : "") + '">' +
+      '<button class="hero__weekend-btn" type="button" id="hero-weekend-btn" aria-expanded="' + weekendOpen + '" aria-controls="hero-weekend">' +
+        "<span>Weekend schedule</span>" +
+        '<span class="hero__weekend-chev" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>' +
+        "</span>" +
+      "</button>" +
+      '<div class="hero__weekend-panel" id="hero-weekend" role="region" aria-labelledby="hero-weekend-btn"' +
+        (weekendOpen ? "" : ' aria-hidden="true"') + ">" +
+        '<div class="hero__weekend-inner">' + sessionList(next) + "</div>" +
+      "</div>" +
+    "</div>" +
     '<p class="sr-only">Next race: ' + esc(next.name) + ", " + esc(fmtRaceWhen(next)) + ".</p>";
+}
+
+export function initHero(): void {
+  const host = $("#hero");
+  if (!host) return;
+
+  host.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const button = target.closest<HTMLElement>(".hero__weekend-btn");
+    if (!button) return;
+
+    const wrap = button.closest<HTMLElement>(".hero__weekend");
+    if (!wrap) return;
+
+    const open = !wrap.classList.contains("is-open");
+    weekendOpen = open;
+    wrap.classList.toggle("is-open", open);
+    button.setAttribute("aria-expanded", String(open));
+
+    const panelId = button.getAttribute("aria-controls");
+    const panel = panelId ? document.getElementById(panelId) : null;
+    if (panel) panel.setAttribute("aria-hidden", String(!open));
+  });
 }
 
 export function updateHeroCountdown(ms: number): void {

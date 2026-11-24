@@ -20,6 +20,7 @@ import { cache } from "./lib/storage";
 import { initTheme } from "./lib/theme";
 import { initAppearance } from "./ui/appearance";
 import { initCalendar } from "./ui/calendar";
+import { initHero } from "./ui/hero";
 import { initMotionBlur } from "./ui/motion-blur";
 import { initNav, showView, viewFromHash } from "./ui/nav";
 import { initStatus, renderStatus } from "./ui/status";
@@ -29,6 +30,7 @@ function boot(): void {
   initAppearance();
   initNav();
   initCalendar();
+  initHero();
   initStatus(() => {
     void refresh();
   });

@@ -283,6 +283,7 @@ html[data-theme="light"] .racecard__winner { --team: var(--team-light, var(--pri
 }
 
 .racecard.is-open .session,
+.hero__weekend.is-open .session,
 .racecard.is-open .racecard__winner,
 .racecard.is-open .racecard__pending {
   animation: sessionIn 0.38s var(--ease-emphasized) both;
