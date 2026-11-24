@@ -217,6 +217,7 @@ html[data-theme="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 
   font-size: 13px;
   font-weight: 600;
 }
+.session__label { min-width: 0; }
 
 .session__badge {
   flex: 0 0 auto;
@@ -310,6 +311,17 @@ html[data-theme="light"] .racecard__winner { --team: var(--team-light, var(--pri
   .flag { width: 28px; height: 18.67px; }
   .racecard__name { font-size: 15px; }
   .racecard__panel-inner { padding-inline: 14px; }
-  .session { grid-template-columns: 52px minmax(0, 1fr) 44px 44px; gap: 8px; }
-  .session__name { font-size: 12px; }
+  .session { grid-template-columns: 44px minmax(0, 1fr) 38px 44px; gap: 7px; }
+  .session__name { font-size: 12px; gap: 6px; }
+  .session__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .session__badge { padding: 2px 5px; font-size: 8px; letter-spacing: 0.06em; }
+  .session__len { font-size: 10px; white-space: nowrap; }
+}
+
+/* Very narrow phones: trim the side columns so the name and the NEXT badge
+   keep a clean gap instead of the badge running into the duration. */
+@media (max-width: 400px) {
+  .session { grid-template-columns: 40px minmax(0, 1fr) 34px 42px; gap: 6px; }
+  .session__name { font-size: 11.5px; }
+  .session__time { font-size: 12.5px; }
 }

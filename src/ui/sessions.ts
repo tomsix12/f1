@@ -15,7 +15,8 @@ function sessionRow(session: RaceSession, index: number): string {
       '<span class="session__dow">' + esc(fmtWeekday(start)) + "</span>" +
       '<span class="session__date">' + esc(fmtDayMonth(start)) + "</span>" +
     "</span>" +
-    '<span class="session__name">' + esc(session.name) +
+    '<span class="session__name">' +
+      '<span class="session__label">' + esc(session.name) + "</span>" +
       '<span class="session__badge" data-next-session hidden>Next</span>' +
     "</span>" +
     '<span class="session__len">' + esc(sessionLength(session.minutes)) + "</span>" +
