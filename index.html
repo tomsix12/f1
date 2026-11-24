@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="tonal-spot" data-mode="light">
+<html lang="en" data-theme="tonal-spot" data-mode="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>F1 · Schedule, results &amp; standings</title>
-<meta name="description" content="Live Formula 1 calendar with session times, race winners and championship standings, converted to Europe/Prague time. Data from Jolpica F1.">
+<meta name="description" content="Live Formula 1 calendar with session times, race winners and championship standings. Data from Jolpica F1.">
 <meta name="theme-color" content="#F7F9FE">
 <link rel="canonical" href="https://tomsix.xyz/">
 
@@ -76,6 +76,9 @@
   --wrap: 1120px;
   --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.22, 1.28, 0.36, 1);
 }
 
 html[data-mode="dark"] {
@@ -252,7 +255,7 @@ ul, ol { list-style: none; }
   border-radius: 999px;
   background: var(--primary);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.38s cubic-bezier(0.2, 0, 0, 1), width 0.38s cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 0.46s var(--ease-emphasized), width 0.46s var(--ease-emphasized);
   pointer-events: none;
   z-index: 0;
 }
@@ -272,7 +275,7 @@ ul, ol { list-style: none; }
   font-weight: 650;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  transition: color 0.2s ease;
+  transition: color 0.25s var(--ease-standard);
 }
 
 .tab:hover { color: var(--text); }
@@ -281,7 +284,12 @@ ul, ol { list-style: none; }
 .tab__check { display: none; }
 .tab[aria-selected="true"] { color: var(--on-primary); }
 .tab[aria-selected="true"] .tab__icon { display: none; }
-.tab[aria-selected="true"] .tab__check { display: block; }
+.tab[aria-selected="true"] .tab__check { display: block; animation: checkIn 0.32s var(--ease-spring); }
+
+@keyframes checkIn {
+  from { opacity: 0; transform: scale(0.55); }
+  to { opacity: 1; transform: none; }
+}
 
 .navbtn {
   display: grid;
@@ -293,9 +301,9 @@ ul, ol { list-style: none; }
   border-radius: 14px;
   background: var(--surface-2);
   color: var(--text-2);
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.18s ease;
+  transition: background-color 0.25s var(--ease-standard), color 0.25s var(--ease-standard), transform 0.3s var(--ease-spring);
 }
-.navbtn:hover { background: var(--surface-3); color: var(--text); transform: translateY(-1px); }
+.navbtn:hover { background: var(--surface-3); color: var(--text); transform: translateY(-2px); }
 .navbtn[aria-expanded="true"] { background: var(--primary); border-color: transparent; color: var(--on-primary); }
 .navbtn svg { width: 20px; height: 20px; }
 
@@ -319,9 +327,13 @@ ul, ol { list-style: none; }
   font-weight: 550;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s var(--ease-standard), color 0.25s var(--ease-standard);
 }
 .status:hover { background: var(--surface-3); }
+.status[data-state="syncing"] {
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-2));
+  color: var(--primary);
+}
 
 .status__dot {
   width: 8px;
@@ -339,14 +351,11 @@ ul, ol { list-style: none; }
 .status[data-state="syncing"] .status__dot { background: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); animation: pulse 1.1s ease-in-out infinite; }
 
 .status svg { width: 13px; height: 13px; }
+.status.is-spinning svg { animation: spin 0.85s var(--ease-standard) 1; }
 .status[data-state="syncing"] svg { animation: spin 0.9s linear infinite; }
 
 @keyframes pulse { 0%, 100% { transform: scale(0.85); } 50% { transform: scale(1.15); } }
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes breathe {
-  0%, 100% { transform: scale(0.9); box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent); }
-  50% { transform: scale(1.08); box-shadow: 0 0 0 7px color-mix(in srgb, currentColor 6%, transparent); }
-}
 
 /* --------------------------------------------------------------------------
    Appearance button + palette panel
@@ -364,12 +373,12 @@ ul, ol { list-style: none; }
   border: 1px solid var(--line);
   background: var(--surface);
   box-shadow: var(--shadow-lg);
-  animation: paletteIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: paletteIn 0.34s var(--ease-spring);
 }
 .palette[hidden] { display: none; }
 
 @keyframes paletteIn {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  from { opacity: 0; transform: translateY(-10px) scale(0.96); }
   to { opacity: 1; transform: none; }
 }
 
@@ -410,7 +419,7 @@ ul, ol { list-style: none; }
   color: var(--text-2);
   font-size: 12.5px;
   font-weight: 650;
-  transition: background-color 0.18s ease, color 0.18s ease;
+  transition: background-color 0.25s var(--ease-standard), color 0.25s var(--ease-standard);
 }
 .mode button svg { width: 15px; height: 15px; }
 .mode button .mode__check { display: none; width: 14px; height: 14px; }
@@ -443,9 +452,9 @@ ul, ol { list-style: none; }
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface-2);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  transition: border-color 0.25s var(--ease-standard), box-shadow 0.25s var(--ease-standard), transform 0.3s var(--ease-spring);
 }
-.accent:hover { border-color: color-mix(in srgb, var(--sw) 55%, var(--line)); transform: translateY(-1px); }
+.accent:hover { border-color: color-mix(in srgb, var(--sw) 55%, var(--line)); transform: translateY(-2px); }
 .accent__dot {
   display: grid;
   place-items: center;
@@ -455,7 +464,7 @@ ul, ol { list-style: none; }
   background: var(--sw);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.accent__dot svg { width: 13px; height: 13px; color: var(--sw-on); opacity: 0; transition: opacity 0.18s ease; }
+.accent__dot svg { width: 13px; height: 13px; color: var(--sw-on); opacity: 0; transition: opacity 0.22s var(--ease-standard); }
 .accent[aria-pressed="true"] { border-color: var(--sw); box-shadow: 0 0 0 2px color-mix(in srgb, var(--sw) 32%, transparent); }
 .accent[aria-pressed="true"] .accent__dot svg { opacity: 1; }
 
@@ -491,12 +500,9 @@ ul, ol { list-style: none; }
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  cursor: pointer;
-  animation: riseIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  animation: riseIn 0.58s var(--ease-emphasized) both;
+  transition: border-color 0.3s var(--ease-standard), box-shadow 0.3s var(--ease-standard);
 }
-.hero:hover { border-color: color-mix(in srgb, var(--primary) 30%, var(--line)); }
-.hero.is-open { border-color: color-mix(in srgb, var(--primary) 46%, var(--line)); }
 
 .hero__top {
   display: flex;
@@ -561,7 +567,7 @@ ul, ol { list-style: none; }
   font-variant-numeric: tabular-nums;
 }
 html[data-mode="dark"] .cd__num { color: var(--primary); }
-.cd__num.is-tick { animation: tick 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.cd__num.is-tick { animation: tick 0.42s var(--ease-emphasized); }
 
 @keyframes tick {
   0% { opacity: 0.35; transform: translateY(-6px); }
@@ -597,7 +603,6 @@ html[data-mode="dark"] .cd__num { color: var(--primary); }
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
-.hero__info span:last-child { color: var(--text-3); font-size: 11.5px; }
 
 .hero__loading {
   color: var(--text-3);
@@ -636,38 +641,6 @@ html[data-mode="dark"] .cd__num { color: var(--primary); }
 .hero__stats span { color: var(--text-3); font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .hero__stats strong { font-size: 14px; font-weight: 700; letter-spacing: -0.015em; }
 
-.hero__toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  margin-top: 14px;
-  padding: 10px 2px 0;
-  border-top: 1px solid var(--line);
-  color: var(--text-2);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.hero__toggle svg { width: 18px; height: 18px; transition: transform 0.26s cubic-bezier(0.2, 0.7, 0.2, 1); }
-.hero__toggle-right { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); font-weight: 650; letter-spacing: 0; text-transform: none; }
-.hero.is-open .hero__toggle svg { transform: rotate(90deg); }
-.hero.is-open .hero__toggle { color: var(--primary); }
-
-.hero__panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  cursor: auto;
-  transition: grid-template-rows 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.hero.is-open .hero__panel { grid-template-rows: 1fr; }
-
-.hero__panel-inner { min-height: 0; overflow: hidden; }
-.hero .racecard__panel-head { border-top: 0; padding-top: 10px; }
-.hero.is-open .session { animation: sessionIn 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
-
 @keyframes riseIn {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
@@ -696,15 +669,8 @@ html[data-mode="dark"] .cd__num { color: var(--primary); }
   letter-spacing: -0.04em;
 }
 
-.section__meta {
-  color: var(--text-3);
-  font-size: 12.5px;
-  font-weight: 550;
-  font-variant-numeric: tabular-nums;
-}
-
 .view[hidden] { display: none !important; }
-.view.is-entering { animation: viewIn 0.34s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.view.is-entering { animation: viewIn 0.46s var(--ease-emphasized); }
 
 @keyframes viewIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -765,11 +731,14 @@ html[data-mode="dark"] .cd__num { color: var(--primary); }
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  animation: cardIn 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(min(var(--i, 0), 6) * 60ms);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  animation: cardIn 0.52s var(--ease-emphasized) both;
+  animation-delay: calc(min(var(--i, 0), 6) * 55ms);
+  transition: border-color 0.25s var(--ease-standard), box-shadow 0.3s var(--ease-standard), transform 0.3s var(--ease-spring);
 }
-.racecard:hover { border-color: color-mix(in srgb, var(--primary) 34%, var(--line)); }
+.racecard:hover {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--line));
+  transform: translateY(-1.5px);
+}
 .racecard.is-open {
   border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
 }
@@ -831,7 +800,7 @@ html[data-mode="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.25;
-  transition: color 0.2s ease;
+  transition: color 0.25s var(--ease-standard);
 }
 .racecard__btn:hover .racecard__name { color: var(--primary); }
 
@@ -858,7 +827,7 @@ html[data-mode="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0
   display: grid;
   place-items: center;
   color: var(--text-3);
-  transition: transform 0.26s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.2s ease;
+  transition: transform 0.36s var(--ease-spring), color 0.25s var(--ease-standard);
 }
 .racecard__chev svg { width: 18px; height: 18px; }
 .racecard.is-open .racecard__chev { transform: rotate(90deg); color: var(--primary); }
@@ -866,7 +835,7 @@ html[data-mode="dark"] .flag { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0
 .racecard__panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: grid-template-rows 0.42s var(--ease-emphasized);
 }
 .racecard.is-open .racecard__panel { grid-template-rows: 1fr; }
 
@@ -995,17 +964,17 @@ html[data-mode="light"] .racecard__winner { --team: var(--team-light, var(--prim
 .racecard.is-open .session,
 .racecard.is-open .racecard__winner,
 .racecard.is-open .racecard__pending {
-  animation: sessionIn 0.3s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 50ms);
+  animation: sessionIn 0.38s var(--ease-emphasized) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
 }
 
 @keyframes cardIn {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
   to { opacity: 1; transform: none; }
 }
 
 @keyframes sessionIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -1045,7 +1014,7 @@ html[data-mode="light"] .racecard__winner { --team: var(--team-light, var(--prim
   background: var(--surface);
   overflow: hidden;
   isolation: isolate;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.25s var(--ease-standard), transform 0.32s var(--ease-spring);
 }
 .team-card:hover { border-color: color-mix(in srgb, var(--team) 45%, var(--line)); }
 html[data-mode="light"] .team-card { --team: var(--team-light, var(--text-3)); }
@@ -1207,12 +1176,12 @@ html.theming *,
 html.theming *::before,
 html.theming *::after {
   transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease,
-    fill 0.3s ease,
-    stroke 0.3s ease,
-    box-shadow 0.3s ease !important;
+    background-color 0.46s var(--ease-emphasized),
+    color 0.46s var(--ease-emphasized),
+    border-color 0.46s var(--ease-emphasized),
+    fill 0.46s var(--ease-emphasized),
+    stroke 0.46s var(--ease-emphasized),
+    box-shadow 0.46s var(--ease-emphasized) !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -1250,7 +1219,8 @@ html.theming *::after {
   }
   .status #status-text { display: none; }
   .status__dot { display: none; }
-  .status > svg { display: block; width: 18px; height: 18px; transform-origin: center; animation: spin 2.4s linear infinite; }
+  .status > svg { display: block; width: 18px; height: 18px; transform-origin: center; }
+  .status.is-spinning > svg { animation: spin 0.85s var(--ease-standard) 1; }
   .status[data-state="syncing"] > svg { animation: spin 0.9s linear infinite; }
   .status[data-state="offline"] > svg { color: var(--primary); }
 
@@ -1264,9 +1234,6 @@ html.theming *::after {
   .cd__num { font-size: clamp(21px, 7.2vw, 26px); }
   .cd__label { font-size: 7.5px; }
   .hero__info { flex-direction: column; align-items: center; text-align: center; }
-  .hero__info span:last-child { flex: none; }
-  .hero__toggle { justify-content: center; gap: 8px; }
-  .hero__panel { text-align: left; }
   .hero__stats { grid-template-columns: 1fr; }
 
   .section { margin-top: 28px; }
@@ -1277,7 +1244,6 @@ html.theming *::after {
     gap: 3px;
     text-align: center;
   }
-  .section__meta { text-align: center; }
   .race-group { gap: 8px; }
   .race-group__title { justify-content: center; }
 
@@ -1302,7 +1268,6 @@ html.theming *::after {
 @media (max-width: 400px) {
   .cd__num { font-size: 21px; }
   .countdown { gap: 5px; }
-  .hero__tz { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1420,7 +1385,7 @@ html.theming *::after {
   } catch (error) { /* storage may be unavailable */ }
   if (!Object.prototype.hasOwnProperty.call(ACCENTS, accent)) accent = DEFAULT_ACCENT;
   if (!mode) {
-    mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
   }
   window.F1_applyTheme(accent, mode);
 })();
@@ -1504,7 +1469,6 @@ html.theming *::after {
       <section class="section">
         <div class="section__head">
           <h2 class="section__title">Race calendar</h2>
-          <p class="section__meta" id="schedule-meta">Loading…</p>
         </div>
         <div class="calendar" id="calendar"></div>
       </section>
@@ -1513,7 +1477,6 @@ html.theming *::after {
     <section class="view wrap" id="view-teams" role="tabpanel" aria-labelledby="tab-teams" hidden>
       <div class="section__head">
         <h2 class="section__title">Constructors' championship</h2>
-        <p class="section__meta" id="teams-meta"></p>
       </div>
       <ol class="team-list" id="team-list" aria-label="Constructors' championship standings"></ol>
     </section>
@@ -1521,7 +1484,6 @@ html.theming *::after {
     <section class="view wrap" id="view-drivers" role="tabpanel" aria-labelledby="tab-drivers" hidden>
       <div class="section__head">
         <h2 class="section__title">Drivers' championship</h2>
-        <p class="section__meta" id="drivers-meta"></p>
       </div>
       <ol class="driver-list" id="driver-list" aria-label="Drivers' championship standings"></ol>
     </section>
@@ -1532,8 +1494,8 @@ html.theming *::after {
   <div class="wrap foot__inner">
     <p class="foot__note">
       Unofficial fan project. Not affiliated with Formula 1, the FIA or any team.
-      Live data from <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica F1</a>;
-      all race times in Europe/Prague. Always double-check the official schedule.
+      Live data from <a href="https://api.jolpi.ca" target="_blank" rel="noopener">Jolpica F1</a>.
+      Always double-check the official schedule.
     </p>
     <p class="foot__meta" id="foot-meta">Loading…</p>
   </div>
@@ -1667,7 +1629,6 @@ html.theming *::after {
     sig: "",
     view: "schedule",
     open: new Set(),
-    heroOpen: false,
     nextSession: undefined
   };
 
@@ -2060,7 +2021,6 @@ html.theming *::after {
     const next = nextRace();
 
     if (!next) {
-      host.classList.remove("is-open");
       const drivers = data.drivers || [];
       const teams = data.teams || [];
       const winners = data.races.filter((race) => race.winner);
@@ -2083,9 +2043,6 @@ html.theming *::after {
 
     const start = raceStart(next);
     const started = start.getTime() <= Date.now();
-    const sessions = sessionsOf(next);
-    const open = state.heroOpen;
-    host.classList.toggle("is-open", open);
 
     const countdown = started
       ? '<div class="hero__pending">Lights out — waiting for the official classification…</div>'
@@ -2103,33 +2060,9 @@ html.theming *::after {
         '<div class="hero__info">' +
           '<span class="hero__info-label">Race start</span>' +
           '<strong>' + esc(fmtRaceWhen(next)) + '</strong>' +
-          '<span>Europe/Prague · times updated automatically</span>' +
-        '</div>' +
-      '</div>' +
-      '<button class="hero__toggle" type="button" id="hero-toggle" aria-expanded="' + open + '" aria-controls="hero-panel">' +
-        '<span>Weekend schedule · ' + sessions.length + (sessions.length === 1 ? " session" : " sessions") + '</span>' +
-        '<span class="hero__toggle-right"><span class="hero__tz">Europe/Prague</span>' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>' +
-        '</span>' +
-      '</button>' +
-      '<div class="hero__panel" id="hero-panel" role="region" aria-labelledby="hero-toggle"' + (open ? "" : ' aria-hidden="true"') + '>' +
-        '<div class="hero__panel-inner">' +
-          '<ol class="session-list">' + sessions.map(sessionRow).join("") + '</ol>' +
         '</div>' +
       '</div>' +
       '<p class="sr-only">Next race: ' + esc(next.name) + ', ' + esc(fmtRaceWhen(next)) + '.</p>';
-  }
-
-  function toggleHero() {
-    const hero = $("#hero");
-    const button = $("#hero-toggle");
-    if (!hero || !button) return;
-    const open = !hero.classList.contains("is-open");
-    hero.classList.toggle("is-open", open);
-    state.heroOpen = open;
-    button.setAttribute("aria-expanded", String(open));
-    const panel = $("#hero-panel");
-    if (panel) panel.setAttribute("aria-hidden", String(!open));
   }
 
   /* --------------------------------------------------------------- schedule */
@@ -2158,13 +2091,6 @@ html.theming *::after {
     const next = nextRace();
     const upcoming = races.filter((race) => !race.winner && (!next || race.round !== next.round));
     const completed = races.filter((race) => race.winner);
-    const total = races.length;
-
-    const meta = $("#schedule-meta");
-    if (meta) {
-      meta.textContent = total + " rounds · " + completed.length + " completed · " +
-        (next ? "next race above" : "season complete");
-    }
 
     host.innerHTML =
       raceGroup("calendar-upcoming", "Upcoming races", upcoming) +
@@ -2210,7 +2136,7 @@ html.theming *::after {
       '<div class="racecard__panel" id="' + panelId + '" role="region" aria-labelledby="' + btnId + '"' +
         (open ? "" : ' aria-hidden="true"') + '>' +
         '<div class="racecard__panel-inner">' +
-          '<div class="racecard__panel-head"><span>Weekend schedule</span><span>Europe/Prague</span></div>' +
+          '<div class="racecard__panel-head"><span>Weekend schedule</span></div>' +
           '<ol class="session-list">' + sessions.map(sessionRow).join("") + '</ol>' +
           raceResult(race, sessions.length) +
         '</div>' +
@@ -2286,17 +2212,10 @@ html.theming *::after {
   }
 
   /* -------------------------------------------------------------- standings */
-  function standingsMeta() {
-    const data = state.data;
-    return "After round " + data.round + " of " + data.races.length + " · " + data.season + " season";
-  }
-
   function renderTeams() {
     const host = $("#team-list");
-    const meta = $("#teams-meta");
     if (!host) return;
     const teams = state.data.teams || [];
-    if (meta) meta.textContent = standingsMeta();
 
     const leader = Math.max(1, teams.length ? teams[0].points : 1);
     host.innerHTML = teams.map((team) => {
@@ -2317,10 +2236,8 @@ html.theming *::after {
 
   function renderDrivers() {
     const host = $("#driver-list");
-    const meta = $("#drivers-meta");
     if (!host) return;
     const drivers = state.data.drivers || [];
-    if (meta) meta.textContent = standingsMeta();
 
     host.innerHTML = drivers.map((driver) => {
       const colors = teamColors(driver.teamId);
@@ -2381,7 +2298,7 @@ html.theming *::after {
     const meta = $("#foot-meta");
     if (!meta) return;
     const stamp = state.lastFetch || state.savedAt;
-    meta.textContent = "Last updated " + fmtFullStamp(stamp) + " · Europe/Prague";
+    meta.textContent = "Last updated " + fmtFullStamp(stamp);
   }
 
   /* ------------------------------------------------------------- countdown */
@@ -2518,7 +2435,7 @@ html.theming *::after {
     } catch (error) { /* storage may be unavailable */ }
     syncThemeUI();
     window.clearTimeout(themeTimer);
-    themeTimer = window.setTimeout(() => root.classList.remove("theming"), 360);
+    themeTimer = window.setTimeout(() => root.classList.remove("theming"), 520);
   }
 
   function applyMode(mode) {
@@ -2646,15 +2563,6 @@ html.theming *::after {
       });
     }
 
-    const hero = $("#hero");
-    if (hero) {
-      hero.addEventListener("click", (event) => {
-        if (event.target.closest("a")) return;
-        if (event.target.closest(".hero__panel")) return;
-        toggleHero();
-      });
-    }
-
     const calendar = $("#calendar");
     if (calendar) {
       calendar.addEventListener("click", (event) => {
@@ -2664,7 +2572,13 @@ html.theming *::after {
     }
 
     const status = $("#status");
-    if (status) status.addEventListener("click", () => refresh());
+    if (status) {
+      status.addEventListener("click", () => {
+        status.classList.add("is-spinning");
+        window.setTimeout(() => status.classList.remove("is-spinning"), 900);
+        refresh();
+      });
+    }
 
     if (paletteBtn) {
       paletteBtn.addEventListener("click", () => {

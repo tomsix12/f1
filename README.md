@@ -26,9 +26,9 @@ f1/
   Načte se při otevření, obnovuje se každých 10 minut a znovu při návratu
   na kartu. Data se ukládají do `localStorage` i s časem poslední aktualizace.
 - **Odpočet do dalšího závodu** v časovém pásmu `Europe/Prague`, s jemnou
-  animací měnících se číslic. Banner je kompaktní a rozklikává se stejně jako
-  karty závodů – pod odpočtem se otevře celý rozvrh víkendu. Závod se počítá
-  jako dokončený, jakmile má výsledky; do té doby banner ukazuje „Lights out“.
+  animací měnících se číslic. Banner je kompaktní – ukazuje jen odpočet a čas
+  startu, bez rozvrhu víkendu. Závod se počítá jako dokončený, jakmile má
+  výsledky; do té doby banner ukazuje „Lights out“.
 - **Kalendář v jednom sloupci** – všechny závody seřazené podle čísla kola,
   rozdělené do sekcí „Upcoming races“ a „Completed races“ s počtem závodů
   v nadpisu. Závod z banneru se v seznamu už neopakuje. Karta ukazuje číslo
@@ -46,17 +46,19 @@ f1/
 - **Grafitový motiv s akcentem** – šedé a černé plochy, v light režimu bílé
   plochy s černým textem. Z osmi akcentů (Red, Blue, Green, Teal, Amber, Pink,
   Violet, Graphite) jde vybrat jeden; mění se jen primární barva, nikdy
-  neutrální plochy. Přepínač Light / Dark i mřížka akcentů jsou segmentované
-  ovládací prvky, volba se pamatuje a přechod barev je plynulý. Tlačítko
-  vzhledu sedí vedle navigace (na mobilu nad kalendářem).
+  neutrální plochy. Při prvním otevření se režim řídí systémovým nastavením
+  (bez preference je výchozí tmavý). Přepínač Light / Dark i mřížka akcentů
+  jsou segmentované ovládací prvky, volba se pamatuje a přechod barev je
+  plynulý. Tlačítko vzhledu sedí vedle navigace (na mobilu nad kalendářem).
 - **M3 Expressive navigace** – segmentovaný seznam s ikonami, zaškrtnutím
   aktivní položky a posuvným indikátorem.
-- **Pohyb** – jemné najíždění karet, rozbalování rozvrhu, rozostření obsahu
-  podle rychlosti scrollování. Vše respektuje `prefers-reduced-motion`.
+- **Pohyb** – jemné, déle plynoucí najíždění karet, rozbalování rozvrhu
+  s postupným odkrýváním řádků a měkké přechody barev při změně motivu.
+  Vše respektuje `prefers-reduced-motion`.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na mobilu ho nahrazuje jen kruhové
-  tlačítko s ikonou refresh, která se pomalu otáčí (během načítání se roztočí
-  rychleji); plný text zůstává v popisku pro čtečky.
+  tlačítko s ikonou refresh. Ta se netočí sama od sebe – roztočí se až po
+  kliknutí (a během načítání dat); plný text zůstává v popisku pro čtečky.
 - Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
 ## Úpravy
@@ -85,8 +87,8 @@ Vše důležité je v komentáři na začátku `index.html` a v hlavním `<scrip
 
 Pořadí zdrojů je: paměť → `localStorage` → `data.json` → inline snapshot.
 Při výpadku API zůstane na obrazovce poslední známý stav a v hlavičce se
-zobrazí „Offline · …“ s časem poslední aktualizace (na mobilu jen animované
-tlačítko, plný text je v jeho popisku pro čtečky).
+zobrazí „Offline · …“ s časem poslední aktualizace (na mobilu jen tlačítko
+s ikonou, plný text je v jeho popisku pro čtečky).
 
 ## Nasazení
 
