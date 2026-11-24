@@ -14,15 +14,13 @@
 /* Directional blur targets. Deliberately *not* `#content`: filtering the tall
    scroll container creates one huge render surface, so on slow rasterisers
    freshly scrolled-in cards stay blank until the scroll stops. Per-card
-   surfaces are small, only rasterised while visible, and carry nearly all of
-   the page detail, so the effect looks the same while staying smooth. */
-html.motion-blurring .hero,
-html.motion-blurring .racecard,
-html.motion-blurring .driver,
-html.motion-blurring .team-card,
-html.motion-blurring .section__head,
-html.motion-blurring .race-group__title,
-html.motion-blurring .foot__inner {
+   surfaces are small and carry nearly all of the page detail, so the effect
+   looks the same while staying smooth.
+
+   `is-motion-blurred` is set by ui/motion-blur.ts only on the cards near the
+   viewport, so a fling never builds filter surfaces for the whole page at
+   once. That selector covers the schedule, drivers and teams views. */
+html.motion-blurring .is-motion-blurred {
   filter: url("#scroll-motion-blur");
 }
 

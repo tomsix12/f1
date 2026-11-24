@@ -21,6 +21,12 @@ import { PREFS_EVENT, getBlurScale, getMotionBlur } from "../lib/prefs";
  * large filter surfaces differently.
  */
 const BLUR_CLASS = "motion-blurring";
+/** Elements that receive the filter; covers schedule, drivers and teams. */
+const BLUR_TARGETS =
+  ".hero, .racecard, .driver, .team-card, .section__head, .race-group__title, .foot__inner";
+const TARGET_CLASS = "is-motion-blurred";
+/** How far outside the viewport targets are kept ready, in viewport heights. */
+const TARGET_MARGIN = 0.35;
 /** Rounding step for stdDeviation so tiny per-frame changes don't re-blur. */
 const BLUR_STEP = 0.25;
 /** Minimum time between filter updates, in ms (~30 Hz is plenty for a blur). */
@@ -49,10 +55,40 @@ export function initMotionBlur(): void {
   let lastMove = 0;
   let appliedBlur = -1;
   let lastPaint = 0;
+  let targets: HTMLElement[] = [];
+  const marked = new Set<HTMLElement>();
+
+  /** Keeps the filter on the cards near the viewport only. Filtering every
+      card in the document at once makes the first frame of a fling build a
+      surface for content that is nowhere near the screen, which is what
+      delayed painting on slower devices. */
+  function syncTargets(): void {
+    const vh = window.innerHeight;
+    const low = -vh * TARGET_MARGIN;
+    const high = vh * (1 + TARGET_MARGIN);
+    for (const el of targets) {
+      const rect = el.getBoundingClientRect();
+      const visible = rect.height > 0 && rect.bottom > low && rect.top < high;
+      if (visible === marked.has(el)) continue;
+      if (visible) {
+        el.classList.add(TARGET_CLASS);
+        marked.add(el);
+      } else {
+        el.classList.remove(TARGET_CLASS);
+        marked.delete(el);
+      }
+    }
+  }
+
+  function clearMarks(): void {
+    for (const el of marked) el.classList.remove(TARGET_CLASS);
+    marked.clear();
+  }
 
   function clear(): void {
     if (!applied) return;
     root.classList.remove(BLUR_CLASS);
+    clearMarks();
     gaussian.setAttribute("stdDeviation", "0 0");
     applied = false;
     appliedBlur = -1;
@@ -67,14 +103,16 @@ export function initMotionBlur(): void {
       clear();
       return;
     }
-    if (!applied) {
-      root.classList.add(BLUR_CLASS);
-      applied = true;
-      lastPaint = 0;
-    }
-    if (stepped !== appliedBlur && now - lastPaint >= PAINT_INTERVAL) {
-      gaussian.setAttribute("stdDeviation", "0 " + stepped.toFixed(2));
-      appliedBlur = stepped;
+    if (!applied || now - lastPaint >= PAINT_INTERVAL) {
+      syncTargets();
+      if (!applied) {
+        root.classList.add(BLUR_CLASS);
+        applied = true;
+      }
+      if (stepped !== appliedBlur) {
+        gaussian.setAttribute("stdDeviation", "0 " + stepped.toFixed(2));
+        appliedBlur = stepped;
+      }
       lastPaint = now;
     }
   }
@@ -120,6 +158,7 @@ export function initMotionBlur(): void {
   function start(): void {
     if (running || !enabled || prefersReducedMotion.matches) return;
     running = true;
+    targets = Array.from(document.querySelectorAll<HTMLElement>(BLUR_TARGETS));
     lastY = window.scrollY;
     lastT = performance.now();
     lastMove = lastT;

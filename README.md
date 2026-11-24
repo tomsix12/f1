@@ -111,11 +111,11 @@ f1/
   rychlost se vzorkuje po snímcích, vyhlazuje poměrem 35/65, po zastavení
   odeznívá a na webu ji vykresluje SVG `feGaussianBlur` s vertikálním
   `stdDeviation`. Intenzita jde v nastavení měnit v rozsahu 0.5–2.5×.
-  Filtr běží po jednotlivých kartách a nadpisech, ne na celém obsahu: velký
-  filtr na scrollovaném wrapperu nutí prohlížeč překreslovat obří vrstvu
-  a při rychlém scrollu se nový obsah objevuje se zpožděním. Menší vrstvy
-  se rasterizují jen když jsou vidět, takže je efekt stejně plynulý a karty
-  se načítají okamžitě. Vše respektuje `prefers-reduced-motion`; motion blur
+  Filtr běží po jednotlivých kartách a nadpisech, ne na celém obsahu,
+  a jen u karet blízko viewportu: velký filtr na scrollovaném wrapperu nutí
+  prohlížeč překreslovat obří vrstvu a při rychlém scrollu se nový obsah
+  objevuje se zpožděním. Menší vrstvy se rasterizují jen když jsou vidět,
+  takže je efekt stejně plynulý a karty se načítají okamžitě. Vše respektuje `prefers-reduced-motion`; motion blur
   jde vypnout.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku
