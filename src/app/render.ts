@@ -3,7 +3,6 @@ import { renderSchedule } from "../ui/calendar";
 import { renderFooter } from "../ui/footer";
 import { renderHero } from "../ui/hero";
 import { renderDrivers, renderTeams } from "../ui/standings";
-import { renderStatus } from "../ui/status";
 import { state } from "./state";
 import { tick } from "./tick";
 
@@ -17,7 +16,6 @@ export function renderAll(): void {
   renderSchedule();
   renderTeams();
   renderDrivers();
-  renderStatus();
   renderFooter();
   tick();
   document.dispatchEvent(new Event(DATA_EVENT));

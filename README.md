@@ -43,7 +43,7 @@ f1/
 │  ├─ theme/palette.ts     – ACCENTS, NEUTRALS, výchozí akcent
 │  ├─ data/                – Jolpica, normalizace, týmy, vlajky, snapshot
 │  ├─ app/                 – stav, načítání dat, vykreslení, tik
-│  └─ ui/                  – hero, kalendář, bodování, stav, navigace…
+│  └─ ui/                  – hero, kalendář, bodování, nastavení, navigace…
 ├─ public/
 │  ├─ data.json            – záložní data pro první načtení bez API
 │  ├─ img/og.png           – náhled pro sociální sítě (1200×630)
@@ -130,11 +130,9 @@ f1/
   (s nižším stropem intenzity). Hlavička má na mobilu neprůhledné pozadí
   místo `backdrop-filter`.
   Vše respektuje `prefers-reduced-motion`; motion blur jde vypnout.
-- **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
-  štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku
-  nebo v režimu širokého viewportu) ho nahrazuje kruhové tlačítko s ikonou
-  refresh. Ta se netočí sama od sebe – roztočí se až po kliknutí (a během
-  načítání dat); plný text zůstává v popisku pro čtečky.
+- **Mobil** – vycentrované nadpisy a banner. Hlavička drží jen ozubené
+  kolečko (nastavení); data se obnovují samy každých 10 minut a při návratu
+  na stránku, takže v hlavičce není žádné tlačítko pro ruční refresh.
 - Bez frameworků, bez externích fontů a analytiky.
 
 ## Úpravy
@@ -165,8 +163,7 @@ f1/
 
 Pořadí zdrojů je: paměť → `localStorage` → živé API → `data.json` →
 zabundovaný snapshot. Při výpadku API zůstane na obrazovce poslední známý stav
-a v hlavičce se zobrazí „Offline · …“ s časem poslední aktualizace (na mobilu
-jen tlačítko s ikonou, plný text je v jeho popisku pro čtečky).
+a čtečky dostanou hlášení „Offline. Showing the last known data.“.
 
 ## Nasazení
 

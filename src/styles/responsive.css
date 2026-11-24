@@ -17,25 +17,6 @@
   .hero__info-label { flex: 0 0 auto; }
 }
 
-/* Icon-only refresh button: phones in portrait and landscape, small tablets
-   and any touch device — even one that reports a wide desktop-style viewport. */
-@media (max-width: 860px), (hover: none) and (pointer: coarse) {
-  .status {
-    width: 40px;
-    height: 40px;
-    min-height: 0;
-    padding: 0;
-    border-radius: 50%;
-    justify-content: center;
-  }
-  .status #status-text { display: none; }
-  .status__dot { display: none; }
-  .status > svg { display: block; width: 18px; height: 18px; transform-origin: center; }
-  .status.is-spinning > svg { animation: spin 0.85s var(--ease-standard) 1; }
-  .status[data-state="syncing"] > svg { animation: spin 0.9s linear infinite; }
-  .status[data-state="offline"] > svg { color: var(--primary); }
-}
-
 @media (max-width: 620px) {
   .wrap { width: min(var(--wrap), 100% - 24px); }
   .brand__text span { display: none; }

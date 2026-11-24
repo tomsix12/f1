@@ -25,7 +25,6 @@ import { initCalendar } from "./ui/calendar";
 import { initHero } from "./ui/hero";
 import { initMotionBlur } from "./ui/motion-blur";
 import { initNav, showView, viewFromHash } from "./ui/nav";
-import { initStatus, renderStatus } from "./ui/status";
 
 function boot(): void {
   initTheme();
@@ -33,9 +32,6 @@ function boot(): void {
   initNav();
   initCalendar();
   initHero();
-  initStatus(() => {
-    void refresh();
-  });
   initMotionBlur();
 
   // The time zone changes every formatted date on the page, so rerender once
@@ -53,8 +49,6 @@ function boot(): void {
     state.source = "cache";
     state.sig = signature(cached.data);
     renderAll();
-  } else {
-    renderStatus();
   }
 
   showView(viewFromHash(), { animate: false, scroll: false });
@@ -65,9 +59,6 @@ function boot(): void {
   window.setInterval(() => {
     if (!document.hidden) void refresh();
   }, REFRESH_MS);
-  window.setInterval(() => {
-    if (!document.hidden) renderStatus();
-  }, 60 * 1000);
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) return;

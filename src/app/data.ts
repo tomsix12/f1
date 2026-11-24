@@ -8,7 +8,6 @@ import { normalize } from "../data/normalize";
 import snapshot from "../data/snapshot.json";
 import { cache } from "../lib/storage";
 import { renderFooter } from "../ui/footer";
-import { renderStatus } from "../ui/status";
 import { announce, renderAll } from "./render";
 import { signature, state, useData, validData } from "./state";
 
@@ -37,12 +36,11 @@ async function loadFallback(): Promise<void> {
 /**
  * Fetches all four endpoints, normalises them and re-renders only when the
  * payload actually changed. Failed requests keep the last known data visible
- * and mark the status as stale.
+ * and flag it as stale.
  */
 export async function refresh(): Promise<void> {
   if (state.loading) return;
   state.loading = true;
-  renderStatus();
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
@@ -70,7 +68,6 @@ export async function refresh(): Promise<void> {
       renderAll();
       announce("Data updated.");
     } else {
-      renderStatus();
       renderFooter();
     }
   } catch (error) {
@@ -83,13 +80,11 @@ export async function refresh(): Promise<void> {
       }
     }
     state.stale = true;
-    renderStatus();
     announce(state.data ? "Offline. Showing the last known data." : "Data is unavailable right now.");
   } finally {
     clearTimeout(timer);
     state.loading = false;
     state.lastAttempt = Date.now();
-    renderStatus();
     renderFooter();
   }
 }
