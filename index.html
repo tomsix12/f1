@@ -347,10 +347,6 @@ ul, ol { list-style: none; }
   0%, 100% { transform: scale(0.9); box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent); }
   50% { transform: scale(1.08); box-shadow: 0 0 0 7px color-mix(in srgb, currentColor 6%, transparent); }
 }
-@keyframes iconBreathe {
-  0%, 100% { transform: scale(0.9); opacity: 0.75; }
-  50% { transform: scale(1.05); opacity: 1; }
-}
 
 /* --------------------------------------------------------------------------
    Appearance button + palette panel
@@ -1254,7 +1250,7 @@ html.theming *::after {
   }
   .status #status-text { display: none; }
   .status__dot { display: none; }
-  .status > svg { display: block; width: 18px; height: 18px; animation: iconBreathe 2.8s ease-in-out infinite; }
+  .status > svg { display: block; width: 18px; height: 18px; transform-origin: center; animation: spin 2.4s linear infinite; }
   .status[data-state="syncing"] > svg { animation: spin 0.9s linear infinite; }
   .status[data-state="offline"] > svg { color: var(--primary); }
 

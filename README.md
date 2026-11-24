@@ -54,8 +54,9 @@ f1/
 - **Pohyb** – jemné najíždění karet, rozbalování rozvrhu, rozostření obsahu
   podle rychlosti scrollování. Vše respektuje `prefers-reduced-motion`.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
-  štítek s časem poslední aktualizace, na mobilu ho nahrazuje jen animované
-  kruhové tlačítko s ikonou refresh; plný text zůstává v popisku pro čtečky.
+  štítek s časem poslední aktualizace, na mobilu ho nahrazuje jen kruhové
+  tlačítko s ikonou refresh, která se pomalu otáčí (během načítání se roztočí
+  rychleji); plný text zůstává v popisku pro čtečky.
 - Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
 ## Úpravy
