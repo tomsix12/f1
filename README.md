@@ -41,8 +41,7 @@ f1/
 │  └─ sitemap.xml
 ├─ scripts/sync-snapshot.mjs
 ├─ vite.config.ts
-├─ tsconfig.json
-└─ .github/workflows/deploy.yml
+└─ tsconfig.json
 ```
 
 `public/` se celý kopíruje do `dist/`, takže cesty v prohlížeči zůstávají
@@ -127,14 +126,21 @@ jen tlačítko s ikonou, plný text je v jeho popisku pro čtečky).
 
 ## Nasazení
 
-`npm run build` vytvoří `dist/` – nahraj ho na Cloudflare Pages, Netlify,
-Vercel nebo GitHub Pages. Pro doménu `tomsix.xyz` nastav odpovídající DNS
-záznamy.
+Web běží na Vercelu a nasazuje se z tohoto repozitáře. `npm run build`
+vytvoří `dist/` s čistě statickými soubory.
 
-Repozitář obsahuje i workflow `.github/workflows/deploy.yml`, který při pushi
-do `main` spustí build a nasadí `dist/` na GitHub Pages. V nastavení
-repozitáře je potřeba mít **Settings → Pages → Source** nastavené na
-**GitHub Actions**.
+V nastavení Vercel projektu (**Settings → Build & Development Settings**) musí
+být:
+
+- **Framework Preset:** Vite
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Install Command:** `npm install` (výchozí)
+
+Vercel u Vite tyhle hodnoty obvykle rozpozná sám. Pokud projekt vznikl ještě
+jako statická verze bez buildu, zkontroluj, že tam není ručně nastavené
+`Other` a výstup `.`. Po pushi do `main` se nová verze nasadí automaticky.
+Pro doménu `tomsix.xyz` nech nastavené odpovídající DNS záznamy.
 
 ## Poznámky
 
