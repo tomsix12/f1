@@ -38,41 +38,10 @@
   line-height: 1.5;
 }
 
-/* M3 segmented list for the colour mode */
-.mode {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface-2);
-}
-.mode button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 40px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  color: var(--text-2);
-  font-size: 12.5px;
-  font-weight: 650;
-  transition: background-color 0.25s var(--ease-standard), color 0.25s var(--ease-standard);
-}
-.mode button svg { width: 15px; height: 15px; }
-.mode button .mode__check { display: none; width: 14px; height: 14px; }
-.mode button[aria-pressed="true"] {
-  background: var(--primary);
-  color: var(--on-primary);
-}
-.mode button[aria-pressed="true"] .mode__check { display: block; }
-
+/* Accent swatches: the neutral surfaces stay put, only the accent changes. */
 .palette__label {
   display: block;
-  margin: 14px 0 8px;
+  margin: 0 0 8px;
   color: var(--text-3);
   font-size: 10px;
   font-weight: 750;
@@ -80,7 +49,6 @@
   text-transform: uppercase;
 }
 
-/* Accent swatches: the neutral surfaces stay put, only the accent changes. */
 .accents {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

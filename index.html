@@ -41,8 +41,8 @@
     if (meta) meta.setAttribute("content", mode === "light" ? "#F6F6F7" : "#0B0B0C");
   })();
 </script>
-  <script type="module" crossorigin src="/assets/index-Xrxl3Il_.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CWuYMt6J.css">
+  <script type="module" crossorigin src="/assets/index-CWVcfFO4.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D2z9BsVp.css">
 </head>
 
 <body>
@@ -74,13 +74,12 @@
           <span class="tab__label">Drivers</span>
         </button>
       </nav>
-
-      <button class="navbtn" id="palette-btn" type="button" aria-label="Appearance: accent colour and light or dark mode" aria-expanded="false" aria-controls="palette">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 22 10.8C22 5.8 17.5 2 12 2Zm-5.5 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
-      </button>
     </div>
 
     <div class="topbar__right">
+      <button class="navbtn" id="palette-btn" type="button" aria-label="Appearance: accent colour" aria-expanded="false" aria-controls="palette">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A4.7 4.7 0 0 0 22 10.8C22 5.8 17.5 2 12 2Zm-5.5 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
+      </button>
       <button class="themebtn" id="theme-toggle" type="button" aria-label="Dark theme — switch to light" aria-pressed="true" title="Switch to light theme">
         <span class="themebtn__icons" aria-hidden="true">
           <svg class="themebtn__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.6v2.3M12 19.1v2.3M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.6 12h2.3M19.1 12h2.3M4.4 19.6l1.6-1.6M18 6l1.6-1.6"/></svg>
@@ -98,21 +97,9 @@
 
 <div class="palette" id="palette" role="dialog" aria-label="Appearance" hidden>
   <p class="palette__title">Appearance</p>
-  <div class="mode" role="group" aria-label="Colour mode">
-    <button type="button" data-mode="light" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
-      Light
-      <svg class="mode__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
-    </button>
-    <button type="button" data-mode="dark" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></svg>
-      Dark
-      <svg class="mode__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
-    </button>
-  </div>
   <p class="palette__label" id="accent-label">Accent</p>
   <div class="accents" id="accent-grid" role="group" aria-labelledby="accent-label"></div>
-  <p class="palette__note">Grey surfaces and black type in light mode, pure graphite in dark. Choose one accent colour; it is remembered in this browser.</p>
+  <p class="palette__note">Choose one accent colour; it is remembered in this browser.</p>
 </div>
 
 <main id="main">

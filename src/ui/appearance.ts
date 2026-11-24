@@ -4,7 +4,6 @@ import {
   getMode,
   onThemeChange,
   setAccent,
-  setMode,
   toggleMode,
 } from "../lib/theme";
 import { ACCENTS, ACCENT_ORDER, isAccentKey } from "../theme/palette";
@@ -30,14 +29,10 @@ function buildAccentGrid(): void {
   }).join("");
 }
 
-/** Keeps the header toggle, mode segments and swatches in sync with the theme. */
+/** Keeps the header toggle and swatches in sync with the theme. */
 function syncThemeUI(): void {
   const mode = getMode();
   const accent = getAccent();
-
-  for (const button of $$(".mode button")) {
-    button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
-  }
 
   const themeToggle = $("#theme-toggle");
   if (themeToggle) {
@@ -78,7 +73,7 @@ function openPalette(): void {
   panel.hidden = false;
   paletteBtn.setAttribute("aria-expanded", "true");
   placePalette();
-  const active = $('.mode button[aria-pressed="true"]', panel) || $(".mode button", panel);
+  const active = $('.accent[aria-pressed="true"]', panel) || $(".accent", panel);
   if (active) active.focus({ preventScroll: true });
 }
 
@@ -113,12 +108,7 @@ export function initAppearance(): void {
     const accentButton = target.closest<HTMLElement>(".accent");
     if (accentButton && isAccentKey(accentButton.dataset.accent)) {
       setAccent(accentButton.dataset.accent);
-      return;
     }
-
-    const modeButton = target.closest<HTMLElement>(".mode button");
-    const mode = modeButton?.dataset.mode;
-    if (mode === "light" || mode === "dark") setMode(mode);
   });
 
   panel?.addEventListener("keydown", (event) => {
