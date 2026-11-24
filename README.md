@@ -48,8 +48,8 @@ f1/
   Violet, Graphite) jde vybrat jeden; mění se jen primární barva, nikdy
   neutrální plochy. V hlavičce je kruhové tlačítko se sluncem/měsícem, které
   přepíná světlý a tmavý režim; ikona se při přepnutí plynule otočí a prohodí.
-  Při prvním otevření se režim řídí systémovým nastavením
-  (bez preference je výchozí tmavý), volba se ukládá do `localStorage` a do
+  Při prvním otevření je výchozí tmavý (černo-bílý) režim; světlý se zapne,
+  až když ho návštěvník přepne. Volba se ukládá do `localStorage` a do
   stránky se aplikuje inline skriptem v `<head>` ještě před vykreslením těla,
   takže neproblikne špatné téma. Přepínač Light / Dark i mřížka akcentů
   v panelu vzhledu zůstávají; tlačítko vzhledu sedí vedle navigace (na mobilu

@@ -1426,9 +1426,7 @@ html.theming *::after {
     if (savedMode === "dark" || savedMode === "light") mode = savedMode;
   } catch (error) { /* storage may be unavailable */ }
   if (!Object.prototype.hasOwnProperty.call(ACCENTS, accent)) accent = DEFAULT_ACCENT;
-  if (!mode) {
-    mode = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-  }
+  if (!mode) mode = "dark";
   window.F1_applyTheme(accent, mode);
 })();
 </script>
