@@ -36,6 +36,13 @@ export function initMotionBlur(): void {
   const gaussianNode = document.getElementById("scroll-motion-blur-gaussian");
   if (!(gaussianNode instanceof SVGFEGaussianBlurElement)) return;
   if (!document.getElementById("content")) return;
+
+  /* Mobile browsers — WebKit on iOS above all — stop painting parts of a
+     filtered layer during a fast flick, so cards stay blank until the scroll
+     settles. The blur is a desktop nicety, so touch devices skip it entirely
+     (and the settings switch is hidden there). */
+  if (window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+
   const gaussian: SVGFEGaussianBlurElement = gaussianNode;
 
   const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);

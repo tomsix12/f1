@@ -18,6 +18,18 @@
   min-height: 66px;
 }
 
+/* Mobile WebKit can leave tiles unpainted while a sticky header samples the
+   backdrop with a blur, which shows up as big blank areas during a fast flick.
+   Touch devices get a near-opaque header instead: same look, no backdrop
+   filter. */
+@media (hover: none) and (pointer: coarse) {
+  .topbar {
+    background: color-mix(in srgb, var(--bg) 97%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 @media (max-width: 1240px) {
   .topbar__inner { gap: 14px; }
 }

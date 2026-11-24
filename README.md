@@ -115,8 +115,12 @@ f1/
   a jen u karet blízko viewportu: velký filtr na scrollovaném wrapperu nutí
   prohlížeč překreslovat obří vrstvu a při rychlém scrollu se nový obsah
   objevuje se zpožděním. Menší vrstvy se rasterizují jen když jsou vidět,
-  takže je efekt stejně plynulý a karty se načítají okamžitě. Vše respektuje `prefers-reduced-motion`; motion blur
-  jde vypnout.
+  takže je efekt stejně plynulý a karty se načítají okamžitě.
+  Na dotykových zařízeních je blur vypnutý: mobilní WebKit nechává při
+  rychlém flingu části filtrovaných vrstev nevykreslené (prázdná místa),
+  takže tam zůstává jen čistý scroll. Ze stejného důvodu má hlavička na
+  mobilu neprůhledné pozadí místo `backdrop-filter`.
+  Vše respektuje `prefers-reduced-motion`; motion blur jde vypnout.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku
   nebo v režimu širokého viewportu) ho nahrazuje kruhové tlačítko s ikonou
