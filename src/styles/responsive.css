@@ -30,7 +30,7 @@
   .cd { padding: 8px 4px 7px; border-radius: 11px; }
   .cd__num { font-size: clamp(21px, 7.2vw, 26px); }
   .cd__label { font-size: 7.5px; }
-  .hero__info { flex-direction: column; align-items: center; text-align: center; }
+  .hero__info { display: none; }
   .hero__stats { grid-template-columns: 1fr; }
 
   .section { margin-top: 28px; }
