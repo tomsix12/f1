@@ -116,10 +116,11 @@ f1/
   prohlížeč překreslovat obří vrstvu a při rychlém scrollu se nový obsah
   objevuje se zpožděním. Menší vrstvy se rasterizují jen když jsou vidět,
   takže je efekt stejně plynulý a karty se načítají okamžitě.
-  Na dotykových zařízeních je blur vypnutý: mobilní WebKit nechává při
-  rychlém flingu části filtrovaných vrstev nevykreslené (prázdná místa),
-  takže tam zůstává jen čistý scroll. Ze stejného důvodu má hlavička na
-  mobilu neprůhledné pozadí místo `backdrop-filter`.
+  Na dotykových zařízeních je blur ve výchozím stavu vypnutý: mobilní WebKit
+  nechává při rychlém flingu části filtrovaných vrstev nevykreslené (prázdná
+  místa). Volba v nastavení tam zůstává, takže si ho jde zapnout i na mobilu
+  (s nižším stropem intenzity). Hlavička má na mobilu neprůhledné pozadí
+  místo `backdrop-filter`.
   Vše respektuje `prefers-reduced-motion`; motion blur jde vypnout.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
   štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku

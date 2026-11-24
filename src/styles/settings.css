@@ -314,9 +314,3 @@
   background: var(--primary);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
 }
-
-/* Motion blur is switched off on touch devices (see ui/motion-blur.ts), so
-   the switch and slider are hidden there instead of pretending to work. */
-@media (hover: none) and (pointer: coarse) {
-  .settings__group--motion { display: none; }
-}

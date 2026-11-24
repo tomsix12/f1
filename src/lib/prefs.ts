@@ -15,8 +15,18 @@ function notify(detail: string): void {
   document.dispatchEvent(new CustomEvent(PREFS_EVENT, { detail }));
 }
 
+/** Touch devices default to a clean scroll: filtered layers can be left
+    partially unpainted during a fast flick. The switch still works there, so
+    this only decides what happens before the user chooses. */
+function prefersBlurByDefault(): boolean {
+  return !window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+}
+
 export function getMotionBlur(): boolean {
-  return readStored(MOTION_KEY) !== "off";
+  const stored = readStored(MOTION_KEY);
+  if (stored === "on") return true;
+  if (stored === "off") return false;
+  return prefersBlurByDefault();
 }
 
 export function setMotionBlur(on: boolean): void {

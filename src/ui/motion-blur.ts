@@ -37,18 +37,17 @@ export function initMotionBlur(): void {
   if (!(gaussianNode instanceof SVGFEGaussianBlurElement)) return;
   if (!document.getElementById("content")) return;
 
-  /* Mobile browsers — WebKit on iOS above all — stop painting parts of a
-     filtered layer during a fast flick, so cards stay blank until the scroll
-     settles. The blur is a desktop nicety, so touch devices skip it entirely
-     (and the settings switch is hidden there). */
-  if (window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
-
   const gaussian: SVGFEGaussianBlurElement = gaussianNode;
+
+  /* Touch devices can fall behind on filtered layers during a fast flick, so
+     the blur there is lighter and starts switched off (see getMotionBlur).
+     Choosing it in the settings enables it like on desktop. */
+  const coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
   const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
   const isFirefox = /firefox|fxios/i.test(navigator.userAgent);
   const MAX_VELOCITY = 3;
-  const MAX_BLUR = isSafari || isFirefox ? 3 : 6;
+  const MAX_BLUR = isSafari || isFirefox ? 3 : coarse ? 4 : 6;
   const VELOCITY_TO_BLUR = 2.8;
   const root = document.documentElement;
 
