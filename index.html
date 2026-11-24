@@ -1201,14 +1201,11 @@ html.theming *::after {
   .hero__body { flex-direction: column; align-items: stretch; }
   .hero__info { text-align: left; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
   .hero__info-label { flex: 0 0 auto; }
-  .hero__info span:last-child { flex: 1 0 100%; }
 }
 
-@media (max-width: 620px) {
-  .wrap { width: min(var(--wrap), 100% - 24px); }
-  .brand__mark { width: 34px; height: 34px; border-radius: 11px; font-size: 13.5px; }
-  .brand__text span { display: none; }
-
+/* Icon-only refresh button: phones in portrait and landscape, small tablets
+   and any touch device — even one that reports a wide desktop-style viewport. */
+@media (max-width: 860px), (hover: none) and (pointer: coarse) {
   .status {
     width: 40px;
     height: 40px;
@@ -1223,6 +1220,12 @@ html.theming *::after {
   .status.is-spinning > svg { animation: spin 0.85s var(--ease-standard) 1; }
   .status[data-state="syncing"] > svg { animation: spin 0.9s linear infinite; }
   .status[data-state="offline"] > svg { color: var(--primary); }
+}
+
+@media (max-width: 620px) {
+  .wrap { width: min(var(--wrap), 100% - 24px); }
+  .brand__mark { width: 34px; height: 34px; border-radius: 11px; font-size: 13.5px; }
+  .brand__text span { display: none; }
 
   .hero { border-radius: 24px; text-align: center; }
   .hero__top { justify-content: center; }

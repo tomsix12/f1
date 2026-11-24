@@ -56,9 +56,10 @@ f1/
   s postupným odkrýváním řádků a měkké přechody barev při změně motivu.
   Vše respektuje `prefers-reduced-motion`.
 - **Mobil** – vycentrované nadpisy a banner. Na PC zůstává celý stavový
-  štítek s časem poslední aktualizace, na mobilu ho nahrazuje jen kruhové
-  tlačítko s ikonou refresh. Ta se netočí sama od sebe – roztočí se až po
-  kliknutí (a během načítání dat); plný text zůstává v popisku pro čtečky.
+  štítek s časem poslední aktualizace, na telefonech a tabletech (i na šířku
+  nebo v režimu širokého viewportu) ho nahrazuje kruhové tlačítko s ikonou
+  refresh. Ta se netočí sama od sebe – roztočí se až po kliknutí (a během
+  načítání dat); plný text zůstává v popisku pro čtečky.
 - Bez frameworků, bez buildu, bez externích fontů a analytiky.
 
 ## Úpravy
