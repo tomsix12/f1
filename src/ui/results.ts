@@ -202,7 +202,7 @@ function renderTeams(data: SeasonData): string {
     const pct = Math.max(1.5, Math.round((team.points / leader) * 1000) / 10);
     const medal = team.pos <= 3 ? " is-p" + team.pos : "";
     const name = teamNameFor(team.id, team.name);
-    const lineup = data.drivers
+    const lineup = (data.drivers || [])
       .filter((driver) => driver.teamId === team.id)
       .map((driver) => driver.code)
       .filter(Boolean)
