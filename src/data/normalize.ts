@@ -15,7 +15,9 @@ import type {
 } from "./jolpica";
 
 function winnerFrom(race: JolpicaRace): RaceWinner | null {
-  const result: JolpicaResult | undefined = race.Results?.[0];
+  const result: JolpicaResult | undefined = (race.Results ?? [])
+    .slice()
+    .sort((a, b) => Number(a.position) - Number(b.position))[0];
   if (!result) return null;
   return {
     driver: (result.Driver.givenName + " " + result.Driver.familyName).trim(),
@@ -97,6 +99,8 @@ export function normalize(
       team: team?.name || "",
       points: Number(entry.points),
       wins: Number(entry.wins),
+      number: entry.Driver.permanentNumber || "",
+      nationality: entry.Driver.nationality || "",
     };
   });
 

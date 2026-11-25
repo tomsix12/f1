@@ -10,10 +10,13 @@
     "build:dist": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "sync:data": "node scripts/fetch-data.mjs",
+    "sync:details": "node scripts/fetch-details.mjs",
     "sync:snapshot": "node scripts/sync-snapshot.mjs",
     "publish:root": "node scripts/publish-root.mjs"
   },
   "devDependencies": {
+    "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.8"
   }

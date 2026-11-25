@@ -1,16 +1,26 @@
+import { VIEW_EVENT } from "../app/events";
 import { state } from "../app/state";
 import { $, $$ } from "../lib/dom";
 import { prefersReducedMotion } from "../lib/motion";
 import type { ViewName } from "../types";
 
-export const VIEWS: ViewName[] = ["schedule", "drivers", "teams"];
+export const VIEWS: ViewName[] = ["schedule", "results"];
 
 function asView(value: string | undefined): ViewName {
   return VIEWS.includes(value as ViewName) ? (value as ViewName) : "schedule";
 }
 
+function hashParts(): string[] {
+  return (location.hash || "").replace(/^#/, "").split("/").filter(Boolean);
+}
+
 export function viewFromHash(): ViewName {
-  return asView((location.hash || "").replace("#", ""));
+  return asView(hashParts()[0]);
+}
+
+/** Second hash segment, e.g. "drivers" in #results/drivers. */
+export function subFromHash(): string {
+  return hashParts()[1] || "";
 }
 
 export function showView(
@@ -41,6 +51,8 @@ export function showView(
   if (options.scroll !== false) {
     window.scrollTo({ top: 0, behavior: prefersReducedMotion.matches ? "auto" : "smooth" });
   }
+
+  document.dispatchEvent(new CustomEvent(VIEW_EVENT, { detail: view }));
 }
 
 export function positionTabs(): void {

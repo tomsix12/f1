@@ -4,8 +4,6 @@
 .view { padding-top: clamp(22px, 3.6vw, 34px); }
 
 .section { margin-top: 44px; }
-#view-teams .section__head,
-#view-drivers .section__head { margin-bottom: 18px; }
 
 .section__head {
   display: flex;

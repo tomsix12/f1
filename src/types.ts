@@ -14,7 +14,44 @@ export type AccentKey =
   | "violet"
   | "graphite";
 
-export type ViewName = "schedule" | "teams" | "drivers";
+export type ViewName = "schedule" | "results";
+
+/** One classified car from a race or sprint result sheet. */
+export interface RaceResult {
+  pos: number;
+  code: string;
+  driver: string;
+  teamId: string;
+  team: string;
+  grid: number;
+  laps: number;
+  status: string;
+  /** Total time for the winner, "+5.515s" for the rest, or the status text. */
+  time: string;
+  points: number;
+  fastestLap: boolean;
+  /** Quickest lap of that car, when the API publishes one. */
+  fastestLapTime?: string;
+  /** Lap number of that quickest lap. */
+  fastestLapLap?: number;
+}
+
+/** Per-driver totals derived from the season's result sheets. */
+export interface DriverStats {
+  starts: number;
+  wins: number;
+  podiums: number;
+  poles: number;
+  top10: number;
+  fastestLaps: number;
+  dnfs: number;
+  points: number;
+  bestFinish: number | null;
+  sprintStarts: number;
+  sprintWins: number;
+  sprintPodiums: number;
+  sprintPoints: number;
+}
 
 export type SessionType =
   | "practice"
@@ -65,6 +102,8 @@ export interface Race {
   sprint: boolean;
   sessions: RaceSession[];
   winner: RaceWinner | null;
+  /** Race classification, filled in when the result sheets are loaded. */
+  results?: RaceResult[];
 }
 
 export interface DriverStanding {
@@ -75,6 +114,10 @@ export interface DriverStanding {
   team: string;
   points: number;
   wins: number;
+  /** Permanent car number, e.g. "12". */
+  number?: string;
+  /** Nationality as published by the API, e.g. "Italian". */
+  nationality?: string;
 }
 
 export interface TeamStanding {

@@ -1,5 +1,9 @@
 import { sessionsOf } from "../lib/format";
+import type { ResultsBundle } from "../data/details";
 import type { DataSource, Race, SeasonData, ViewName } from "../types";
+
+export type ResultsSub = "races" | "drivers" | "teams";
+export type SheetKey = "race" | "sprint" | "qualifying" | "grid" | "fastest";
 
 export interface AppState {
   data: SeasonData | null;
@@ -13,6 +17,14 @@ export interface AppState {
   view: ViewName;
   open: Set<number>;
   nextSession: number | null | undefined;
+  /** Detailed classifications, fetched after the standings. */
+  details: ResultsBundle | null;
+  detailsLoading: boolean;
+  detailsError: string;
+  resultsSub: ResultsSub;
+  resultsRound: number | null;
+  resultsSheet: SheetKey;
+  driverCode: string | null;
 }
 
 export const state: AppState = {
@@ -27,10 +39,24 @@ export const state: AppState = {
   view: "schedule",
   open: new Set<number>(),
   nextSession: undefined,
+  details: null,
+  detailsLoading: false,
+  detailsError: "",
+  resultsSub: "races",
+  resultsRound: null,
+  resultsSheet: "race",
+  driverCode: null,
 };
 
 export function nextRace(): Race | null {
-  const races = state.data ? state.data.races : [];
+  if (!state.data) return null;
+  const races = state.data.races;
+  // The standings carry the last completed round, which is more reliable than
+  // looking for a missing winner: the calendar often has no result sheets at
+  // all for rounds that have not run yet.
+  const done = state.data.round || 0;
+  const upcoming = done ? races.find((race) => race.round > done) : null;
+  if (upcoming) return upcoming;
   return races.find((race) => !race.winner) || null;
 }
 

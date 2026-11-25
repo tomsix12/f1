@@ -32,6 +32,7 @@ f1/
 ├─ index.html              – hotový build (generovaný, needitovat)
 ├─ assets/                 – JS a CSS buildu (generované)
 ├─ data.json               – kopie public/data.json (generovaná)
+├─ details.json            – kopie public/details.json (generovaná)
 ├─ img/, robots.txt, sitemap.xml – kopie z public/ (generované)
 ├─ src/
 │  ├─ index.html           – šablona stránky (zdroj pro build)
@@ -41,15 +42,21 @@ f1/
 │  ├─ styles/              – rozdělené CSS (tokeny, hlavička, kalendář…)
 │  ├─ lib/                 – DOM, formátování, localStorage, téma, pohyb
 │  ├─ theme/palette.ts     – ACCENTS, NEUTRALS, výchozí akcent
-│  ├─ data/                – Jolpica, normalizace, týmy, vlajky, snapshot
+│  ├─ data/                – Jolpica, výsledky, statistiky, fotky, snapshot
 │  ├─ app/                 – stav, načítání dat, vykreslení, tik
-│  └─ ui/                  – hero, kalendář, bodování, nastavení, navigace…
+│  └─ ui/                  – hero, kalendář, výsledky, nastavení, navigace…
 ├─ public/
-│  ├─ data.json            – záložní data pro první načtení bez API
+│  ├─ data.json            – záložní kalendář a bodování pro první načtení
+│  ├─ details.json         – záložní výsledky, sprity a kvalifikace
 │  ├─ img/og.png           – náhled pro sociální sítě (1200×630)
+│  ├─ img/drivers/*.jpg    – portréty jezdců (480 px, mozjpeg)
 │  ├─ robots.txt
 │  └─ sitemap.xml
 ├─ scripts/
+│  ├─ fetch-data.mjs       – stáhne kalendář a bodování do public/data.json
+│  ├─ fetch-details.mjs    – stáhne výsledky do public/details.json
+│  ├─ fetch-driver-photos.mjs – stáhne portréty do public/img/drivers
+│  ├─ optimize-driver-photos.mjs – zmenší portréty na 480 px
 │  ├─ publish-root.mjs     – kopíruje dist/ do kořene repa
 │  └─ sync-snapshot.mjs    – drží snapshot v src/data v souladu s public/
 ├─ vite.config.ts
@@ -57,8 +64,9 @@ f1/
 ```
 
 `public/` se kopíruje do buildu, takže cesty v prohlížeči zůstávají
-`/data.json`, `/img/og.png` atd. Kořenové kopie (`index.html`, `assets/`,
-`data.json`, `img/`) vznikají při `npm run build` a neupravují se ručně.
+`/data.json`, `/details.json`, `/img/og.png` atd. Kořenové kopie (`index.html`,
+`assets/`, `data.json`, `details.json`, `img/`) vznikají při `npm run build`
+a neupravují se ručně.
 
 ## Co stránka umí
 
@@ -83,8 +91,25 @@ f1/
   u nadcházejících „Not raced yet“. Položky se objevují postupně (50 ms).
 - **Vlajky zemí** – kreslené inline SVG v `src/data/flags.ts`. Neznámá země
   dostane neutrální glóbus.
-- **Bodování** – konstruktéři a jezdci seřazení podle bodů, s medailovými
-  kruhy pro první tři, pruhem v barvě týmu a podílovým neutrálním pruhem.
+- **Výsledky** – druhá záložka v hlavičce. Uvnitř je segmentovaný přepínač
+  **Races · Drivers · Teams**.
+  - **Races** – vyhledávací seznam Grand Prix (podle názvu, země i města)
+    a k němu plakát víkendu s pódiem. Klasifikaci jde přepnout mezi
+    **Race · Grid · Fastest · Quali** (sprintový sheet se přidá, když měl
+    víkend sprint). Tabulka ukazuje pozici, portrét, tým, čas nebo stav
+    odstoupení a body; nejrychlejší kolo má odznak FL.
+  - **Drivers** – mřížka jezdců s portrétem, číslem vozu, týmem, body
+    a podílovým pruhem v barvě týmu. Kliknutí otevře celou kartu jezdce:
+    velký portrét, číslo, vlajka a národnost, tým, mřížka statistik
+    (umístění a body v sezóně, závody, vítězství, pódia, pole positions,
+    top 10, nejrychlejší kola, DNF, sprinty) a přehled výsledků závod
+    od závodu. Hvězdička nastaví oblíbeného jezdce.
+  - **Teams** – šampionát konstruktérů se stejným podílovým pruhem jako
+    u jezdců, s počtem vítězství a jezdeckou sestavou.
+  - Statistiky se počítají z plných klasifikací sezóny (`/current/results.json`,
+    `/current/sprint.json`, `/current/qualifying.json`). Ty se stahují jednou
+    za dokončené kolo a drží se v `localStorage` (`f1.results.cache.v1`).
+    Když API selže, použije se `details.json`.
 - **Nastavení v M3 Expressive stylu** – ozubené kolečko v hlavičce
   otevírá animovaný panel (pružinový nájezd, na mobilu pod
   celou hlavičkou). Nabízí segmentované volby tématu (System / Light / Dark),
@@ -108,8 +133,8 @@ f1/
   Volba se ukládá do `localStorage` a do stránky se aplikuje inline skriptem
   v `<head>` ještě před vykreslením těla, takže neproblikne špatné téma
   ani písmo.
-- **M3 Expressive navigace** – segmentovaný seznam s ikonami a posuvným
-  indikátorem aktivní položky (bez zaškrtávací ikony).
+- **M3 Expressive navigace** – dvě záložky (Schedule, Results) s posuvným
+  indikátorem aktivní položky; uvnitř výsledků druhý segmentovaný přepínač.
 - **Pohyb** – jemné, déle plynoucí najíždění karet, rozbalování rozvrhu
   s postupným odkrýváním řádků a plynulý přechod všech barev (~650 ms) při
   změně motivu: barvy jsou registrované CSS tokeny, takže plochy, text i
@@ -154,16 +179,19 @@ f1/
   jsou jako CSS proměnné v `src/styles/tokens.css`, odkud je bere celá
   stránka. Neutrální plochy jsou pevné, každý akcent má variantu `light`
   a `dark`.
-- **Záložní snapshot** – `public/data.json` se načítá za běhu, když API
-  selže. `src/data/snapshot.json` je stejný payload zabundovaný do JS pro
-  případ, že selže i tento fetch. Oba soubory drží v synchronizaci
-  `npm run sync:snapshot`.
+- **Záložní snapshot** – `public/data.json` (kalendář, vítězové, bodování) a
+  `public/details.json` (výsledky, sprity, kvalifikace) se načítají za běhu,
+  když API selže. `src/data/snapshot.json` je stejný payload jako `data.json`
+  zabundovaný do JS pro případ, že selže i tento fetch. Oba soubory drží
+  v synchronizaci `npm run sync:snapshot`; oba zdrojové soubory obnoví
+  `npm run sync:data` a `npm run sync:details`.
 
 ### Když API neodpovídá
 
-Pořadí zdrojů je: paměť → `localStorage` → živé API → `data.json` →
-zabundovaný snapshot. Při výpadku API zůstane na obrazovce poslední známý stav
-a čtečky dostanou hlášení „Offline. Showing the last known data.“.
+Pořadí zdrojů je: paměť → `localStorage` → živé API → `data.json` /
+`details.json` → zabundovaný snapshot. Při výpadku API zůstane na obrazovce
+poslední známý stav a čtečky dostanou hlášení „Offline. Showing the last known
+data.“.
 
 ## Nasazení
 
@@ -192,6 +220,6 @@ výsledku, protože `npm run build` plní i kořen repozitáře.
 - Neoficiální fanouškový projekt, není spojený s Formula 1, FIA ani týmy.
 - Časy jsou převáděné do `Europe/Prague`; oficiální harmonogram je vždy
   dobré zkontrolovat.
-- `data.json` i zabundovaný snapshot jsou z **23. 11. 2026** (po 21. závodě
-  sezóny 2026). Slouží jen jako záloha pro první načtení; živá data mají
-  přednost. Po aktualizaci snapshotu spusť `npm run sync:snapshot`.
+- `data.json`, `details.json` i zabundovaný snapshot jsou z **25. 11. 2026**
+  (po 21. závodě sezóny 2026). Slouží jen jako záloha pro první načtení; živá
+  data mají přednost. Po aktualizaci snapshotu spusť `npm run sync:snapshot`.

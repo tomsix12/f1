@@ -9,17 +9,28 @@ export interface JolpicaSessionSlot {
 
 export interface JolpicaResult {
   position?: string;
+  positionText?: string;
+  points?: string;
+  grid?: string;
+  laps?: string;
   Driver: {
     givenName: string;
     familyName: string;
     code?: string;
+    permanentNumber?: string;
+    nationality?: string;
   };
   Constructor: {
     constructorId: string;
     name: string;
   };
-  Time?: { time?: string };
+  Time?: { time?: string; millis?: string };
   status?: string;
+  FastestLap?: {
+    rank?: string;
+    lap?: string;
+    Time?: { time?: string };
+  };
 }
 
 export interface JolpicaRace {
@@ -41,10 +52,31 @@ export interface JolpicaRace {
   Sprint?: JolpicaSessionSlot;
   Qualifying?: JolpicaSessionSlot;
   Results?: JolpicaResult[];
+  SprintResults?: JolpicaResult[];
+  QualifyingResults?: JolpicaQualifyingResult[];
+}
+
+export interface JolpicaQualifyingResult {
+  position?: string;
+  Driver: {
+    givenName: string;
+    familyName: string;
+    code?: string;
+  };
+  Constructor: {
+    constructorId: string;
+    name: string;
+  };
+  Q1?: string;
+  Q2?: string;
+  Q3?: string;
 }
 
 export interface JolpicaRaceTableResponse {
   MRData?: {
+    total?: string;
+    limit?: string;
+    offset?: string;
     RaceTable?: {
       season?: string;
       round?: string;
@@ -61,6 +93,8 @@ export interface JolpicaDriverStanding {
     givenName: string;
     familyName: string;
     code?: string;
+    permanentNumber?: string;
+    nationality?: string;
   };
   Constructors?: Array<{
     constructorId: string;

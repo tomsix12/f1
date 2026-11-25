@@ -1,21 +1,20 @@
 import { $ } from "../lib/dom";
+import { DATA_EVENT } from "./events";
 import { renderSchedule } from "../ui/calendar";
 import { renderFooter } from "../ui/footer";
 import { renderHero } from "../ui/hero";
-import { renderDrivers, renderTeams } from "../ui/standings";
+import { renderResults } from "../ui/results";
 import { state } from "./state";
 import { tick } from "./tick";
 
-/** Fired after a full render so panels can reload data-derived options. */
-export const DATA_EVENT = "f1:data";
+export { DATA_EVENT, RESULTS_EVENT } from "./events";
 
 export function renderAll(): void {
   if (!state.data) return;
   renderSeason();
   renderHero();
   renderSchedule();
-  renderTeams();
-  renderDrivers();
+  renderResults();
   renderFooter();
   tick();
   document.dispatchEvent(new Event(DATA_EVENT));

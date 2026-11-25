@@ -32,7 +32,6 @@ import {
 } from "../lib/theme";
 import { ACCENTS, ACCENT_ORDER, isAccentKey } from "../theme/palette";
 import type { ThemeMode } from "../types";
-import { renderDrivers, renderTeams } from "./standings";
 
 let panel: HTMLElement | null = null;
 let settingsBtn: HTMLElement | null = null;
@@ -362,11 +361,7 @@ export function initSettings(): void {
   driverEl?.addEventListener("change", () => setFavDriver(driverEl.value));
   teamEl?.addEventListener("change", () => setFavTeam(teamEl.value));
 
-  onFavouritesChange(() => {
-    fillFavourites();
-    renderTeams();
-    renderDrivers();
-  });
+  onFavouritesChange(fillFavourites);
 
   document.addEventListener(DATA_EVENT, fillFavourites);
 

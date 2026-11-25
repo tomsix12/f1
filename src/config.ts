@@ -16,6 +16,7 @@ export const REFRESH_MS = 10 * 60 * 1000;
 export const FETCH_TIMEOUT = 20_000;
 
 export const CACHE_KEY = "f1.dashboard.cache.v2";
+export const DETAILS_KEY = "f1.results.cache.v1";
 export const MODE_KEY = "f1.mode";
 export const ACCENT_KEY = "f1.accent";
 
@@ -24,6 +25,9 @@ export const TZ = "Europe/Prague";
 
 /** Offline snapshot served next to the built page. */
 export const FALLBACK_FILE = "data.json";
+
+/** Offline copy of the race, sprint and qualifying sheets. */
+export const FALLBACK_DETAILS = "details.json";
 
 /**
  * Jolpica only publishes session start times, so durations are the usual

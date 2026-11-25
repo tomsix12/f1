@@ -16,7 +16,7 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const dist = path.join(root, "dist");
 
 const dirs = ["assets", "img"];
-const files = ["index.html", "data.json", "robots.txt", "sitemap.xml"];
+const files = ["index.html", "data.json", "details.json", "robots.txt", "sitemap.xml"];
 
 for (const dir of dirs) {
   rmSync(path.join(root, dir), { recursive: true, force: true });

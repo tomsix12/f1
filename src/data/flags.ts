@@ -25,6 +25,17 @@ export const FLAGS: Record<string, string> = {
   sg: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><rect width="30" height="10" fill="#ED2939"/><circle cx="8" cy="5" r="2.8" fill="#fff"/><circle cx="9.3" cy="5" r="2.4" fill="#ED2939"/><g fill="#fff"><circle cx="12.8" cy="2.6" r=".6"/><circle cx="14.4" cy="4.1" r=".6"/><circle cx="13.8" cy="6.1" r=".6"/><circle cx="11.8" cy="6.1" r=".6"/><circle cx="11.2" cy="4.1" r=".6"/></g></svg>',
   us: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><g fill="#B22234"><rect width="30" height="1.54"/><rect y="3.08" width="30" height="1.54"/><rect y="6.15" width="30" height="1.54"/><rect y="9.23" width="30" height="1.54"/><rect y="12.31" width="30" height="1.54"/><rect y="15.38" width="30" height="1.54"/><rect y="18.46" width="30" height="1.54"/></g><rect width="13.5" height="10.77" fill="#3C3B6E"/><g fill="#fff"><circle cx="2.2" cy="2" r=".55"/><circle cx="5.2" cy="2" r=".55"/><circle cx="8.2" cy="2" r=".55"/><circle cx="11.2" cy="2" r=".55"/><circle cx="3.7" cy="4.4" r=".55"/><circle cx="6.7" cy="4.4" r=".55"/><circle cx="9.7" cy="4.4" r=".55"/><circle cx="2.2" cy="6.8" r=".55"/><circle cx="5.2" cy="6.8" r=".55"/><circle cx="8.2" cy="6.8" r=".55"/><circle cx="11.2" cy="6.8" r=".55"/><circle cx="3.7" cy="9.1" r=".55"/><circle cx="6.7" cy="9.1" r=".55"/><circle cx="9.7" cy="9.1" r=".55"/></g></svg>',
   ae: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><rect width="30" height="6.67" fill="#00732F"/><rect y="13.33" width="30" height="6.67" fill="#000"/><rect width="7.5" height="20" fill="#FF0000"/></svg>',
+  ar: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#74ACDF"/><rect y="6.67" width="30" height="6.66" fill="#fff"/><circle cx="15" cy="10" r="2.1" fill="#F6B40E"/></svg>',
+  de: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#000"/><rect y="6.67" width="30" height="6.66" fill="#DD0000"/><rect y="13.33" width="30" height="6.67" fill="#FFCE00"/></svg>',
+  dk: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#C8102E"/><rect x="9" width="4" height="20" fill="#fff"/><rect y="8" width="30" height="4" fill="#fff"/></svg>',
+  fi: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#fff"/><rect x="8.5" width="4.5" height="20" fill="#003580"/><rect y="7.75" width="30" height="4.5" fill="#003580"/></svg>',
+  fr: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="20" fill="#0055A4"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#EF4135"/></svg>',
+  nz: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#00247D"/><svg x="0" y="0" width="15" height="10"><rect width="15" height="10" fill="#00247D"/><g stroke="#fff" stroke-width="2"><path d="M0 0l15 10M15 0L0 10"/></g><g stroke="#C8102E" stroke-width="1"><path d="M0 0l15 10M15 0L0 10"/></g><path d="M6 0h3v10H6zM0 3.5h15v3H0z" fill="#fff"/><path d="M6.75 0h1.5v10h-1.5zM0 4.25h15v1.5H0z" fill="#C8102E"/></svg><g fill="#C8102E"><circle cx="22" cy="5" r="1"/><circle cx="26" cy="9" r="1"/><circle cx="20.5" cy="12" r="1"/><circle cx="24.5" cy="15.5" r="1"/></g></svg>',
+  pl: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#DC143C"/></svg>',
+  pt: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#DA291C"/><rect width="12" height="20" fill="#046A38"/><circle cx="12" cy="10" r="3" fill="#FFE900" stroke="#DA291C" stroke-width=".8"/></svg>',
+  se: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#006AA7"/><rect x="8.5" width="4.5" height="20" fill="#FECC00"/><rect y="7.75" width="30" height="4.5" fill="#FECC00"/></svg>',
+  th: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#A51931"/><rect y="3.33" width="30" height="13.34" fill="#F4F5F8"/><rect y="6.67" width="30" height="6.66" fill="#2D2A4A"/></svg>',
+  ch: '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg"><rect width="30" height="20" fill="#D52B1E"/><rect x="13" y="5" width="4" height="10" fill="#fff"/><rect x="10" y="8" width="10" height="4" fill="#fff"/></svg>',
 };
 
 export const COUNTRY_CODES: Record<string, string> = {
@@ -61,9 +72,48 @@ const UNKNOWN_FLAG =
   '<path d="M10.4 10h9.2M15 5.4c2 3 2 6.2 0 9.2M15 5.4c-2 3-2 6.2 0 9.2" fill="none" stroke="#fff" stroke-width="1"/>' +
   "</svg></span>";
 
-export function flagFor(country: string): string {
-  const code = COUNTRY_CODES[country];
+/** Driver nationalities as published by Jolpica. */
+export const NATIONALITY_CODES: Record<string, string> = {
+  Argentine: "ar",
+  Australian: "au",
+  Austrian: "at",
+  Belgian: "be",
+  Brazilian: "br",
+  British: "gb",
+  Canadian: "ca",
+  Chinese: "cn",
+  Danish: "dk",
+  Dutch: "nl",
+  Finnish: "fi",
+  French: "fr",
+  German: "de",
+  Hungarian: "hu",
+  Italian: "it",
+  Japanese: "jp",
+  Malaysian: "my",
+  Mexican: "mx",
+  Monegasque: "mc",
+  "New Zealander": "nz",
+  Polish: "pl",
+  Portuguese: "pt",
+  Spanish: "es",
+  Swedish: "se",
+  Swiss: "ch",
+  Thai: "th",
+  "United States": "us",
+  American: "us",
+};
+
+function flagSpan(code: string | undefined): string {
   const svg = code ? FLAGS[code] : "";
   if (!svg) return UNKNOWN_FLAG;
   return '<span class="flag" aria-hidden="true">' + svg + "</span>";
+}
+
+export function flagFor(country: string): string {
+  return flagSpan(COUNTRY_CODES[country]);
+}
+
+export function flagForNationality(nationality: string): string {
+  return flagSpan(NATIONALITY_CODES[nationality]);
 }

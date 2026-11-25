@@ -1,4 +1,6 @@
-import { FETCH_TIMEOUT, FALLBACK_FILE } from "../config";
+import { FETCH_TIMEOUT, FALLBACK_DETAILS, FALLBACK_FILE } from "../config";
+import { fetchResultsBundle } from "../data/details";
+import type { ResultsBundle } from "../data/details";
 import type {
   JolpicaRaceTableResponse,
   JolpicaStandingsResponse,
@@ -6,13 +8,17 @@ import type {
 import { getJson } from "../data/jolpica";
 import { normalize } from "../data/normalize";
 import snapshot from "../data/snapshot.json";
-import { cache } from "../lib/storage";
-import { renderFooter } from "../ui/footer";
+import { cache, detailsCache } from "../lib/storage";
+import { RESULTS_EVENT } from "./events";
 import { announce, renderAll } from "./render";
 import { signature, state, useData, validData } from "./state";
+import { renderFooter } from "../ui/footer";
 
 /** Bundled last-resort snapshot, used when even data.json cannot be fetched. */
 const BOOTSTRAP: unknown = snapshot;
+
+/** Result sheets are larger than the standings, so they get a longer budget. */
+const DETAILS_TIMEOUT = 40_000;
 
 async function loadFallback(): Promise<void> {
   if (state.data) return;
@@ -34,9 +40,9 @@ async function loadFallback(): Promise<void> {
 }
 
 /**
- * Fetches all four endpoints, normalises them and re-renders only when the
- * payload actually changed. Failed requests keep the last known data visible
- * and flag it as stale.
+ * Fetches all four summary endpoints, normalises them and re-renders only when
+ * the payload actually changed. Failed requests keep the last known data
+ * visible and flag it as stale.
  */
 export async function refresh(): Promise<void> {
   if (state.loading) return;
@@ -70,6 +76,10 @@ export async function refresh(): Promise<void> {
     } else {
       renderFooter();
     }
+
+    // The full classifications are only needed by the Results view, so they
+    // are fetched once per completed round instead of on every tick.
+    void ensureDetails();
   } catch (error) {
     console.warn("[F1] Live data refresh failed:", error);
     if (!state.data) {
@@ -81,10 +91,75 @@ export async function refresh(): Promise<void> {
     }
     state.stale = true;
     announce(state.data ? "Offline. Showing the last known data." : "Data is unavailable right now.");
+    void ensureDetails();
   } finally {
     clearTimeout(timer);
     state.loading = false;
     state.lastAttempt = Date.now();
     renderFooter();
+  }
+}
+
+/** Last resort: the copy of the sheets published with the page. */
+async function loadDetailsFallback(season: string): Promise<ResultsBundle | null> {
+  try {
+    const response = await fetch(FALLBACK_DETAILS, { cache: "no-store" });
+    if (!response.ok) return null;
+    const bundle = (await response.json()) as ResultsBundle | null;
+    if (!bundle || !bundle.races || typeof bundle.races !== "object") return null;
+    return {
+      season: bundle.season || season,
+      fetchedAt: bundle.fetchedAt || "",
+      races: bundle.races,
+      sprints: bundle.sprints || {},
+      qualifying: bundle.qualifying || {},
+      poles: bundle.poles || {},
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Loads the race, sprint and qualifying sheets. The bundle is reused while it
+ * covers the same completed round, which keeps repeat visits cheap.
+ */
+export async function ensureDetails(force = false): Promise<void> {
+  if (state.detailsLoading || !state.data) return;
+
+  const data = state.data;
+  if (!force && state.details && state.details.season === data.season) {
+    const rounds = Object.keys(state.details.races).map(Number);
+    const lastRound = rounds.length ? Math.max(...rounds) : 0;
+    if (lastRound >= data.round) return;
+  }
+
+  state.detailsLoading = true;
+  document.dispatchEvent(new Event(RESULTS_EVENT));
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DETAILS_TIMEOUT);
+
+  try {
+    const bundle = await fetchResultsBundle(data.season, controller.signal);
+    if (!state.data || state.data.season !== data.season) return;
+    state.details = bundle;
+    state.detailsError = "";
+    detailsCache.write(bundle);
+  } catch (error) {
+    console.warn("[F1] Result sheets unavailable:", error);
+    if (!state.details) {
+      const fallback = await loadDetailsFallback(data.season);
+      if (fallback) {
+        state.details = fallback;
+        detailsCache.write(fallback);
+      } else {
+        state.detailsError = "Result sheets could not be loaded.";
+      }
+    }
+  } finally {
+    clearTimeout(timer);
+    state.detailsLoading = false;
+    document.dispatchEvent(new Event(RESULTS_EVENT));
   }
 }
