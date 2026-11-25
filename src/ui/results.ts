@@ -7,7 +7,7 @@ import {
 import { state, type ResultsSub, type SheetKey } from "../app/state";
 import type { QualifyingRow } from "../data/details";
 import { flagFor, flagForNationality } from "../data/flags";
-import { driverInitials, driverPhoto } from "../data/photos";
+import { driverAvatarFile, driverInitials, driverPhoto, driverHeroFile } from "../data/photos";
 import { computeDriverStats } from "../data/stats";
 import { teamColors, teamNameFor } from "../data/teams";
 import { $, $$, esc } from "../lib/dom";
@@ -82,13 +82,21 @@ function teamVars(teamId: string): string {
 }
 
 function avatar(code: string, name: string, teamId: string, className = ""): string {
-  const photo = driverPhoto(code);
-  const body = photo
-    ? '<img src="' + esc(photo.file) + '" alt="" loading="lazy" decoding="async" width="480" height="600">'
+  const file = driverAvatarFile(code);
+  const body = file
+    ? '<img src="' + esc(file) + '" alt="" loading="lazy" decoding="async">'
     : '<span class="avatar__initials" aria-hidden="true">' + esc(driverInitials(name)) + "</span>";
   return (
     '<span class="avatar ' + className + '" style="' + teamVars(teamId) + '">' + body + "</span>"
   );
+}
+
+/** Splits "Andrea Kimi Antonelli" into the script-style first name and surname. */
+function nameParts(name: string): { first: string; last: string } {
+  const parts = String(name).trim().split(/\s+/);
+  if (parts.length < 2) return { first: "", last: String(name) };
+  const last = parts.pop() as string;
+  return { first: parts.join(" "), last };
 }
 
 function searchBar(id: string, placeholder: string, label: string): string {
@@ -108,6 +116,15 @@ function emptyState(id: string, message: string): string {
   return '<p class="empty" id="' + id + '" hidden>' + esc(message) + "</p>";
 }
 
+/** Compact outbound link to the matching page on formula1.com. */
+function sourceLink(path: string, label: string): string {
+  return (
+    '<p class="results__source"><a href="https://www.formula1.com/en/' + esc(path) +
+      '" target="_blank" rel="noopener">' + esc(label) +
+      ' <span aria-hidden="true">↗</span></a></p>'
+  );
+}
+
 function raceDate(race: Race): string {
   const start = raceStart(race);
   return fmtWeekday(start) + " " + fmtDayMonth(start);
@@ -122,6 +139,14 @@ function findDriver(data: SeasonData, code: string): DriverStanding | null {
 export function renderResults(): void {
   const host = $("#results-body");
   if (!host || !state.data) return;
+
+  // A deep link may name a driver the current season no longer lists.
+  if (state.driverCode && !findDriver(state.data, state.driverCode)) {
+    const inBundle = state.details
+      ? Object.values(state.details.races).flat().some((row) => row.code === state.driverCode)
+      : false;
+    if (!inBundle) state.driverCode = null;
+  }
 
   const season = $("#results-season");
   if (season) season.textContent = state.data.season + " season";
@@ -148,7 +173,7 @@ function renderDrivers(data: SeasonData): string {
   const leader = Math.max(1, drivers.length ? drivers[0].points : 1);
   const favDriver = getFavDriver();
 
-  const cards = drivers.map((driver) => {
+  const rows = drivers.map((driver) => {
     const fav = favDriver && driver.code === favDriver;
     const pct = Math.max(1.5, Math.round((driver.points / leader) * 1000) / 10);
     const medal = driver.pos <= 3 ? " is-p" + driver.pos : "";
@@ -157,22 +182,23 @@ function renderDrivers(data: SeasonData): string {
       .join(" ");
 
     return (
-      '<li class="driver-card' + (fav ? " is-fav" : "") + '" data-search="' +
+      '<li class="driver-row' + (fav ? " is-fav" : "") + '" data-search="' +
         esc(normalise(haystack)) + '" style="' + teamVars(driver.teamId) + ";--pct:" + pct + '%">' +
-        '<button class="driver-card__btn" type="button" data-driver="' + esc(driver.code) + '">' +
-          '<span class="driver-card__photo">' +
-            avatar(driver.code, driver.name, driver.teamId) +
-            '<span class="driver-card__pos' + medal + '">' + driver.pos + "</span>" +
-            '<span class="driver-card__pts">' + fmtPoints(driver.points) + "<span>PTS</span></span>" +
-            (fav ? '<span class="driver-card__fav" aria-hidden="true">' + ICON_STAR + "</span>" : "") +
-          "</span>" +
-          '<span class="driver-card__body">' +
-            '<span class="driver-card__name">' + esc(driver.name) +
-              (driver.code ? '<span class="driver-card__code">' + esc(driver.code) + "</span>" : "") +
+        '<button class="driver-row__btn" type="button" data-driver="' + esc(driver.code) + '">' +
+          '<span class="driver-row__pos' + medal + '">' + driver.pos + "</span>" +
+          '<span class="driver-row__edge" aria-hidden="true"></span>' +
+          avatar(driver.code, driver.name, driver.teamId, "avatar--row") +
+          '<span class="driver-row__main">' +
+            '<span class="driver-row__name">' +
+              '<span class="driver-row__nameText">' + esc(driver.name) + "</span>" +
+              (driver.code ? '<span class="driver-row__code">' + esc(driver.code) + "</span>" : "") +
+              (fav ? '<span class="fav-star" aria-hidden="true">' + ICON_STAR + "</span>" : "") +
             "</span>" +
-            '<span class="driver-card__team">' + esc(teamNameFor(driver.teamId, driver.team)) + "</span>" +
-            '<span class="driver-card__bar" aria-hidden="true"></span>' +
+            '<span class="driver-row__sub">' +
+              esc(teamNameFor(driver.teamId, driver.team)) + " · " + esc(winsText(driver.wins)) +
+            "</span>" +
           "</span>" +
+          '<span class="driver-row__pts">' + fmtPoints(driver.points) + "<span>PTS</span></span>" +
         "</button>" +
       "</li>"
     );
@@ -183,10 +209,11 @@ function renderDrivers(data: SeasonData): string {
       searchBar("driver-search", "Search drivers", "Search drivers") +
       '<span class="results__count">' + drivers.length + " drivers</span>" +
     "</div>" +
-    '<ol class="driver-grid" id="driver-grid" aria-label="Drivers’ championship">' +
-      cards.join("") +
+    '<ol class="driver-list" id="driver-grid" aria-label="Drivers’ championship">' +
+      rows.join("") +
     "</ol>" +
-    emptyState("driver-empty", "No driver matches that search.")
+    emptyState("driver-empty", "No driver matches that search.") +
+    sourceLink("results/" + data.season + "/drivers", "Full drivers’ results on Formula1.com")
   );
 }
 
@@ -235,7 +262,8 @@ function renderTeams(data: SeasonData): string {
     '<ol class="team-list" id="team-list" aria-label="Constructors’ championship">' +
       cards.join("") +
     "</ol>" +
-    emptyState("team-empty", "No team matches that search.")
+    emptyState("team-empty", "No team matches that search.") +
+    sourceLink("results/" + data.season + "/team", "Full team results on Formula1.com")
   );
 }
 
@@ -278,7 +306,8 @@ function renderRaces(data: SeasonData): string {
   return (
     renderRacePicker(races, race) +
     renderRaceHero(race) +
-    renderSheet(race, sheet, available)
+    renderSheet(race, sheet, available) +
+    sourceLink("results/" + data.season + "/races", "Race calendar on Formula1.com")
   );
 }
 
@@ -627,10 +656,12 @@ function renderDriverProfile(data: SeasonData, code: string): string {
   const stats = bundle ? computeDriverStats(code, bundle) : null;
   const fav = getFavDriver() === code;
   const photo = driverPhoto(code);
+  const heroFile = driverHeroFile(code);
+  const { first, last } = nameParts(name);
 
-  const heroPhoto = photo
-    ? '<img class="profile__photo" src="' + esc(photo.file) + '" alt="Portrait of ' + esc(name) +
-      '" width="480" height="600" decoding="async">'
+  const heroPhoto = heroFile
+    ? '<img class="profile__cutout" src="' + esc(heroFile) + '" alt="Portrait of ' + esc(name) +
+      '" width="520" height="740" decoding="async">'
     : '<span class="profile__monogram" aria-hidden="true">' + esc(driverInitials(name)) + "</span>";
 
   const statGrid = stats
@@ -662,8 +693,10 @@ function renderDriverProfile(data: SeasonData, code: string): string {
         "</p>";
 
   const credit = photo
-    ? '<p class="profile__credit">Photo: <a href="' + esc(photo.page) +
-      '" target="_blank" rel="noopener">' + esc(photo.credit) + "</a></p>"
+    ? '<p class="profile__credit">Portrait: <a href="' + esc(photo.page) +
+      '" target="_blank" rel="noopener">' + esc(photo.credit) + "</a>" +
+      ' · <a href="https://www.formula1.com/en/results/' + esc(data.season) +
+      '/drivers" target="_blank" rel="noopener">Season results on Formula1.com</a></p>'
     : "";
 
   return (
@@ -678,19 +711,21 @@ function renderDriverProfile(data: SeasonData, code: string): string {
 
       '<header class="profile__hero">' +
         (number ? '<span class="profile__number" aria-hidden="true">' + esc(number) + "</span>" : "") +
-        '<div class="profile__photoWrap">' + heroPhoto + "</div>" +
         '<div class="profile__intro">' +
           '<p class="profile__eyebrow">' +
-            (pos ? "P" + pos + " · " : "") + fmtPoints(points) + " pts" +
+            (pos ? "P" + pos + " · " : "") + fmtPoints(points) + " PTS" +
           "</p>" +
-          '<h3 class="profile__name" id="profile-name">' + esc(name) + "</h3>" +
+          (first ? '<p class="profile__first">' + esc(first) + "</p>" : "") +
+          '<h3 class="profile__name" id="profile-name">' + esc(last) + "</h3>" +
           '<p class="profile__meta">' +
             (nationality ? '<span class="profile__flag">' + flagForNationality(nationality) + "</span>" : "") +
             (nationality ? "<span>" + esc(nationality) + "</span>" : "") +
-            '<span class="profile__dot">·</span><span>' + esc(team) + "</span>" +
+            (nationality ? '<span class="profile__dot">·</span>' : "") +
+            '<span>' + esc(team) + "</span>" +
             (number ? '<span class="profile__dot">·</span><span>#' + esc(number) + "</span>" : "") +
           "</p>" +
         "</div>" +
+        '<div class="profile__figure">' + heroPhoto + "</div>" +
       "</header>" +
 
       '<section class="profile__section">' +
@@ -728,6 +763,11 @@ function setSub(sub: ResultsSub): void {
 function openDriver(code: string): void {
   if (!code) return;
   state.driverCode = code;
+  try {
+    history.replaceState(null, "", "#results/drivers/" + code.toLowerCase());
+  } catch {
+    /* file:// */
+  }
   renderResults();
   const back = $(".profile__bar [data-back]");
   if (back instanceof HTMLElement) back.focus({ preventScroll: true });
@@ -737,6 +777,11 @@ function openDriver(code: string): void {
 
 function closeDriver(): void {
   state.driverCode = null;
+  try {
+    history.replaceState(null, "", "#results/drivers");
+  } catch {
+    /* file:// */
+  }
   renderResults();
   const grid = $("#driver-grid");
   grid?.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -754,12 +799,19 @@ function setSheet(sheet: SheetKey): void {
   renderResults();
 }
 
+function hashDriver(): string {
+  const parts = (location.hash || "").replace(/^#/, "").split("/").filter(Boolean);
+  return parts[0] === "results" && parts[1] === "drivers" ? (parts[2] || "").toUpperCase() : "";
+}
+
 function applyHashSub(): void {
   const raw = subFromHash();
   if (raw === "drivers" || raw === "teams" || raw === "races") {
     state.resultsSub = raw;
     state.driverCode = null;
   }
+  const code = hashDriver();
+  if (code) state.driverCode = code;
 }
 
 function filterList(input: HTMLInputElement): void {

@@ -13,6 +13,7 @@
     "sync:data": "node scripts/fetch-data.mjs",
     "sync:details": "node scripts/fetch-details.mjs",
     "sync:snapshot": "node scripts/sync-snapshot.mjs",
+    "photos:f1": "node scripts/fetch-f1-photos.mjs",
     "publish:root": "node scripts/publish-root.mjs"
   },
   "devDependencies": {

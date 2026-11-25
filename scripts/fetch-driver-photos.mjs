@@ -122,12 +122,16 @@ for (const driver of data.drivers) {
 
     writeFileSync(target, optimized);
 
-    manifest[code] = {
-      file: "/img/drivers/" + code.toLowerCase() + ".jpg",
-      title: page.title,
-      page: page.fullurl,
-      credit: "Wikipedia / Wikimedia Commons",
-    };
+    const entry = manifest[code] || {};
+    entry.file = "/img/drivers/" + code.toLowerCase() + ".jpg";
+    entry.title = page.title;
+    entry.wiki = page.fullurl;
+    // Keep the Formula 1 credit when an official portrait already exists.
+    if (!entry.hero) {
+      entry.page = page.fullurl;
+      entry.credit = "Wikipedia / Wikimedia Commons";
+    }
+    manifest[code] = entry;
     ok += 1;
     console.log("saved  ", code, page.title, Math.round(optimized.length / 1024) + " kB");
   } catch (error) {

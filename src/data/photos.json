@@ -2,151 +2,201 @@
   "ANT": {
     "file": "/img/drivers/ant.jpg",
     "title": "Kimi Antonelli",
-    "page": "https://en.wikipedia.org/wiki/Kimi_Antonelli",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/ant.webp",
+    "avatar": "/img/drivers/head/ant.webp"
   },
   "VER": {
     "file": "/img/drivers/ver.jpg",
     "title": "Max Verstappen",
-    "page": "https://en.wikipedia.org/wiki/Max_Verstappen",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/ver.webp",
+    "avatar": "/img/drivers/head/ver.webp"
   },
   "HAM": {
     "file": "/img/drivers/ham.jpg",
     "title": "Lewis Hamilton",
-    "page": "https://en.wikipedia.org/wiki/Lewis_Hamilton",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/ham.webp",
+    "avatar": "/img/drivers/head/ham.webp"
   },
   "RUS": {
     "file": "/img/drivers/rus.jpg",
     "title": "George Russell (racing driver)",
-    "page": "https://en.wikipedia.org/wiki/George_Russell_(racing_driver)",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/rus.webp",
+    "avatar": "/img/drivers/head/rus.webp"
   },
   "NOR": {
     "file": "/img/drivers/nor.jpg",
     "title": "Lando Norris",
-    "page": "https://en.wikipedia.org/wiki/Lando_Norris",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/nor.webp",
+    "avatar": "/img/drivers/head/nor.webp"
   },
   "LEC": {
     "file": "/img/drivers/lec.jpg",
     "title": "Charles Leclerc",
-    "page": "https://en.wikipedia.org/wiki/Charles_Leclerc",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/lec.webp",
+    "avatar": "/img/drivers/head/lec.webp"
   },
   "PIA": {
     "file": "/img/drivers/pia.jpg",
     "title": "Oscar Piastri",
-    "page": "https://en.wikipedia.org/wiki/Oscar_Piastri",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/pia.webp",
+    "avatar": "/img/drivers/head/pia.webp"
   },
   "HAD": {
     "file": "/img/drivers/had.jpg",
     "title": "Isack Hadjar",
-    "page": "https://en.wikipedia.org/wiki/Isack_Hadjar",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/had.webp",
+    "avatar": "/img/drivers/head/had.webp"
   },
   "LAW": {
     "file": "/img/drivers/law.jpg",
     "title": "Liam Lawson",
-    "page": "https://en.wikipedia.org/wiki/Liam_Lawson",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/law.webp",
+    "avatar": "/img/drivers/head/law.webp"
   },
   "GAS": {
     "file": "/img/drivers/gas.jpg",
     "title": "Pierre Gasly",
-    "page": "https://en.wikipedia.org/wiki/Pierre_Gasly",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/gas.webp",
+    "avatar": "/img/drivers/head/gas.webp"
   },
   "LIN": {
     "file": "/img/drivers/lin.jpg",
     "title": "Arvid Lindblad",
-    "page": "https://en.wikipedia.org/wiki/Arvid_Lindblad",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/lin.webp",
+    "avatar": "/img/drivers/head/lin.webp"
   },
   "COL": {
     "file": "/img/drivers/col.jpg",
     "title": "Franco Colapinto",
-    "page": "https://en.wikipedia.org/wiki/Franco_Colapinto",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/col.webp",
+    "avatar": "/img/drivers/head/col.webp"
   },
   "BEA": {
     "file": "/img/drivers/bea.jpg",
     "title": "Oliver Bearman",
-    "page": "https://en.wikipedia.org/wiki/Oliver_Bearman",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/bea.webp",
+    "avatar": "/img/drivers/head/bea.webp"
   },
   "BOR": {
     "file": "/img/drivers/bor.jpg",
     "title": "Gabriel Bortoleto",
-    "page": "https://en.wikipedia.org/wiki/Gabriel_Bortoleto",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/bor.webp",
+    "avatar": "/img/drivers/head/bor.webp"
   },
   "HUL": {
     "file": "/img/drivers/hul.jpg",
     "title": "Nico Hülkenberg",
-    "page": "https://en.wikipedia.org/wiki/Nico_H%C3%BClkenberg",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/hul.webp",
+    "avatar": "/img/drivers/head/hul.webp"
   },
   "SAI": {
     "file": "/img/drivers/sai.jpg",
     "title": "Carlos Sainz Jr.",
-    "page": "https://en.wikipedia.org/wiki/Carlos_Sainz_Jr.",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/sai.webp",
+    "avatar": "/img/drivers/head/sai.webp"
   },
   "OCO": {
     "file": "/img/drivers/oco.jpg",
     "title": "Esteban Ocon",
-    "page": "https://en.wikipedia.org/wiki/Esteban_Ocon",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/oco.webp",
+    "avatar": "/img/drivers/head/oco.webp"
   },
   "ALO": {
     "file": "/img/drivers/alo.jpg",
     "title": "Fernando Alonso",
-    "page": "https://en.wikipedia.org/wiki/Fernando_Alonso",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/alo.webp",
+    "avatar": "/img/drivers/head/alo.webp"
   },
   "ALB": {
     "file": "/img/drivers/alb.jpg",
     "title": "Alex Albon",
-    "page": "https://en.wikipedia.org/wiki/Alex_Albon",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/alb.webp",
+    "avatar": "/img/drivers/head/alb.webp"
   },
   "TSU": {
     "file": "/img/drivers/tsu.jpg",
     "title": "Yuki Tsunoda",
-    "page": "https://en.wikipedia.org/wiki/Yuki_Tsunoda",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/tsu.webp",
+    "avatar": "/img/drivers/head/tsu.webp"
   },
   "HIR": {
     "file": "/img/drivers/hir.jpg",
     "title": "Ryo Hirakawa",
-    "page": "https://en.wikipedia.org/wiki/Ryo_Hirakawa",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/hir.webp",
+    "avatar": "/img/drivers/head/hir.webp"
   },
   "STR": {
     "file": "/img/drivers/str.jpg",
     "title": "Lance Stroll",
-    "page": "https://en.wikipedia.org/wiki/Lance_Stroll",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/str.webp",
+    "avatar": "/img/drivers/head/str.webp"
   },
   "BOT": {
     "file": "/img/drivers/bot.jpg",
     "title": "Valtteri Bottas",
-    "page": "https://en.wikipedia.org/wiki/Valtteri_Bottas",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/bot.webp",
+    "avatar": "/img/drivers/head/bot.webp"
   },
   "PER": {
     "file": "/img/drivers/per.jpg",
     "title": "Sergio Pérez",
-    "page": "https://en.wikipedia.org/wiki/Sergio_P%C3%A9rez",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/per.webp",
+    "avatar": "/img/drivers/head/per.webp"
   },
   "CAM": {
     "file": "/img/drivers/cam.jpg",
     "title": "Rafael Câmara",
-    "page": "https://en.wikipedia.org/wiki/Rafael_C%C3%A2mara",
-    "credit": "Wikipedia / Wikimedia Commons"
+    "page": "https://www.formula1.com/en/drivers",
+    "credit": "Formula 1",
+    "hero": "/img/drivers/banner/cam.webp",
+    "avatar": "/img/drivers/head/cam.webp"
   }
 }

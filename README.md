@@ -49,14 +49,17 @@ f1/
 │  ├─ data.json            – záložní kalendář a bodování pro první načtení
 │  ├─ details.json         – záložní výsledky, sprity a kvalifikace
 │  ├─ img/og.png           – náhled pro sociální sítě (1200×630)
-│  ├─ img/drivers/*.jpg    – portréty jezdců (480 px, mozjpeg)
+│  ├─ img/drivers/banner/  – oficiální portréty F1 (transparentní, 520 px)
+│  ├─ img/drivers/head/    – čtvercové výřezy tváří pro avatary (160 px)
+│  ├─ img/drivers/*.jpg    – záložní portréty z Wikimedia (480 px)
 │  ├─ robots.txt
 │  └─ sitemap.xml
 ├─ scripts/
 │  ├─ fetch-data.mjs       – stáhne kalendář a bodování do public/data.json
 │  ├─ fetch-details.mjs    – stáhne výsledky do public/details.json
-│  ├─ fetch-driver-photos.mjs – stáhne portréty do public/img/drivers
-│  ├─ optimize-driver-photos.mjs – zmenší portréty na 480 px
+│  ├─ fetch-f1-photos.mjs  – stáhne oficiální portréty a avatary z formula1.com
+│  ├─ fetch-driver-photos.mjs – záložní portréty z Wikipedie
+│  ├─ optimize-driver-photos.mjs – zmenší záložní portréty na 480 px
 │  ├─ publish-root.mjs     – kopíruje dist/ do kořene repa
 │  └─ sync-snapshot.mjs    – drží snapshot v src/data v souladu s public/
 ├─ vite.config.ts
@@ -98,14 +101,19 @@ a neupravují se ručně.
     **Race · Grid · Fastest · Quali** (sprintový sheet se přidá, když měl
     víkend sprint). Tabulka ukazuje pozici, portrét, tým, čas nebo stav
     odstoupení a body; nejrychlejší kolo má odznak FL.
-  - **Drivers** – mřížka jezdců s portrétem, číslem vozu, týmem, body
-    a podílovým pruhem v barvě týmu. Kliknutí otevře celou kartu jezdce:
-    velký portrét, číslo, vlajka a národnost, tým, mřížka statistik
-    (umístění a body v sezóně, závody, vítězství, pódia, pole positions,
-    top 10, nejrychlejší kola, DNF, sprinty) a přehled výsledků závod
-    od závodu. Hvězdička nastaví oblíbeného jezdce.
+  - **Drivers** – šampionát jezdců jako seznam: pozice, barevný pruh týmu,
+    kulatý portrét, jméno s kódem, tým a počet vítězství, podílový pruh
+    a body. Kliknutí otevře profil v duchu formula1.com: banner v barvě
+    týmu s velkým číslem vozu, portrét jezdce, jméno (křestní jméno
+    kurzívou, příjmení velkými písmeny), vlajka a národnost, tým a číslo.
+    Pod ním je mřížka statistik (umístění a body v sezóně, závody,
+    vítězství, pódia, pole positions, top 10, nejrychlejší kola, DNF,
+    sprinty) a přehled výsledků závod od závodu. Hvězdička nastaví
+    oblíbeného jezdce. Adresa `#results/drivers/ver` otevře profil přímo.
   - **Teams** – šampionát konstruktérů se stejným podílovým pruhem jako
     u jezdců, s počtem vítězství a jezdeckou sestavou.
+  - Portréty, avatary i zdrojová stránka jsou odkázané na formula1.com;
+    `npm run photos:f1` je stáhne znovu.
   - Statistiky se počítají z plných klasifikací sezóny (`/current/results.json`,
     `/current/sprint.json`, `/current/qualifying.json`). Ty se stahují jednou
     za dokončené kolo a drží se v `localStorage` (`f1.results.cache.v1`).
