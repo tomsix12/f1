@@ -15,15 +15,16 @@
   border-radius: 28px;
   background: var(--surface);
   box-shadow: var(--shadow-lg);
-  transform-origin: top right;
+  transform-origin: top left;
   scrollbar-width: thin;
-  animation: settingsIn 0.42s var(--ease-spring);
+  animation: settingsIn 0.36s var(--ease-emphasized);
 }
 .settings[hidden] { display: none; }
 
-/* Emphasised M3 entrance: anchored under the gear, slightly scaled down. */
+/* Slides out from the left under the gear instead of dropping from above:
+   a short horizontal travel keeps it smooth and easy to follow. */
 @keyframes settingsIn {
-  from { opacity: 0; transform: translateY(-14px) scale(0.9); }
+  from { opacity: 0; transform: translateX(-42px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
 
