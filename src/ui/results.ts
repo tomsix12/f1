@@ -20,6 +20,7 @@ import {
   winsText,
 } from "../lib/format";
 import { getFavDriver, getFavTeam, onFavouritesChange, setFavDriver } from "../lib/prefs";
+import { prefersReducedMotion } from "../lib/motion";
 import type { DriverStanding, Race, RaceResult, SeasonData } from "../types";
 import { subFromHash } from "./nav";
 
@@ -159,6 +160,8 @@ export function renderResults(): void {
   host.innerHTML = state.driverCode
     ? renderDriverProfile(state.data, state.driverCode)
     : renderSub(state.data);
+
+  positionSheetIndicator();
 }
 
 function renderSub(data: SeasonData): string {
@@ -403,6 +406,7 @@ function renderSheet(
 ): string {
   const tabs = available.length > 1
     ? '<div class="sheetTabs" role="group" aria-label="Classification">' +
+        '<span class="segmented__indicator" aria-hidden="true"></span>' +
         available.map((key) => {
           const def = SHEETS.find((item) => item.key === key);
           if (!def) return "";
@@ -766,6 +770,41 @@ function positionSubIndicator(): void {
   }
 }
 
+/** Same sliding pill for the Race / Grid / Fastest / Quali sheet tabs. */
+let lastSheet: SheetKey | null = null;
+
+function positionSheetIndicator(animate = true): void {
+  const host = $(".sheetTabs");
+  const indicator = host?.querySelector<HTMLElement>(".segmented__indicator");
+  const active = host?.querySelector<HTMLElement>('.sheetTab[aria-pressed="true"]');
+  if (!host || !indicator || !active) {
+    lastSheet = null;
+    return;
+  }
+
+  const width = active.offsetWidth;
+  const left = active.offsetLeft;
+  // The sheet DOM is rebuilt on every render, so a CSS transition would never
+  // run on the fresh pill. Drive the glide with the Web Animations API from
+  // the previous tab's position instead.
+  const previous = animate && lastSheet && lastSheet !== state.resultsSheet
+    ? host.querySelector<HTMLElement>('.sheetTab[data-sheet="' + lastSheet + '"]')
+    : null;
+
+  indicator.style.width = width + "px";
+  indicator.style.transform = "translateX(" + left + "px)";
+  if (previous && !prefersReducedMotion.matches) {
+    indicator.animate(
+      [
+        { width: previous.offsetWidth + "px", transform: "translateX(" + previous.offsetLeft + "px)" },
+        { width: width + "px", transform: "translateX(" + left + "px)" },
+      ],
+      { duration: 480, easing: "cubic-bezier(0.3, 0, 0, 1)" },
+    );
+  }
+  lastSheet = state.resultsSheet;
+}
+
 function setSub(sub: ResultsSub): void {
   state.resultsSub = sub;
   state.driverCode = null;
@@ -1005,8 +1044,14 @@ export function initResults(): void {
     renderResults();
   });
 
-  window.addEventListener("resize", positionSubIndicator);
+  window.addEventListener("resize", () => {
+    positionSubIndicator();
+    positionSheetIndicator();
+  });
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(positionSubIndicator).catch(() => {});
+    document.fonts.ready.then(() => {
+      positionSubIndicator();
+      positionSheetIndicator();
+    }).catch(() => {});
   }
 }
