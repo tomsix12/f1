@@ -167,6 +167,16 @@ function polesByRound(qualifying: Record<number, QualifyingRow[]>): Record<numbe
   return map;
 }
 
+/**
+ * Post-session rulings the published classification does not carry. At Las
+ * Vegas 2026 Antonelli's fastest Q3 lap was deleted, so the official pole is
+ * Verstappen's (formula1.com pole positions, and Verstappen started from P1)
+ * even though Jolpica still lists Antonelli first in the qualifying sheet.
+ */
+const POLE_FIXES: Record<string, Record<number, string>> = {
+  "2026": { 21: "VER" },
+};
+
 /** Fetches and normalises every completed classification of the season. */
 export async function fetchResultsBundle(
   season: string,
@@ -188,6 +198,7 @@ export async function fetchResultsBundle(
   }
 
   const qualifying = collectByRound(qualifyingRaces, qualifyingRows);
+  const poles = { ...polesByRound(qualifying), ...(POLE_FIXES[season] || {}) };
 
   return {
     season,
@@ -195,6 +206,6 @@ export async function fetchResultsBundle(
     races: collectByRound(resultRaces, (race) => (race.Results ?? []).map(toRow)),
     sprints: collectByRound(sprintRaces, (race) => (race.SprintResults ?? []).map(toRow)),
     qualifying,
-    poles: polesByRound(qualifying),
+    poles,
   };
 }

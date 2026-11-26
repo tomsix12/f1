@@ -8,6 +8,8 @@ import type {
 import { getJson } from "../data/jolpica";
 import { normalize } from "../data/normalize";
 import snapshot from "../data/snapshot.json";
+import { sessionsOf } from "../lib/format";
+import type { SeasonData } from "../types";
 import { cache, detailsCache } from "../lib/storage";
 import { RESULTS_EVENT } from "./events";
 import { announce, renderAll } from "./render";
@@ -121,8 +123,28 @@ async function loadDetailsFallback(season: string): Promise<ResultsBundle | null
 }
 
 /**
+ * True when a session started after the sheets were fetched, so qualifying,
+ * a sprint or a race may have published new rows since. This is what makes
+ * the Results view catch up on its own after a session.
+ */
+function hasSessionSince(bundle: ResultsBundle, data: SeasonData): boolean {
+  const fetched = Date.parse(bundle.fetchedAt) || 0;
+  if (!fetched) return true;
+  const now = Date.now();
+  for (const race of data.races) {
+    for (const session of sessionsOf(race)) {
+      const start = Date.parse(session.start);
+      if (!Number.isNaN(start) && start > fetched && start < now) return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Loads the race, sprint and qualifying sheets. The bundle is reused while it
- * covers the same completed round, which keeps repeat visits cheap.
+ * covers the same completed round and no session has run since the fetch, so
+ * repeat visits stay cheap but a new classification still appears within one
+ * refresh tick.
  */
 export async function ensureDetails(force = false): Promise<void> {
   if (state.detailsLoading || !state.data) return;
@@ -131,7 +153,7 @@ export async function ensureDetails(force = false): Promise<void> {
   if (!force && state.details && state.details.season === data.season) {
     const rounds = Object.keys(state.details.races).map(Number);
     const lastRound = rounds.length ? Math.max(...rounds) : 0;
-    if (lastRound >= data.round) return;
+    if (lastRound >= data.round && !hasSessionSince(state.details, data)) return;
   }
 
   state.detailsLoading = true;

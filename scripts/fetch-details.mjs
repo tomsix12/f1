@@ -102,6 +102,10 @@ async function main() {
     const pole = rows.find((row) => row.pos === 1);
     if (pole?.code) poles[round] = pole.code;
   }
+  // Post-session rulings the classification does not carry: at Las Vegas 2026
+  // Antonelli's fastest Q3 lap was deleted, so the official pole is
+  // Verstappen's. Keep in sync with POLE_FIXES in src/data/details.ts.
+  Object.assign(poles, { 21: "VER" });
 
   const bundle = {
     season: "2026",

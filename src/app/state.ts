@@ -23,6 +23,8 @@ export interface AppState {
   detailsError: string;
   resultsSub: ResultsSub;
   resultsRound: number | null;
+  /** True once the reader picked a round, so refetches leave it alone. */
+  resultsRoundManual: boolean;
   resultsSheet: SheetKey;
   driverCode: string | null;
 }
@@ -44,6 +46,7 @@ export const state: AppState = {
   detailsError: "",
   resultsSub: "races",
   resultsRound: null,
+  resultsRoundManual: false,
   resultsSheet: "race",
   driverCode: null,
 };

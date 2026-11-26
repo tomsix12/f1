@@ -56,9 +56,11 @@ html[data-theme="light"] .team-card { --team: var(--team-light, var(--text-3)); 
   font-variant-numeric: tabular-nums;
 }
 
-.is-p1 { background: var(--primary); color: var(--on-primary); }
-.is-p2 { background: var(--text-2); color: var(--surface); }
-.is-p3 { background: var(--surface-3); color: var(--text-2); }
+/* Medal tiers: gold, silver and bronze in every standings/classification
+   list, independent of the chosen accent. Dark type keeps AA contrast. */
+.is-p1 { background: #E7C14C; color: #2A1D00; }
+.is-p2 { background: #C9CDD3; color: #1F2226; }
+.is-p3 { background: #C98A5B; color: #2A1503; }
 
 .team-card__edge {
   width: 4px;

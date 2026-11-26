@@ -3,7 +3,13 @@ import type { ResultsBundle } from "./details";
 
 /** "Did not start" is a non-start, not a retirement; lapped cars did finish. */
 const NOT_STARTED = /did not start|withdrawn|did not qualify|107%/i;
-const CLASSIFIED = /^(\+\d+ lap|finished)/i;
+const CLASSIFIED = /^(\+\d+ lap|lapped|finished)/i;
+const NOT_ENTERED = /did not qualify|107%|withdrawn/i;
+
+/** The event counts as a race entry, even when the car never started. */
+export function didEnter(row: RaceResult): boolean {
+  return !NOT_ENTERED.test(row.status);
+}
 
 export function didStart(row: RaceResult): boolean {
   return !NOT_STARTED.test(row.status);
@@ -34,8 +40,9 @@ function zeroStats(): DriverStats {
 function tally(rows: RaceResult[]): DriverStats {
   const stats = zeroStats();
   for (const row of rows) {
+    // The official "Grand Prix races" figure counts a DNS as an entry.
+    if (didEnter(row)) stats.starts += 1;
     if (didStart(row)) {
-      stats.starts += 1;
       if (row.pos === 1) stats.wins += 1;
       if (row.pos >= 1 && row.pos <= 3) stats.podiums += 1;
       if (row.pos >= 1 && row.pos <= 10) stats.top10 += 1;

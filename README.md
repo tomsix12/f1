@@ -116,8 +116,15 @@ a neupravují se ručně.
     `npm run photos:f1` je stáhne znovu.
   - Statistiky se počítají z plných klasifikací sezóny (`/current/results.json`,
     `/current/sprint.json`, `/current/qualifying.json`). Ty se stahují jednou
-    za dokončené kolo a drží se v `localStorage` (`f1.results.cache.v1`).
-    Když API selže, použije se `details.json`.
+    za dokončené kolo a po každé session (trénink, kvalifikace, sprint, závod),
+    takže nové výsledky naskočí samy do deseti minut; drží se v `localStorage`
+    (`f1.results.cache.v2`). Když API selže, použije se `details.json`.
+  - Čísla odpovídají oficiálním statistikám F1: „Grand Prix races“ počítá
+    i jezdce, který do závodu nenastoupil, DNF je jen odstoupení (vozy
+    klasifikované jako „Lapped“ jsou dokončené), pole positions se berou
+    z kvalifikace včetně dodatečných rozhodnutí (Las Vegas 2026: Antonellimu
+    byl smazán nejrychlejší čas Q3, pole má Verstappen). Zlatá, stříbrná
+    a bronzová medaile označuje první tři místa ve všech seznamech.
 - **Nastavení v M3 Expressive stylu** – ozubené kolečko v hlavičce
   otevírá animovaný panel (pružinový nájezd, na mobilu pod
   celou hlavičkou). Nabízí segmentované volby tématu (System / Light / Dark),

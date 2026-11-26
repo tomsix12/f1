@@ -390,6 +390,10 @@
   font-weight: 800;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--team-dark, var(--text-3)) 65%, var(--line));
 }
+.racehero__podiumPos.is-p1 { background: #E7C14C; color: #2A1D00; box-shadow: none; }
+.racehero__podiumPos.is-p2 { background: #C9CDD3; color: #1F2226; box-shadow: none; }
+.racehero__podiumPos.is-p3 { background: #C98A5B; color: #2A1503; box-shadow: none; }
+
 .racehero__podiumName { font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; }
 
 /* ---------------------------------------------------------------- sheets -- */
@@ -542,9 +546,9 @@
   font-size: 12.5px;
   font-weight: 800;
 }
-.result-row__pos.is-p1 { background: var(--primary); color: var(--on-primary); }
-.result-row__pos.is-p2 { background: var(--text-2); color: var(--surface); }
-.result-row__pos.is-p3 { background: var(--surface-3); color: var(--text-2); }
+.result-row__pos.is-p1 { background: #E7C14C; color: #2A1D00; }
+.result-row__pos.is-p2 { background: #C9CDD3; color: #1F2226; }
+.result-row__pos.is-p3 { background: #C98A5B; color: #2A1503; }
 
 .result-row__driver {
   display: flex;
@@ -691,6 +695,9 @@ html[data-theme="light"] .driver-row { --team: var(--team-light, var(--text-3));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+.driver-row__pos.is-p1 { background: #E7C14C; color: #2A1D00; }
+.driver-row__pos.is-p2 { background: #C9CDD3; color: #1F2226; }
+.driver-row__pos.is-p3 { background: #C98A5B; color: #2A1503; }
 
 .driver-row__edge {
   width: 4px;
@@ -1065,9 +1072,9 @@ html[data-theme="light"] .profile__hero {
   font-size: 11.5px;
   font-weight: 800;
 }
-.seasonRow__pos.is-p1 { background: var(--primary); color: var(--on-primary); }
-.seasonRow__pos.is-p2 { background: var(--text-2); color: var(--surface); }
-.seasonRow__pos.is-p3 { background: var(--surface-3); color: var(--text-2); }
+.seasonRow__pos.is-p1 { background: #E7C14C; color: #2A1D00; }
+.seasonRow__pos.is-p2 { background: #C9CDD3; color: #1F2226; }
+.seasonRow__pos.is-p3 { background: #C98A5B; color: #2A1503; }
 .seasonRow__pos.is-out {
   width: auto;
   padding: 0 7px;

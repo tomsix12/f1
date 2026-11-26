@@ -278,11 +278,24 @@ function renderTeams(data: SeasonData): string {
 function currentRound(data: SeasonData): number {
   const races = data.races.slice().sort((a, b) => a.round - b.round);
   if (!races.length) return 0;
-  const selected = state.resultsRound;
-  if (selected && races.some((race) => race.round === selected)) return selected;
+
+  // A round the reader picked stays selected; otherwise follow the newest
+  // round that has any classification, including one that only ran quali.
+  if (state.resultsRoundManual && state.resultsRound && races.some((race) => race.round === state.resultsRound)) {
+    return state.resultsRound;
+  }
 
   const done = races.filter((race) => race.round <= (data.round || 0));
-  const fallback = done.length ? done[done.length - 1] : races[0];
+  const covered = state.details && state.details.season === data.season
+    ? Math.max(
+        0,
+        ...Object.keys(state.details.qualifying).map(Number),
+        ...Object.keys(state.details.races).map(Number),
+      )
+    : 0;
+  const latest = Math.max(done.length ? done[done.length - 1].round : 0, covered);
+  const fallback = races.find((race) => race.round === latest)
+    || (done.length ? done[done.length - 1] : races[0]);
   state.resultsRound = fallback.round;
   return fallback.round;
 }
@@ -367,7 +380,7 @@ function podiumChips(rows: RaceResult[] | undefined): string {
     '<div class="racehero__podium" aria-label="Podium">' +
       rows.slice(0, 3).map((row) =>
         '<span class="racehero__podiumItem" style="' + teamVars(row.teamId) + '">' +
-          '<span class="racehero__podiumPos">P' + row.pos + "</span>" +
+          '<span class="racehero__podiumPos is-p' + row.pos + '">P' + row.pos + "</span>" +
           '<span class="racehero__podiumName">' + esc(row.code || row.driver) + "</span>" +
         "</span>",
       ).join("") +
@@ -625,12 +638,14 @@ function seasonResults(data: SeasonData, code: string): string {
         "<span>Pos</span><span>Grand Prix</span><span>Date</span><span>Pts</span>" +
       "</li>" +
       rows.map(({ row, race }) => {
-        const dnf = !/^(\+\d+ lap|finished)/i.test(row.status);
+        const dns = /did not start/i.test(row.status);
+        const dnf = !dns && !/^(\+\d+ lap|lapped|finished)/i.test(row.status);
+        const label = dns ? "DNS" : dnf ? "DNF" : String(row.pos);
         return (
           '<li class="seasonRow">' +
             '<button class="seasonRow__btn" type="button" data-race-round="' + race.round + '">' +
-              '<span class="seasonRow__pos' + (dnf ? " is-out" : row.pos <= 3 ? " is-p" + row.pos : "") + '">' +
-                (dnf ? "DNF" : row.pos) + "</span>" +
+              '<span class="seasonRow__pos' + (dnf || dns ? " is-out" : row.pos <= 3 ? " is-p" + row.pos : "") + '">' +
+                label + "</span>" +
               '<span class="seasonRow__gp">' + flagFor(race.country) +
                 '<span>' + esc(shortRaceName(race.name)) + "</span></span>" +
               '<span class="seasonRow__date">' + esc(fmtDayMonth(raceStart(race))) + "</span>" +
@@ -845,6 +860,7 @@ function closeDriver(): void {
 
 function selectRound(round: number): void {
   state.resultsRound = round;
+  state.resultsRoundManual = true;
   const available = availableSheets(round);
   if (!available.includes(state.resultsSheet)) state.resultsSheet = "race";
   renderResults();

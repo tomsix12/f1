@@ -17,7 +17,7 @@ import { WANT_RESULTS_EVENT } from "./app/events";
 import { renderAll } from "./app/render";
 import { signature, state } from "./app/state";
 import { tick } from "./app/tick";
-import { REFRESH_MS } from "./config";
+import { REFRESH_MS, DETAILS_LEGACY_KEY } from "./config";
 import { syncTimeZone } from "./lib/format";
 import { PREFS_EVENT } from "./lib/prefs";
 import { detailsCache, cache } from "./lib/storage";
@@ -60,6 +60,12 @@ function boot(): void {
     state.sig = signature(cached.data);
     state.details = detailsCache.read();
     renderAll();
+  }
+
+  try {
+    localStorage.removeItem(DETAILS_LEGACY_KEY);
+  } catch {
+    /* storage may be unavailable */
   }
 
   showView(viewFromHash(), { animate: false, scroll: false });

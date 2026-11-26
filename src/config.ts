@@ -16,7 +16,9 @@ export const REFRESH_MS = 10 * 60 * 1000;
 export const FETCH_TIMEOUT = 20_000;
 
 export const CACHE_KEY = "f1.dashboard.cache.v2";
-export const DETAILS_KEY = "f1.results.cache.v1";
+export const DETAILS_KEY = "f1.results.cache.v2";
+/** Previous sheet cache; removed on boot because it misses pole rulings. */
+export const DETAILS_LEGACY_KEY = "f1.results.cache.v1";
 export const MODE_KEY = "f1.mode";
 export const ACCENT_KEY = "f1.accent";
 
