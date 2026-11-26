@@ -31,6 +31,7 @@
 }
 
 .results__seg {
+  position: relative;
   padding: 4px;
   gap: 2px;
   border-radius: 999px;
@@ -38,10 +39,40 @@
   border: 1px solid var(--line);
 }
 .results__seg .segmented__item {
+  position: relative;
+  z-index: 1;
   min-height: 36px;
   padding: 0 18px;
   font-size: 13px;
   font-weight: 650;
+  background: transparent;
+  transition:
+    color 0.3s var(--ease-standard),
+    transform 0.3s var(--ease-spring);
+}
+.results__seg .segmented__item:hover { background: transparent; }
+.results__seg .segmented__item[aria-pressed="true"] {
+  background: transparent;
+  color: var(--on-primary-container);
+  box-shadow: none;
+}
+
+/* One pill slides between the three labels instead of each label flashing its
+   own background — the same motion language as the header tabs. */
+.segmented__indicator {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--primary-container);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.5s var(--ease-emphasized),
+    width 0.5s var(--ease-emphasized);
+  will-change: transform;
 }
 
 .results__toolbar {

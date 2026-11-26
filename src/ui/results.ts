@@ -154,6 +154,7 @@ export function renderResults(): void {
   for (const button of $$("[data-sub]", $("#results-sub") || document)) {
     button.setAttribute("aria-pressed", String(button.dataset.sub === state.resultsSub));
   }
+  positionSubIndicator();
 
   host.innerHTML = state.driverCode
     ? renderDriverProfile(state.data, state.driverCode)
@@ -747,6 +748,24 @@ function renderDriverProfile(data: SeasonData, code: string): string {
 
 /* ---------------------------------------------------------------- behaviour */
 
+/** Slides the segmented pill under the active Results section. */
+function positionSubIndicator(): void {
+  const host = $("#results-sub");
+  const indicator = host?.querySelector<HTMLElement>(".segmented__indicator");
+  const active = host?.querySelector<HTMLElement>('.segmented__item[aria-pressed="true"]');
+  if (!host || !indicator || !active) return;
+
+  // Position without animating on the very first paint.
+  const first = !indicator.style.width;
+  if (first) indicator.style.transition = "none";
+  indicator.style.width = active.offsetWidth + "px";
+  indicator.style.transform = "translateX(" + active.offsetLeft + "px)";
+  if (first) {
+    void indicator.offsetWidth;
+    indicator.style.transition = "";
+  }
+}
+
 function setSub(sub: ResultsSub): void {
   state.resultsSub = sub;
   state.driverCode = null;
@@ -756,8 +775,6 @@ function setSub(sub: ResultsSub): void {
     /* file:// */
   }
   renderResults();
-  const host = $("#view-results");
-  host?.scrollIntoView({ block: "start", behavior: "smooth" });
 }
 
 function openDriver(code: string): void {
@@ -987,4 +1004,9 @@ export function initResults(): void {
   onFavouritesChange(() => {
     renderResults();
   });
+
+  window.addEventListener("resize", positionSubIndicator);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(positionSubIndicator).catch(() => {});
+  }
 }
